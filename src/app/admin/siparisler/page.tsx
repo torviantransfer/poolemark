@@ -1,0 +1,186 @@
+import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import { formatPrice, formatDateTime } from "@/lib/helpers";
+import {
+  ORDER_STATUS_LABELS,
+  ORDER_STATUS_COLORS,
+  PAYMENT_STATUS_LABELS,
+  PAYMENT_STATUS_COLORS,
+} from "@/constants";
+import { ShoppingCart, Eye } from "lucide-react";
+import { AdminSearchForm } from "@/components/admin/search-form";
+
+interface Props {
+  searchParams: Promise<{ page?: string; search?: string; status?: string }>;
+}
+
+export default async function AdminOrdersPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const page = parseInt(params.page || "1");
+  const search = params.search || "";
+  const status = params.status || "all";
+  const limit = 20;
+  const from = (page - 1) * limit;
+
+  const supabase = await createClient();
+  let query = supabase
+    .from("orders")
+    .select("*, user:users!user_id(first_name, last_name, email)", {
+      count: "exact",
+    })
+    .order("created_at", { ascending: false })
+    .range(from, from + limit - 1);
+
+  if (search) query = query.ilike("order_number", `%${search}%`);
+  if (status !== "all") query = query.eq("status", status);
+
+  const { data: orders, count } = await query;
+  const totalPages = Math.ceil((count || 0) / limit);
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Siparişler</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {count || 0} sipariş bulundu
+        </p>
+      </div>
+
+      <div className="bg-white rounded-2xl border shadow-sm p-4">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <AdminSearchForm placeholder="Sipariş no ara..." defaultValue={search} />
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { value: "all", label: "Tümü" },
+              { value: "pending", label: "Bekliyor" },
+              { value: "confirmed", label: "Onaylı" },
+              { value: "preparing", label: "Hazırlanıyor" },
+              { value: "shipped", label: "Kargoda" },
+              { value: "delivered", label: "Teslim" },
+              { value: "cancelled", label: "İptal" },
+            ].map((s) => (
+              <Link
+                key={s.value}
+                href={`/admin/siparisler?status=${s.value}${search ? `&search=${search}` : ""}`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                  status === s.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-foreground/70 hover:bg-secondary/80"
+                }`}
+              >
+                {s.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-left text-muted-foreground bg-secondary/30">
+                <th className="px-5 py-3 font-medium">Sipariş No</th>
+                <th className="px-5 py-3 font-medium">Müşteri</th>
+                <th className="px-5 py-3 font-medium">Tutar</th>
+                <th className="px-5 py-3 font-medium">Ödeme</th>
+                <th className="px-5 py-3 font-medium">Durum</th>
+                <th className="px-5 py-3 font-medium">Tarih</th>
+                <th className="px-5 py-3 font-medium text-right">İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders && orders.length > 0 ? (
+                orders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className="border-b last:border-0 hover:bg-secondary/20 transition-colors"
+                  >
+                    <td className="px-5 py-3">
+                      <Link
+                        href={`/admin/siparisler/${order.id}`}
+                        className="text-primary font-medium hover:underline"
+                      >
+                        {order.order_number}
+                      </Link>
+                    </td>
+                    <td className="px-5 py-3 text-foreground/80">
+                      {order.user
+                        ? `${order.user.first_name} ${order.user.last_name}`
+                        : order.guest_email || "Misafir"}
+                    </td>
+                    <td className="px-5 py-3 font-medium">
+                      {formatPrice(order.total)}
+                    </td>
+                    <td className="px-5 py-3">
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                          PAYMENT_STATUS_COLORS[order.payment_status] || ""
+                        }`}
+                      >
+                        {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                          ORDER_STATUS_COLORS[order.status] || ""
+                        }`}
+                      >
+                        {ORDER_STATUS_LABELS[order.status] || order.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-muted-foreground text-xs">
+                      {formatDateTime(order.created_at)}
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <Link
+                        href={`/admin/siparisler/${order.id}`}
+                        className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors inline-flex"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="px-5 py-16 text-center text-muted-foreground">
+                    <ShoppingCart className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                    {search ? "Aramanızla eşleşen sipariş bulunamadı" : "Henüz sipariş yok"}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-5 py-3 border-t">
+            <p className="text-sm text-muted-foreground">
+              Sayfa {page} / {totalPages}
+            </p>
+            <div className="flex gap-1">
+              {page > 1 && (
+                <Link
+                  href={`/admin/siparisler?page=${page - 1}${search ? `&search=${search}` : ""}${status !== "all" ? `&status=${status}` : ""}`}
+                  className="px-3 py-1.5 rounded-lg text-sm bg-secondary hover:bg-secondary/80 transition-colors"
+                >
+                  Önceki
+                </Link>
+              )}
+              {page < totalPages && (
+                <Link
+                  href={`/admin/siparisler?page=${page + 1}${search ? `&search=${search}` : ""}${status !== "all" ? `&status=${status}` : ""}`}
+                  className="px-3 py-1.5 rounded-lg text-sm bg-secondary hover:bg-secondary/80 transition-colors"
+                >
+                  Sonraki
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

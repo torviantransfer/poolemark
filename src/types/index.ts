@@ -175,10 +175,16 @@ export interface Coupon {
 export interface Review {
   id: string;
   product_id: string;
-  user_id: string;
+  user_id: string | null;
   rating: number;
   comment: string;
   is_approved: boolean;
+  is_verified_purchase: boolean;
+  reviewer_name: string | null;
+  photo_urls: string[] | null;
+  country_code: string | null;
+  admin_reply: string | null;
+  admin_reply_at: string | null;
   created_at: string;
   user?: Pick<User, "first_name" | "last_name">;
 }

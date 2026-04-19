@@ -1,0 +1,263 @@
+import { createClient } from "@/lib/supabase/server";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { formatPrice, formatDateTime } from "@/lib/helpers";
+import {
+  ORDER_STATUS_LABELS,
+  ORDER_STATUS_COLORS,
+  PAYMENT_STATUS_LABELS,
+  PAYMENT_STATUS_COLORS,
+} from "@/constants";
+import { ArrowLeft, MapPin, Phone, Mail, Package } from "lucide-react";
+import { OrderStatusForm } from "@/components/admin/order-status-form";
+
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
+export default async function AdminOrderDetailPage({ params }: Props) {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: order } = await supabase
+    .from("orders")
+    .select("*, user:users!user_id(first_name, last_name, email, phone), items:order_items(*)")
+    .eq("id", id)
+    .single();
+
+  if (!order) notFound();
+
+  const shippingAddr = order.shipping_address_json;
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 space-y-6">
+      <div className="flex items-center gap-3">
+        <Link
+          href="/admin/siparisler"
+          className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-foreground">
+              {order.order_number}
+            </h1>
+            <span
+              className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                ORDER_STATUS_COLORS[order.status] || ""
+              }`}
+            >
+              {ORDER_STATUS_LABELS[order.status] || order.status}
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {formatDateTime(order.created_at)}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Order Items */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+            <div className="p-5 pb-3">
+              <h2 className="text-base font-semibold">Sipariş Kalemleri</h2>
+            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-t text-left text-muted-foreground">
+                  <th className="px-5 py-2.5 font-medium">Ürün</th>
+                  <th className="px-5 py-2.5 font-medium text-center">Adet</th>
+                  <th className="px-5 py-2.5 font-medium text-right">Fiyat</th>
+                  <th className="px-5 py-2.5 font-medium text-right">Toplam</th>
+                </tr>
+              </thead>
+              <tbody>
+                {order.items?.map((item: any) => (
+                  <tr key={item.id} className="border-t">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        {item.product_image ? (
+                          <img
+                            src={item.product_image}
+                            alt={item.product_name}
+                            className="w-10 h-10 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium">{item.product_name}</p>
+                          {item.variant_name && (
+                            <p className="text-xs text-muted-foreground">
+                              {item.variant_name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3 text-center">{item.quantity}</td>
+                    <td className="px-5 py-3 text-right">
+                      {formatPrice(item.unit_price)}
+                    </td>
+                    <td className="px-5 py-3 text-right font-medium">
+                      {formatPrice(item.unit_price * item.quantity)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t">
+                  <td colSpan={3} className="px-5 py-2 text-right text-muted-foreground">
+                    Ara Toplam
+                  </td>
+                  <td className="px-5 py-2 text-right font-medium">
+                    {formatPrice(order.subtotal)}
+                  </td>
+                </tr>
+                {order.shipping_cost > 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-5 py-2 text-right text-muted-foreground">
+                      Kargo
+                    </td>
+                    <td className="px-5 py-2 text-right">
+                      {formatPrice(order.shipping_cost)}
+                    </td>
+                  </tr>
+                )}
+                {order.discount_amount > 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-5 py-2 text-right text-muted-foreground">
+                      İndirim
+                    </td>
+                    <td className="px-5 py-2 text-right text-green-600">
+                      -{formatPrice(order.discount_amount)}
+                    </td>
+                  </tr>
+                )}
+                <tr className="border-t">
+                  <td colSpan={3} className="px-5 py-3 text-right font-semibold">
+                    Toplam
+                  </td>
+                  <td className="px-5 py-3 text-right text-lg font-bold text-primary">
+                    {formatPrice(order.total)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {order.note && (
+            <div className="bg-white rounded-2xl border shadow-sm p-5">
+              <h2 className="text-base font-semibold mb-2">Sipariş Notu</h2>
+              <p className="text-sm text-foreground/80">{order.note}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Status Update */}
+          <OrderStatusForm
+            orderId={order.id}
+            currentStatus={order.status}
+            currentPaymentStatus={order.payment_status}
+            cargoCompany={order.cargo_company || ""}
+            cargoTrackingNumber={order.cargo_tracking_number || ""}
+          />
+
+          {/* Customer */}
+          <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
+            <h2 className="text-base font-semibold">Müşteri</h2>
+            {order.user ? (
+              <div className="space-y-2 text-sm">
+                <p className="font-medium">
+                  {order.user.first_name} {order.user.last_name}
+                </p>
+                <p className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="h-3.5 w-3.5" />
+                  {order.user.email}
+                </p>
+                {order.user.phone && (
+                  <p className="flex items-center gap-2 text-muted-foreground">
+                    <Phone className="h-3.5 w-3.5" />
+                    {order.user.phone}
+                  </p>
+                )}
+                <Link
+                  href={`/admin/musteriler/${order.user_id}`}
+                  className="text-primary text-xs hover:underline"
+                >
+                  Müşteri profilini gör →
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2 text-sm">
+                <p className="text-muted-foreground">Misafir sipariş</p>
+                {order.guest_email && (
+                  <p className="flex items-center gap-2 text-muted-foreground">
+                    <Mail className="h-3.5 w-3.5" />
+                    {order.guest_email}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Shipping Address */}
+          {shippingAddr && (
+            <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
+              <h2 className="text-base font-semibold flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Teslimat Adresi
+              </h2>
+              <div className="text-sm space-y-1 text-foreground/80">
+                <p className="font-medium">
+                  {shippingAddr.first_name} {shippingAddr.last_name}
+                </p>
+                <p>{shippingAddr.address_line}</p>
+                <p>
+                  {shippingAddr.neighborhood && `${shippingAddr.neighborhood}, `}
+                  {shippingAddr.district} / {shippingAddr.city}
+                </p>
+                {shippingAddr.postal_code && (
+                  <p>Posta Kodu: {shippingAddr.postal_code}</p>
+                )}
+                {shippingAddr.phone && (
+                  <p className="flex items-center gap-2">
+                    <Phone className="h-3 w-3" />
+                    {shippingAddr.phone}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Payment */}
+          <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
+            <h2 className="text-base font-semibold">Ödeme</h2>
+            <div className="text-sm space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Yöntem</span>
+                <span className="font-medium">{order.payment_method || "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Durum</span>
+                <span
+                  className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                    PAYMENT_STATUS_COLORS[order.payment_status] || ""
+                  }`}
+                >
+                  {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

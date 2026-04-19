@@ -6,6 +6,23 @@ export const SITE_CONFIG = {
   locale: "tr_TR",
   currency: "TRY",
   currencySymbol: "₺",
+  phone: "0 850 840 13 27",
+  phoneRaw: "08508401327",
+  email: "info@poolemark.com",
+  address: "Sedir Mahallesi, NO:18, Muratpaşa / Antalya",
+  city: "Antalya",
+  district: "Muratpaşa",
+  taxOffice: "Düden Vergi Dairesi",
+  taxNumber: "2340586838",
+  companyName: "Poolemark",
+  foundedYear: 2018,
+  whatsapp: "908508401327",
+  workingHours: "Pazartesi - Cumartesi, 09:00 - 18:00",
+  socialMedia: {
+    instagram: "https://www.instagram.com/poolemark",
+    facebook: "https://www.facebook.com/poolemark",
+    twitter: "https://x.com/poolemark",
+  },
 } as const;
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {
@@ -44,7 +61,7 @@ export const PAYMENT_STATUS_COLORS: Record<string, string> = {
 
 export const NAV_LINKS = [
   { label: "Anasayfa", href: "/" },
-  { label: "Ürünler", href: "/urunler" },
+  { label: "Ürünler", href: "/products" },
   { label: "Blog", href: "/blog" },
   { label: "Hakkımızda", href: "/hakkimizda" },
   { label: "İletişim", href: "/iletisim" },

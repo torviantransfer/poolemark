@@ -1,0 +1,259 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import {
+  getFeaturedProducts,
+  getProductBySlug,
+  getRelatedProducts,
+} from "@/services/products";
+import { getProductReviews, getProductRating } from "@/services/reviews";
+import { ProductCard } from "@/components/store/product-card";
+import { ProductGallery } from "@/components/store/product-gallery";
+import { ProductActions } from "@/components/store/product-actions";
+import { ProductTabs } from "@/components/store/product-tabs";
+import { ShippingTimeline } from "@/components/store/shipping-timeline";
+import { InstallmentModal } from "@/components/store/installment-modal";
+import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
+import { formatPrice, calculateDiscountPercentage } from "@/lib/helpers";
+import {
+  ChevronRight,
+  CreditCard,
+  PackageCheck,
+  RotateCcw,
+  Star,
+  Truck,
+} from "lucide-react";
+import type { Metadata } from "next";
+
+interface Props {
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
+  if (!product) return {};
+  return {
+    title: product.meta_title || `${product.name} | Poolemark`,
+    description:
+      product.meta_description ||
+      product.short_description ||
+      `${product.name} - Poolemark'ta uygun fiyatla satın alın.`,
+  };
+}
+
+export default async function ProductPage({ params }: Props) {
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
+
+  if (!product) notFound();
+
+  const [rating, reviews, relatedProducts, featuredProducts] = await Promise.all([
+    getProductRating(product.id).catch(() => ({ average: 0, count: 0 })),
+    getProductReviews(product.id).catch(() => []),
+    getRelatedProducts(product.category_id, product.id, 4).catch(() => []),
+    getFeaturedProducts(8).catch(() => []),
+  ]);
+
+  const recommendedProducts =
+    relatedProducts.length > 0
+      ? relatedProducts
+      : featuredProducts
+          .filter((p) => p.id !== product.id)
+          .slice(0, 4);
+
+  const discount = product.compare_at_price
+    ? calculateDiscountPercentage(product.price, product.compare_at_price)
+    : 0;
+
+  const images =
+    product.images?.sort((a, b) => {
+      if (a.is_primary) return -1;
+      if (b.is_primary) return 1;
+      return a.sort_order - b.sort_order;
+    }) || [];
+
+  return (
+    <>
+      <ProductJsonLd
+        name={product.name}
+        description={product.short_description || product.meta_description || ""}
+        image={images?.[0]?.url || ""}
+        slug={product.slug}
+        price={product.price}
+        compareAtPrice={product.compare_at_price}
+        inStock={product.stock_quantity > 0}
+        rating={rating.average || undefined}
+        reviewCount={rating.count || undefined}
+        sku={product.sku || undefined}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Anasayfa", href: "/" },
+          ...(product.category
+            ? [{ name: product.category.name, href: `/kategori/${product.category.slug}` }]
+            : []),
+          { name: product.name, href: `/products/${product.slug}` },
+        ]}
+      />
+      <section className="pt-4 md:pt-6 pb-12 md:pb-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-8">
+            <Link href="/" className="hover:text-primary transition-colors">
+              Anasayfa
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5" />
+            {product.category && (
+              <>
+                <Link
+                  href={`/kategori/${product.category.slug}`}
+                  className="hover:text-primary transition-colors"
+                >
+                  {product.category.name}
+                </Link>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </>
+            )}
+            <span className="text-foreground font-medium truncate max-w-[200px]">
+              {product.name}
+            </span>
+          </nav>
+
+          {/* Product Main */}
+          <div className="grid lg:grid-cols-2 gap-10 md:gap-16">
+            {/* Gallery */}
+            <ProductGallery images={images} productName={product.name} />
+
+            {/* Info */}
+            <div>
+              {product.category && (
+                <Link
+                  href={`/kategori/${product.category.slug}`}
+                  className="text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-primary transition-colors"
+                >
+                  {product.category.name}
+                </Link>
+              )}
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground mt-1.5 leading-tight">
+                {product.name}
+              </h1>
+
+              {/* Rating — always visible */}
+              <div className="flex items-center gap-2 mt-3">
+                <div className="flex items-center">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${
+                        rating.count > 0 && i < Math.round(rating.average)
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "fill-muted text-muted"
+                      }`}
+                    />
+                  ))}
+                </div>
+                {rating.count > 0 ? (
+                  <span className="text-sm text-muted-foreground">
+                    {rating.average.toFixed(1)} ({rating.count} değerlendirme)
+                  </span>
+                ) : (
+                  <a
+                    href="#degerlendirmeler"
+                    className="text-sm text-primary/80 font-medium hover:text-primary underline underline-offset-2"
+                  >
+                    İlk yorumu sen yap
+                  </a>
+                )}
+              </div>
+
+              {/* Price */}
+              <div className="mt-5">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-2xl md:text-3xl font-bold text-foreground">
+                    {formatPrice(product.price)}
+                  </span>
+                  {product.compare_at_price &&
+                    product.compare_at_price > product.price && (
+                      <>
+                        <span className="text-lg text-muted-foreground line-through">
+                          {formatPrice(product.compare_at_price)}
+                        </span>
+                        <span className="px-2 py-0.5 text-xs font-bold bg-destructive text-white rounded-md">
+                          %{discount} İNDİRİM
+                        </span>
+                      </>
+                    )}
+                </div>
+                {/* Installment hint */}
+                <InstallmentModal price={product.price} />
+              </div>
+
+              {/* Short Description */}
+              {product.short_description && (
+                <p className="text-sm text-muted-foreground mt-4 leading-relaxed">
+                  {product.short_description}
+                </p>
+              )}
+
+              {/* Stock Status */}
+              <div className="mt-4">
+                {product.stock_quantity > 0 ? (
+                  product.stock_quantity <=
+                  (product.low_stock_threshold || 5) ? (
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-sm font-semibold text-amber-700">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                      ⚡ Son {product.stock_quantity} adet kaldı!
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
+                      <span className="w-2 h-2 rounded-full bg-green-500" />
+                      Stokta var
+                    </span>
+                  )
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-destructive">
+                    <span className="w-2 h-2 rounded-full bg-destructive" />
+                    Tükendi
+                  </span>
+                )}
+              </div>
+
+              {/* Actions */}
+              <ProductActions
+                product={product}
+                disabled={product.stock_quantity <= 0}
+              />
+
+              {/* Shipping Timeline */}
+              <ShippingTimeline />
+            </div>
+          </div>
+
+          {/* Tabs: Description, Reviews */}
+          <ProductTabs
+            description={product.description}
+            reviews={reviews}
+            productId={product.id}
+          />
+
+          {/* Related Products */}
+          {recommendedProducts.length > 0 && (
+            <div className="mt-20 pt-10 border-t border-border/30">
+              <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">
+                {relatedProducts.length > 0 ? "Benzer Ürünler" : "Önerilen Ürünler"}
+              </p>
+              <h2 className="text-2xl font-bold text-foreground mb-8">
+                Bunlar da İlginizi Çekebilir
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                {recommendedProducts.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    </>
+  );
+}
