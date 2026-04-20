@@ -284,7 +284,7 @@ export function Header() {
               </Link>
             )}
 
-            <MiniCart />
+            <MiniCart transparent={transparent} />
 
             <div className="hidden md:block">
               {loading ? (

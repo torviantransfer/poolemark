@@ -27,13 +27,13 @@ export default async function AdminCategoriesPage() {
             Ürün kategorilerini yönetin
           </p>
         </div>
-        <button
+        <Link
+          href="/admin/kategoriler/ekle"
           className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
-          data-add-category
         >
           <Plus className="h-4 w-4" />
           Yeni Kategori
-        </button>
+        </Link>
       </div>
 
       <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
@@ -95,6 +95,12 @@ export default async function AdminCategoriesPage() {
                       </td>
                       <td className="px-5 py-3">
                         <div className="flex items-center justify-end gap-1">
+                          <Link
+                            href={`/admin/kategoriler/${cat.id}`}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Link>
                           <AdminDeleteButton
                             id={cat.id}
                             table="categories"
@@ -131,12 +137,18 @@ export default async function AdminCategoriesPage() {
                         </td>
                         <td className="px-5 py-3">
                           <div className="flex items-center justify-end gap-1">
-                            <AdminDeleteButton
-                              id={child.id}
-                              table="categories"
-                              label={child.name}
-                            />
-                          </div>
+                          <Link
+                            href={`/admin/kategoriler/${child.id}`}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Link>
+                          <AdminDeleteButton
+                            id={child.id}
+                            table="categories"
+                            label={child.name}
+                          />
+                        </div>
                         </td>
                       </tr>
                     ))}

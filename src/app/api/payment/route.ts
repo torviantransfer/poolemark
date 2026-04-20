@@ -11,11 +11,136 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const { addressId, guestAddress, items, subtotal, shipping, discount, total, notes } = body;
+    const { addressId, guestAddress, items, shippingCompanyId, couponCode, notes } = body;
 
     if (!items?.length) {
       return NextResponse.json({ error: "Ürünler gerekli" }, { status: 400 });
     }
+
+    if (!shippingCompanyId) {
+      return NextResponse.json({ error: "Kargo firması seçilmelidir" }, { status: 400 });
+    }
+
+    // === SERVER-SIDE PRICE VALIDATION ===
+    // Fetch actual prices from database
+    const productIds = items.map((i: { product_id: string }) => i.product_id);
+    const variantIds = items.filter((i: { variant_id?: string }) => i.variant_id).map((i: { variant_id: string }) => i.variant_id);
+
+    const { data: products } = await supabase
+      .from("products")
+      .select("id, price, compare_at_price, stock_quantity, name")
+      .in("id", productIds);
+
+    let variants: { id: string; price: number; stock_quantity: number }[] = [];
+    if (variantIds.length > 0) {
+      const { data: v } = await supabase
+        .from("product_variants")
+        .select("id, price, stock_quantity")
+        .in("id", variantIds);
+      variants = v || [];
+    }
+
+    if (!products || products.length === 0) {
+      return NextResponse.json({ error: "Ürünler bulunamadı" }, { status: 400 });
+    }
+
+    // Validate each item's price and stock
+    let calculatedSubtotal = 0;
+    const validatedItems: { product_id: string; variant_id?: string; name: string; variant_name?: string; quantity: number; price: number }[] = [];
+
+    for (const item of items) {
+      const product = products.find((p) => p.id === item.product_id);
+      if (!product) {
+        return NextResponse.json({ error: `Ürün bulunamadı: ${item.name}` }, { status: 400 });
+      }
+
+      let actualPrice = product.price;
+      let stockQty = product.stock_quantity;
+
+      if (item.variant_id) {
+        const variant = variants.find((v) => v.id === item.variant_id);
+        if (!variant) {
+          return NextResponse.json({ error: `Varyant bulunamadı: ${item.variant_name || item.name}` }, { status: 400 });
+        }
+        actualPrice = variant.price;
+        stockQty = variant.stock_quantity;
+      }
+
+      // Check stock
+      if (item.quantity > stockQty) {
+        return NextResponse.json({ error: `Stok yetersiz: ${product.name} (mevcut: ${stockQty})` }, { status: 400 });
+      }
+
+      calculatedSubtotal += actualPrice * item.quantity;
+      validatedItems.push({
+        product_id: item.product_id,
+        variant_id: item.variant_id || undefined,
+        name: item.name || product.name,
+        variant_name: item.variant_name,
+        quantity: item.quantity,
+        price: actualPrice,
+      });
+    }
+
+    // Calculate shipping from selected shipping company
+    const { data: shippingCompany } = await supabase
+      .from("shipping_companies")
+      .select("id, name, price, free_shipping_threshold")
+      .eq("id", shippingCompanyId)
+      .eq("is_active", true)
+      .single();
+
+    if (!shippingCompany) {
+      return NextResponse.json({ error: "Geçerli bir kargo firması seçilmelidir" }, { status: 400 });
+    }
+
+    const calculatedShipping =
+      shippingCompany.free_shipping_threshold && calculatedSubtotal >= shippingCompany.free_shipping_threshold
+        ? 0
+        : shippingCompany.price;
+
+    // Validate coupon server-side
+    let calculatedDiscount = 0;
+    if (couponCode) {
+      const { data: coupon } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", couponCode.toUpperCase())
+        .eq("is_active", true)
+        .single();
+
+      if (coupon) {
+        const now = new Date();
+        const isValid =
+          (!coupon.starts_at || new Date(coupon.starts_at) <= now) &&
+          (!coupon.expires_at || new Date(coupon.expires_at) >= now) &&
+          (!coupon.max_uses || coupon.used_count < coupon.max_uses) &&
+          (!coupon.min_order_amount || calculatedSubtotal >= coupon.min_order_amount);
+
+        if (isValid) {
+          if (coupon.type === "percentage") {
+            calculatedDiscount = (calculatedSubtotal * coupon.value) / 100;
+          } else if (coupon.type === "fixed" || coupon.type === "fixed_amount") {
+            calculatedDiscount = coupon.value;
+          }
+          calculatedDiscount = Math.min(calculatedDiscount, calculatedSubtotal);
+
+          // Increment coupon usage
+          await supabase
+            .from("coupons")
+            .update({ used_count: coupon.used_count + 1 })
+            .eq("id", coupon.id);
+        }
+      }
+    }
+
+    const calculatedTotal = calculatedSubtotal - calculatedDiscount + calculatedShipping;
+
+    // Use server-calculated values (ignore client values)
+    const subtotal = calculatedSubtotal;
+    const shipping = calculatedShipping;
+    const discount = calculatedDiscount;
+    const total = calculatedTotal;
 
     let shippingAddressJson: Record<string, string>;
     let userEmail: string;
@@ -92,6 +217,7 @@ export async function POST(request: NextRequest) {
         status: "pending",
         payment_status: "pending",
         payment_method: "credit_card",
+        cargo_company: shippingCompany.name,
         subtotal,
         shipping_cost: shipping,
         discount_amount: discount || 0,
@@ -106,8 +232,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Sipariş oluşturulamadı" }, { status: 500 });
     }
 
-    // Create order items
-    const orderItems = items.map((item: { product_id: string; variant_id?: string; name: string; variant_name?: string; quantity: number; price: number }) => ({
+    // Create order items (using server-validated prices)
+    const orderItems = validatedItems.map((item) => ({
       order_id: order.id,
       product_id: item.product_id,
       variant_id: item.variant_id || null,
@@ -135,7 +261,7 @@ export async function POST(request: NextRequest) {
       userName,
       userPhone,
       userAddress: `${shippingAddressJson.address_line}, ${shippingAddressJson.neighborhood || ""} ${shippingAddressJson.district}/${shippingAddressJson.city}`,
-      items: items.map((item: { name: string; price: number; quantity: number }) => ({
+      items: validatedItems.map((item) => ({
         name: item.name,
         price: item.price,
         quantity: item.quantity,

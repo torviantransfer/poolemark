@@ -21,9 +21,12 @@ export default async function PaymentResultPage({
   const isSuccess = status === "success";
 
   let order: any = null;
+  let isLoggedIn = false;
 
   if (orderId) {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    isLoggedIn = !!user;
     const { data } = await supabase
       .from("orders")
       .select("id, order_number, total, created_at")
@@ -44,8 +47,9 @@ export default async function PaymentResultPage({
               Siparişiniz Alındı!
             </h1>
             <p className="text-muted-foreground mt-3 max-w-sm mx-auto">
-              Siparişiniz başarıyla oluşturuldu. Siparişinizin durumunu hesabım
-              sayfasından takip edebilirsiniz.
+              Siparişiniz başarıyla oluşturuldu. Siparişinizin durumunu{" "}
+              {isLoggedIn ? "hesabım sayfasından" : "sipariş takip sayfasından"}{" "}
+              takip edebilirsiniz.
             </p>
 
             {order && (
@@ -61,13 +65,22 @@ export default async function PaymentResultPage({
             )}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
-              {order && (
+              {order && isLoggedIn && (
                 <Button
                   render={<Link href={`/hesabim/siparislerim/${order.id}`} />}
                   className="gap-2"
                 >
                   <Package className="h-4 w-4" />
                   Siparişi Görüntüle
+                </Button>
+              )}
+              {order && !isLoggedIn && (
+                <Button
+                  render={<Link href="/siparis-takip" />}
+                  className="gap-2"
+                >
+                  <Package className="h-4 w-4" />
+                  Sipariş Takip
                 </Button>
               )}
               <Button

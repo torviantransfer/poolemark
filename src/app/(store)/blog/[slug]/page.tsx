@@ -3,7 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { getBlogPostBySlug } from "@/services/blog";
 import { formatDate } from "@/lib/helpers";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { Metadata } from "next";
 
 interface Props {
@@ -77,9 +78,27 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Content */}
           <div
-            className="prose prose-lg max-w-none text-foreground/90"
+            className="prose prose-lg prose-green max-w-none text-foreground/90 prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
+
+          {/* Back to Blog */}
+          <div className="mt-12 pt-8 border-t border-border/50 flex items-center justify-between">
+            <Button
+              render={<Link href="/blog" />}
+              variant="outline"
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Tüm Yazılar
+            </Button>
+            <Button
+              render={<Link href="/urunler" />}
+              className="gap-2"
+            >
+              Ürünleri Keşfet
+            </Button>
+          </div>
         </div>
       </div>
     </article>

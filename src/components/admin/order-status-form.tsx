@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ORDER_STATUS_LABELS } from "@/constants";
 import { Loader2 } from "lucide-react";
@@ -24,6 +24,19 @@ export function OrderStatusForm({
   const [paymentStatus, setPaymentStatus] = useState(currentPaymentStatus);
   const [cargo, setCargo] = useState(cargoCompany);
   const [tracking, setTracking] = useState(cargoTrackingNumber);
+  const [shippingCompanies, setShippingCompanies] = useState<string[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/shipping-companies");
+        const data = await res.json();
+        setShippingCompanies((data.companies || []).map((c: { name: string }) => c.name));
+      } catch {
+        setShippingCompanies([]);
+      }
+    })();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -93,19 +106,24 @@ export function OrderStatusForm({
         </select>
       </div>
 
-      {status === "shipped" && (
+      {(status === "shipped" || status === "delivered") && (
         <>
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">
               Kargo Firması
             </label>
-            <input
-              type="text"
+            <select
               value={cargo}
               onChange={(e) => setCargo(e.target.value)}
-              placeholder="MNG, Yurtiçi, Aras..."
-              className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            />
+              className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+            >
+              <option value="">Seçin...</option>
+              {shippingCompanies.map((companyName) => (
+                <option key={companyName} value={companyName}>
+                  {companyName}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">

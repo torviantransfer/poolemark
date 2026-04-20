@@ -90,6 +90,7 @@ export const ADMIN_NAV_LINKS = [
   { label: "Siparişler", href: "/admin/siparisler", icon: "ShoppingCart" },
   { label: "Müşteriler", href: "/admin/musteriler", icon: "Users" },
   { label: "Kuponlar", href: "/admin/kuponlar", icon: "Ticket" },
+  { label: "Kargo Firmaları", href: "/admin/kargolar", icon: "Truck" },
   {
     label: "Blog",
     href: "/admin/blog",

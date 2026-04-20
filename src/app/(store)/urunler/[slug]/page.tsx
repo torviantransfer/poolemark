@@ -7,10 +7,8 @@ import {
 } from "@/services/products";
 import { getProductReviews, getProductRating } from "@/services/reviews";
 import { ProductCard } from "@/components/store/product-card";
-import { ProductGallery } from "@/components/store/product-gallery";
-import { ProductActions } from "@/components/store/product-actions";
+import { ProductDetailClient } from "@/components/store/product-detail-client";
 import { ProductTabs } from "@/components/store/product-tabs";
-import { ShippingTimeline } from "@/components/store/shipping-timeline";
 import { InstallmentModal } from "@/components/store/installment-modal";
 import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
 import { formatPrice, calculateDiscountPercentage } from "@/lib/helpers";
@@ -32,12 +30,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
+
+  const title = product.meta_title || `${product.name} | Poolemark`;
+  const description =
+    product.meta_description ||
+    product.short_description ||
+    `${product.name} - Poolemark'ta uygun fiyatla satın alın.`;
+  const primaryImage =
+    product.images?.find((i) => i.is_primary)?.url ||
+    product.images?.[0]?.url ||
+    "/og-image.png";
+
   return {
-    title: product.meta_title || `${product.name} | Poolemark`,
-    description:
-      product.meta_description ||
-      product.short_description ||
-      `${product.name} - Poolemark'ta uygun fiyatla satın alın.`,
+    title,
+    description,
+    alternates: {
+      canonical: `/products/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `https://poolemark.com/products/${slug}`,
+      type: "website",
+      images: [
+        {
+          url: primaryImage,
+          width: 800,
+          height: 800,
+          alt: product.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [primaryImage],
+    },
   };
 }
 
@@ -120,13 +149,12 @@ export default async function ProductPage({ params }: Props) {
           </nav>
 
           {/* Product Main */}
-          <div className="grid lg:grid-cols-2 gap-10 md:gap-16">
-            {/* Gallery */}
-            <ProductGallery images={images} productName={product.name} />
-
-            {/* Info */}
-            <div>
-              {product.category && (
+          <ProductDetailClient
+            product={product}
+            images={images}
+            disabled={product.stock_quantity <= 0}
+          >
+            {product.category && (
                 <Link
                   href={`/kategori/${product.category.slug}`}
                   className="text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-primary transition-colors"
@@ -218,16 +246,8 @@ export default async function ProductPage({ params }: Props) {
                 )}
               </div>
 
-              {/* Actions */}
-              <ProductActions
-                product={product}
-                disabled={product.stock_quantity <= 0}
-              />
 
-              {/* Shipping Timeline */}
-              <ShippingTimeline />
-            </div>
-          </div>
+          </ProductDetailClient>
 
           {/* Tabs: Description, Reviews */}
           <ProductTabs

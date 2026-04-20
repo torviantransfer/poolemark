@@ -19,9 +19,10 @@ import {
   Truck,
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 
-export function MiniCart() {
+export function MiniCart({ transparent = false }: { transparent?: boolean }) {
   const { items, itemCount, subtotal, updateQuantity, removeItem } = useCart();
   const [open, setOpen] = useState(false);
 
@@ -29,7 +30,12 @@ export function MiniCart() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger className="relative p-2.5 text-foreground/70 hover:text-foreground transition-colors rounded-full hover:bg-secondary">
+      <SheetTrigger className={cn(
+        "relative p-2.5 transition-colors rounded-full",
+        transparent
+          ? "text-white/75 hover:text-white hover:bg-white/10"
+          : "text-foreground/70 hover:text-foreground hover:bg-secondary"
+      )}>
         <ShoppingBag className="h-5 w-5" />
         {itemCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold px-1">

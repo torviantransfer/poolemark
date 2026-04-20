@@ -41,9 +41,9 @@ export function BlogPostForm({ post }: Props) {
       const supabase = createClient();
       const ext = file.name.split(".").pop();
       const fileName = `blog/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("blog-images").upload(fileName, file);
+      const { error } = await supabase.storage.from("blog").upload(fileName, file);
       if (error) throw error;
-      const { data } = supabase.storage.from("blog-images").getPublicUrl(fileName);
+      const { data } = supabase.storage.from("blog").getPublicUrl(fileName);
       updateField("cover_image_url", data.publicUrl);
     } catch {
       alert("Resim yükleme başarısız oldu.");

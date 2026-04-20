@@ -65,7 +65,7 @@ export function NewsletterForm({ variant = "default" }: NewsletterFormProps) {
       <div className="space-y-3">
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto"
+          className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
         >
           <div className="relative flex-1">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />

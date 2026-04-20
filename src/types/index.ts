@@ -94,6 +94,7 @@ export interface ProductVariant {
   price: number;
   stock_quantity: number;
   sort_order: number;
+  image_url: string | null;
 }
 
 export interface Order {

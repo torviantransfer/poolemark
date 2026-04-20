@@ -34,7 +34,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Korumalı route'lar - giriş yapmamışsa yönlendir
-  const protectedPaths = ["/hesabim", "/checkout"];
+  const protectedPaths = ["/hesabim"];
   const adminPaths = ["/admin"];
   const authPaths = ["/giris", "/kayit"];
 

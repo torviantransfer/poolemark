@@ -7,9 +7,12 @@ import { ChevronRight, SlidersHorizontal } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Tüm Ürünler | Poolemark",
+  title: "PVC Duvar Paneli ve Yapışkanlı Folyo Ürünleri | Poolemark",
   description:
-    "PVC panel, duvar kaplama, dekorasyon ürünleri ve ev gereçleri. Uygun fiyat ve hızlı kargo ile Poolemark'ta.",
+    "Yapışkanlı PVC duvar paneli, 3D tuğla panel, mermer desenli folyo ve mutfak tezgah arası kaplama ürünleri. Kırmadan dökmeden ev yenileme çözümleri. 500₺ üzeri ücretsiz kargo.",
+  alternates: {
+    canonical: "https://poolemark.com/urunler",
+  },
 };
 
 interface Props {

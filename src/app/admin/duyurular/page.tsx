@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { formatDate } from "@/lib/helpers";
-import { Megaphone } from "lucide-react";
+import { Megaphone, Plus, Edit } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 
 export default async function AdminAnnouncementsPage() {
@@ -12,11 +13,20 @@ export default async function AdminAnnouncementsPage() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
-      <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
         <h1 className="text-2xl font-bold text-foreground">Duyurular</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Üst bar duyuru mesajları
         </p>
+        </div>
+        <Link
+          href="/admin/duyurular/ekle"
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          Yeni Duyuru
+        </Link>
       </div>
 
       <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
@@ -35,7 +45,7 @@ export default async function AdminAnnouncementsPage() {
               {announcements && announcements.length > 0 ? (
                 announcements.map((a) => (
                   <tr key={a.id} className="border-b last:border-0 hover:bg-secondary/20 transition-colors">
-                    <td className="px-5 py-3 max-w-[300px] truncate">{a.message}</td>
+                    <td className="px-5 py-3 max-w-[300px] truncate">{a.text}</td>
                     <td className="px-5 py-3 text-muted-foreground text-xs">{a.link_url || "—"}</td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2">
@@ -48,8 +58,11 @@ export default async function AdminAnnouncementsPage() {
                         {a.is_active ? "Aktif" : "Pasif"}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-right">
-                      <AdminDeleteButton id={a.id} table="announcements" label={a.message} />
+                    <td className="px-5 py-3 text-right flex items-center justify-end gap-1">
+                      <Link href={`/admin/duyurular/${a.id}`} className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                        <Edit className="h-4 w-4" />
+                      </Link>
+                      <AdminDeleteButton id={a.id} table="announcements" label={a.text} />
                     </td>
                   </tr>
                 ))

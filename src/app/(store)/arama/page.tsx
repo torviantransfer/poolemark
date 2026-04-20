@@ -2,8 +2,9 @@ import Link from "next/link";
 import { getProducts } from "@/services/products";
 import { ProductCard } from "@/components/store/product-card";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, SearchX } from "lucide-react";
+import { ChevronRight, Search, SearchX } from "lucide-react";
 import type { Metadata } from "next";
+import { SearchForm } from "@/components/store/search-form";
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | undefined }>;
@@ -51,6 +52,9 @@ export default async function SearchPage({ searchParams }: Props) {
               {total} ürün bulundu
             </p>
           )}
+          <div className="mt-4">
+            <SearchForm defaultValue={query} />
+          </div>
         </div>
       </section>
 
@@ -139,8 +143,12 @@ export default async function SearchPage({ searchParams }: Props) {
             </div>
           ) : (
             <div className="text-center py-20">
-              <p className="text-muted-foreground">
-                Aramak istediğiniz ürünü yazın.
+              <Search className="h-14 w-14 text-muted-foreground/25 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground">
+                Ürün Arayın
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Yukarıdaki arama kutusunu kullanarak ürün arayabilirsiniz.
               </p>
             </div>
           )}

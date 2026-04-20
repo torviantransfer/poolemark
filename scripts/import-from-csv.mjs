@@ -91,7 +91,32 @@ function parseProductsCsv(filePath) {
         stock_quantity: stock,
         is_active: row["Status"]?.trim().toLowerCase() === "active",
         images: [],
+        variants: [],
       });
+    }
+
+    // Varyantları topla (her satır bir varyantı temsil eder)
+    const variantOpts = [
+      row["Option1 Value"]?.trim(),
+      row["Option2 Value"]?.trim(),
+      row["Option3 Value"]?.trim(),
+    ].filter((v) => v && v.toLowerCase() !== "default title");
+    if (variantOpts.length > 0) {
+      const product = productsMap.get(handle);
+      const variantName = variantOpts.join(" / ");
+      const vPrice = parseFloat(row["Variant Price"] || "0") || product.price;
+      const vStock = parseInt(row["Variant Inventory Qty"] || "0", 10) || 0;
+      const vSku = row["Variant SKU"]?.trim() || null;
+      if (!product.variants.some((v) => v.name === variantName)) {
+        product.variants.push({
+          name: variantName,
+          sku: vSku,
+          price: vPrice,
+          stock_quantity: vStock,
+          sort_order: product.variants.length,
+          image_url: row["Variant Image"]?.trim() || null,
+        });
+      }
     }
 
     const imgSrc = row["Image Src"]?.trim();
@@ -198,6 +223,16 @@ async function importProducts(supabase, products) {
         if (imgError) console.warn(`  ⚠️ Görsel DB hatası (${slug}):`, imgError.message);
       }
 
+      // Varyantları kaydet
+      if (p.variants && p.variants.length > 0) {
+        await supabase.from("product_variants").delete().eq("product_id", product.id);
+        const { error: varError } = await supabase.from("product_variants").insert(
+          p.variants.map((v) => ({ ...v, product_id: product.id }))
+        );
+        if (varError) console.warn(`  ⚠️ Varyant DB hatası (${slug}):`, varError.message);
+        else process.stdout.write(`    🎨 ${p.variants.length} varyant kaydedildi\n`);
+      }
+
       console.log(`  ✅ "${p.name.slice(0, 60)}" → ${slug}`);
       success++;
     } catch (err) {
@@ -239,9 +274,8 @@ function parseReviewsXlsx(filePath) {
     const photoUrlsRaw = String(get("photo_urls") || "").trim();
 
     // photo_urls virgülle ayrılmış URL listesi olabilir
-    // cdn.shopify.com URL'leri ürün görseli olduğu için atlanır
     const photoUrls = photoUrlsRaw
-      ? photoUrlsRaw.split(",").map((u) => u.trim()).filter((u) => u && !u.includes("cdn.shopify.com"))
+      ? photoUrlsRaw.split(",").map((u) => u.trim()).filter(Boolean)
       : null;
 
     if (!handle || rating < 1 || rating > 5) continue;
@@ -267,6 +301,14 @@ function parseReviewsXlsx(filePath) {
 
 // ─── REVIEWS IMPORT ──────────────────────────────────────────────────────────
 async function importAllReviews(supabase, allReviewsRaw) {
+  // Mevcut yorumları temizle (tekrar çalıştırma koruması)
+  const { error: delErr } = await supabase
+    .from("reviews")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
+  if (delErr) console.warn("⚠️ Reviews temizlenemedi:", delErr.message);
+  else console.log("🗑️  Mevcut yorumlar temizlendi.\n");
+
   // Tüm dosyalardan gelen yorumları deduplicate et
   const seen = new Map();
   for (const r of allReviewsRaw) {

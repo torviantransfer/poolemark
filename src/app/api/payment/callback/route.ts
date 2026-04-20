@@ -60,20 +60,43 @@ export async function POST(request: NextRequest) {
       }
 
       // Send confirmation email
-      const { data: userData } = await supabase
-        .from("users")
-        .select("email, first_name")
-        .eq("id", order.user_id)
-        .single();
+      let recipientEmail: string | null = null;
+      let recipientName = "Değerli Müşterimiz";
 
-      if (userData?.email) {
+      if (order.user_id) {
+        const { data: userData } = await supabase
+          .from("users")
+          .select("email, first_name")
+          .eq("id", order.user_id)
+          .single();
+        if (userData?.email) {
+          recipientEmail = userData.email;
+          recipientName = userData.first_name || recipientName;
+        }
+      }
+
+      // Fallback to guest_email
+      if (!recipientEmail) {
+        const { data: orderFull } = await supabase
+          .from("orders")
+          .select("guest_email, shipping_address_json")
+          .eq("id", order.id)
+          .single();
+        if (orderFull?.guest_email) {
+          recipientEmail = orderFull.guest_email;
+          const addrJson = orderFull.shipping_address_json as Record<string, string> | null;
+          recipientName = addrJson?.first_name || recipientName;
+        }
+      }
+
+      if (recipientEmail) {
         const { data: items } = await supabase
           .from("order_items")
           .select("product_name, quantity, unit_price")
           .eq("order_id", order.id);
 
-        sendOrderConfirmationEmail(userData.email, {
-          firstName: userData.first_name || "Değerli Müşterimiz",
+        sendOrderConfirmationEmail(recipientEmail, {
+          firstName: recipientName,
           orderNumber: order.order_number,
           orderId: order.id,
           items: (items || []).map((i) => ({

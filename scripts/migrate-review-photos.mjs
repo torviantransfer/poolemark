@@ -36,10 +36,9 @@ function isExternalUrl(url) {
   return !url.includes(SUPABASE_URL);
 }
 
-async function main() {
+async function migrateReviewPhotos() {
   console.log("📸 Yorum fotoğrafları Supabase'e taşınıyor...\n");
 
-  // photo_urls dolu olan tüm yorumları al
   const { data: reviews, error } = await supabase
     .from("reviews")
     .select("id, photo_urls")
@@ -48,7 +47,7 @@ async function main() {
   if (error) { console.error("DB hata:", error.message); process.exit(1); }
 
   const toProcess = reviews.filter(r =>
-    r.photo_urls?.some(u => u && isExternalUrl(u) && !u.includes("cdn.shopify.com"))
+    r.photo_urls?.some(u => u && isExternalUrl(u))
   );
 
   console.log(`${toProcess.length} yorumda dış URL fotoğraf bulundu.\n`);
@@ -61,10 +60,7 @@ async function main() {
     let changed = false;
 
     for (const url of review.photo_urls) {
-      // Shopify CDN'den gelen ürün görselleri → atla (null koy)
-      if (!url || url.includes("cdn.shopify.com")) {
-        continue;
-      }
+      if (!url) continue;
 
       // Zaten Supabase'de → olduğu gibi bırak
       if (!isExternalUrl(url)) {
@@ -110,6 +106,59 @@ async function main() {
   }
 
   console.log(`\n\n✅ Tamamlandı: ${updated} yorum güncellendi, ${failed} fotoğraf başarısız.`);
+}
+
+async function migrateVariantImages() {
+  console.log("\n🎨 Varyant görselleri Supabase'e taşınıyor...\n");
+
+  const { data: variants, error } = await supabase
+    .from("product_variants")
+    .select("id, name, image_url")
+    .not("image_url", "is", null);
+
+  if (error) { console.error("DB hata:", error.message); return; }
+
+  const toProcess = variants.filter(v => v.image_url && isExternalUrl(v.image_url));
+  console.log(`${toProcess.length} varyantda dış URL bulundu.\n`);
+
+  let updated = 0;
+  let failed = 0;
+
+  for (const variant of toProcess) {
+    try {
+      const { buffer, contentType } = await downloadBuffer(variant.image_url);
+      const ext = extFromContentType(contentType);
+      const storagePath = `variants/${variant.id}.${ext}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from(BUCKET)
+        .upload(storagePath, buffer, { contentType, upsert: true });
+
+      if (uploadErr) throw new Error(uploadErr.message);
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(BUCKET)
+        .getPublicUrl(storagePath);
+
+      await supabase
+        .from("product_variants")
+        .update({ image_url: publicUrl })
+        .eq("id", variant.id);
+
+      process.stdout.write(`✓ ${variant.name}\n`);
+      updated++;
+    } catch (err) {
+      process.stdout.write(`✗ ${variant.name}: ${err.message}\n`);
+      failed++;
+    }
+  }
+
+  console.log(`\n✅ Varyant: ${updated} güncellendi, ${failed} başarısız.`);
+}
+
+async function main() {
+  await migrateReviewPhotos();
+  await migrateVariantImages();
 }
 
 main().catch(console.error);

@@ -4,11 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Giriş yapmalısınız." }, { status: 401 });
-    }
 
     const body = await request.json();
     const { code, subtotal } = body;
@@ -38,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check usage limit
-    if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) {
+    if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
       return NextResponse.json({ error: "Bu kupon kullanım limitine ulaşmış." }, { status: 400 });
     }
 
@@ -52,13 +47,12 @@ export async function POST(request: NextRequest) {
 
     // Calculate discount
     let discount = 0;
-    if (coupon.discount_type === "percentage") {
-      discount = (subtotal * coupon.discount_value) / 100;
-      if (coupon.max_discount_amount && discount > coupon.max_discount_amount) {
-        discount = coupon.max_discount_amount;
-      }
+    if (coupon.type === "free_shipping") {
+      discount = 0; // handled at checkout level
+    } else if (coupon.type === "percentage") {
+      discount = (subtotal * coupon.value) / 100;
     } else {
-      discount = coupon.discount_value;
+      discount = coupon.value;
     }
 
     return NextResponse.json({
@@ -66,8 +60,8 @@ export async function POST(request: NextRequest) {
       coupon: {
         id: coupon.id,
         code: coupon.code,
-        discount_type: coupon.discount_type,
-        discount_value: coupon.discount_value,
+        type: coupon.type,
+        value: coupon.value,
       },
       discount: Math.min(discount, subtotal),
     });

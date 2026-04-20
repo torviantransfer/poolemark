@@ -34,6 +34,14 @@ const nextConfig: NextConfig = {
       { source: "/kullanim-kosullari", destination: "/pages/kullanim-kosullari", permanent: true },
       { source: "/sss", destination: "/pages/sss", permanent: true },
 
+      // Shopify legacy URL redirects
+      { source: "/account", destination: "/hesabim", permanent: true },
+      { source: "/account/login", destination: "/giris", permanent: true },
+      { source: "/account/register", destination: "/kayit", permanent: true },
+      { source: "/cart", destination: "/sepet", permanent: true },
+      { source: "/collections", destination: "/products", permanent: true },
+      { source: "/pages/contact", destination: "/iletisim", permanent: true },
+      { source: "/pages/hakkimizda", destination: "/hakkimizda", permanent: true },
     ];
   },
   images: {

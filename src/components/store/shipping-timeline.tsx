@@ -1,164 +1,177 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Package, Truck, Home } from "lucide-react";
 
+
+const CARGO_COMPANIES = ["Sürat", "Aras", "MNG"];
+const CUTOFF_HOUR = 14;
+const DELIVERY_DAYS = 2;
+const MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+const DAYS = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+
+function isWeekend(d: Date) { const w = d.getDay(); return w === 0 || w === 6; }
+
+function nextBusinessDay(from: Date): Date {
+  const d = new Date(from);
+  d.setDate(d.getDate() + 1);
+  while (isWeekend(d)) d.setDate(d.getDate() + 1);
+  return d;
+}
+
+function addBusinessDays(date: Date, n: number): Date {
+  const r = new Date(date);
+  let added = 0;
+  while (added < n) { r.setDate(r.getDate() + 1); if (!isWeekend(r)) added++; }
+  return r;
+}
+
+function fmtDate(d: Date): string {
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${DAYS[d.getDay()]}`;
+}
+
 interface ShippingInfo {
-  badgeLabel: string;
-  badgeColor: "green" | "amber";
-  cargoDate: string;
-  deliveryDate: string;
+  statusText: string;
+  badgeText: string;
+  badgeAmber: boolean;
+  isSameDay: boolean;
+  cargoDateText: string;
+  deliveryDateText: string;
+  progressPct: number;
+  cutoffTarget: Date | null;
 }
 
 export function ShippingTimeline() {
   const [shipping, setShipping] = useState<ShippingInfo | null>(null);
+  const [countdown, setCountdown] = useState("");
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const now = new Date();
-    const turkeyTime = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
-    const dayOfWeek = turkeyTime.getDay(); // 0=Pazar, 1=Pazartesi, ..., 6=Cumartesi
-    const hour = turkeyTime.getHours();
-    const minutes = turkeyTime.getMinutes();
-    const currentTime = hour * 60 + minutes;
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+    const isBusinessDay = !isWeekend(now);
+    const beforeCutoff = now.getHours() < CUTOFF_HOUR;
 
-    let cargoDate: Date;
-    let badgeLabel: string;
-    let badgeColor: "green" | "amber";
+    let shipDate: Date;
+    let isSameDay = false;
 
-    if (dayOfWeek === 0) {
-      // Pazar → Pazartesi kargo
-      cargoDate = addDays(turkeyTime, 1);
-      badgeLabel = "Pazartesi kargoda";
-      badgeColor = "amber";
-    } else if (dayOfWeek === 6) {
-      // Cumartesi
-      if (currentTime < 11 * 60) {
-        // 11:00 öncesi → bugün kargo
-        cargoDate = new Date(turkeyTime);
-        badgeLabel = "Bugün kargoda";
-        badgeColor = "green";
-      } else {
-        // 11:00 sonrası → Pazartesi kargo
-        cargoDate = addDays(turkeyTime, 2);
-        badgeLabel = "Pazartesi kargoda";
-        badgeColor = "amber";
-      }
+    if (isBusinessDay && beforeCutoff) {
+      shipDate = new Date(now);
+      isSameDay = true;
     } else {
-      // Pazartesi–Cuma
-      if (currentTime < 14 * 60) {
-        // 14:00 öncesi → bugün kargo
-        cargoDate = new Date(turkeyTime);
-        badgeLabel = "Bugün kargoda";
-        badgeColor = "green";
-      } else if (dayOfWeek === 5) {
-        // Cuma 14:00 sonrası → Pazartesi kargo
-        cargoDate = addDays(turkeyTime, 3);
-        badgeLabel = "Pazartesi kargoda";
-        badgeColor = "amber";
-      } else {
-        // Pazartesi–Perşembe 14:00 sonrası → yarın kargo
-        cargoDate = addDays(turkeyTime, 1);
-        badgeLabel = "Yarın kargoda";
-        badgeColor = "amber";
-      }
+      shipDate = nextBusinessDay(now);
     }
 
-    const deliveryDate = addBusinessDays(cargoDate, 2);
+    const deliveryDate = addBusinessDays(shipDate, DELIVERY_DAYS);
+
+    let badgeText: string;
+    let badgeAmber = false;
+
+    if (isSameDay) {
+      badgeText = "Bugün Kargoda";
+    } else {
+      badgeAmber = true;
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      const sd = new Date(shipDate);
+      sd.setHours(0, 0, 0, 0);
+      badgeText = tomorrow.getTime() === sd.getTime()
+        ? "Yarın Kargoda"
+        : `${DAYS[shipDate.getDay()]} Kargoda`;
+    }
+
+    const cutoffTarget = isSameDay
+      ? (() => { const t = new Date(now); t.setHours(CUTOFF_HOUR, 0, 0, 0); return t; })()
+      : null;
 
     setShipping({
-      badgeLabel,
-      badgeColor,
-      cargoDate: formatDate(cargoDate),
-      deliveryDate: formatDate(deliveryDate),
+      statusText: isSameDay ? "Aynı Gün Kargo Fırsatı!" : "Sipariş Hazırlanıyor",
+      badgeText,
+      badgeAmber,
+      isSameDay,
+      cargoDateText: isSameDay ? "Bugün" : fmtDate(shipDate),
+      deliveryDateText: fmtDate(deliveryDate),
+      progressPct: isSameDay ? 35 : 20,
+      cutoffTarget,
     });
+
+    if (cutoffTarget) {
+      const tick = () => {
+        const diff = cutoffTarget.getTime() - Date.now();
+        if (diff > 0) {
+          const h = Math.floor(diff / 3600000);
+          const m = Math.floor((diff % 3600000) / 60000);
+          const s = Math.floor((diff % 60000) / 1000);
+          setCountdown(`${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")} kaldı`);
+        } else {
+          setCountdown("Süre Doldu");
+          if (timerRef.current) clearInterval(timerRef.current);
+        }
+      };
+      tick();
+      timerRef.current = setInterval(tick, 1000);
+    }
+
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
   if (!shipping) return null;
 
-  const isGreen = shipping.badgeColor === "green";
+  const { statusText, badgeText, badgeAmber, cargoDateText, deliveryDateText, progressPct, cutoffTarget } = shipping;
+  const isGreen = !badgeAmber;
 
   return (
-    <div className="mt-8 pt-8 border-t border-border/30">
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="text-sm font-semibold text-foreground">Sipariş Zamanlaması</h3>
-        <span
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-            isGreen
-              ? "bg-green-100 text-green-700"
-              : "bg-amber-100 text-amber-700"
-          }`}
-        >
-          <span
-            className={`w-2 h-2 rounded-full animate-pulse ${
-              isGreen ? "bg-green-600" : "bg-amber-600"
-            }`}
-          />
-          {shipping.badgeLabel}
-        </span>
+    <>
+      <div className="mt-5 space-y-2">
+        {/* Kargo Kartı */}
+        <div className="rounded-xl border border-border/60 overflow-hidden shadow-sm bg-white">
+          <div className={`px-4 py-2.5 flex items-center justify-between border-b ${isGreen ? "bg-green-50 border-green-100" : "bg-amber-50 border-amber-100"}`}>
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${isGreen ? "bg-green-500" : "bg-amber-500"}`} />
+              <span className={`text-[13px] font-bold ${isGreen ? "text-green-800" : "text-amber-800"}`}>{statusText}</span>
+            </div>
+            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full text-white leading-none ${isGreen ? "bg-green-500" : "bg-amber-500"}`}>
+              {cutoffTarget && countdown ? countdown : badgeText}
+            </span>
+          </div>
+
+          <div className="px-5 pt-4 pb-3">
+            <div className="relative flex justify-between items-start">
+              <div className="absolute top-[18px] left-[28px] right-[28px] h-[3px] bg-gray-100 rounded-full" />
+              <div
+                className={`absolute top-[18px] left-[28px] h-[3px] rounded-full transition-all duration-[1200ms] ${isGreen ? "bg-green-500" : "bg-amber-400"}`}
+                style={{ width: `${progressPct}%` }}
+              />
+              <div className="relative z-10 flex flex-col items-center gap-1.5 flex-1">
+                <div className={`w-9 h-9 rounded-full border-2 bg-white flex items-center justify-center shadow-sm ${isGreen ? "border-green-500" : "border-amber-400"}`}>
+                  <Package className={`w-4 h-4 ${isGreen ? "text-green-600" : "text-amber-500"}`} />
+                </div>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Sipariş</p>
+                <p className={`text-[11px] font-bold ${isGreen ? "text-green-700" : "text-amber-700"}`}>Bugün</p>
+              </div>
+              <div className="relative z-10 flex flex-col items-center gap-1.5 flex-1">
+                <div className="w-9 h-9 rounded-full border-2 border-border bg-white flex items-center justify-center shadow-sm">
+                  <Truck className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Kargoda</p>
+                <p className="text-[11px] font-bold text-foreground">{cargoDateText}</p>
+              </div>
+              <div className="relative z-10 flex flex-col items-center gap-1.5 flex-1">
+                <div className="w-9 h-9 rounded-full border-2 border-border bg-white flex items-center justify-center shadow-sm">
+                  <Home className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Teslimat</p>
+                <p className="text-[11px] font-bold text-foreground">{deliveryDateText}</p>
+              </div>
+            </div>
+
+
+          </div>
+        </div>
+
+
       </div>
 
-      {/* Timeline — connected bar */}
-      <div className="relative grid grid-cols-3">
-        {/* Full background bar */}
-        <div className="absolute top-5 left-[16.67%] right-[16.67%] h-0.5 bg-gray-200" />
-        {/* Active segment: step 1 → step 2 */}
-        <div className="absolute top-5 left-[16.67%] right-[50%] h-0.5 bg-green-400" />
-
-        {/* Step 1: Hazırlanıyor */}
-        <div className="flex flex-col items-center">
-          <div className="relative z-10 w-10 h-10 rounded-full bg-green-100 border-2 border-green-500 flex items-center justify-center">
-            <Package className="w-5 h-5 text-green-600" />
-          </div>
-          <p className="text-xs font-semibold text-foreground text-center mt-2">Hazırlanıyor</p>
-          <p className="text-[10px] text-muted-foreground text-center mt-0.5">Bugün</p>
-        </div>
-
-        {/* Step 2: Kargo */}
-        <div className="flex flex-col items-center">
-          <div className="relative z-10 w-10 h-10 rounded-full bg-amber-100 border-2 border-amber-400 flex items-center justify-center">
-            <Truck className="w-5 h-5 text-amber-600" />
-          </div>
-          <p className="text-xs font-semibold text-foreground text-center mt-2">Kargoya Verildi</p>
-          <p className="text-[10px] text-muted-foreground text-center mt-0.5">{shipping.cargoDate}</p>
-        </div>
-
-        {/* Step 3: Teslimat */}
-        <div className="flex flex-col items-center">
-          <div className="relative z-10 w-10 h-10 rounded-full bg-blue-100 border-2 border-blue-300 flex items-center justify-center">
-            <Home className="w-5 h-5 text-blue-500" />
-          </div>
-          <p className="text-xs font-semibold text-foreground text-center mt-2">Teslimat</p>
-          <p className="text-[10px] text-muted-foreground text-center mt-0.5">{shipping.deliveryDate}</p>
-        </div>
-      </div>
-    </div>
+    </>
   );
-}
-
-function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-}
-
-function addBusinessDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  let added = 0;
-  while (added < days) {
-    result.setDate(result.getDate() + 1);
-    const day = result.getDay();
-    if (day !== 0 && day !== 6) {
-      added++;
-    }
-  }
-  return result;
-}
-
-function formatDate(date: Date): string {
-  const dayNames = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
-  const months = [
-    "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-    "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
-  ];
-  return `${date.getDate()} ${months[date.getMonth()]} ${dayNames[date.getDay()]}`;
 }

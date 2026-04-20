@@ -7,8 +7,12 @@ import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog | Poolemark",
-  description: "Ev dekorasyonu ipuçları, ürün incelemeleri ve daha fazlası.",
+  title: "Duvar Paneli ve Folyo Uygulama Rehberleri | Poolemark Blog",
+  description:
+    "PVC duvar paneli nasıl uygulanır? Yapışkanlı folyo iz bırakır mı? Metrekare hesaplama, ürün karşılaştırma ve adım adım uygulama rehberleri.",
+  alternates: {
+    canonical: "https://poolemark.com/blog",
+  },
 };
 
 interface Props {

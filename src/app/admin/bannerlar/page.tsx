@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { formatDate } from "@/lib/helpers";
-import { Image } from "lucide-react";
+import { Image, Plus, Edit } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 
 export default async function AdminBannersPage() {
@@ -12,11 +13,22 @@ export default async function AdminBannersPage() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Bannerlar</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           Ana sayfa slider görselleri
         </p>
+      </div>
+      <div>
+        <Link
+          href="/admin/bannerlar/ekle"
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          Yeni Banner
+        </Link>
+      </div>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -42,7 +54,12 @@ export default async function AdminBannersPage() {
                 {banner.subtitle && <p className="text-xs text-muted-foreground mt-0.5 truncate">{banner.subtitle}</p>}
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-xs text-muted-foreground">Sıra: {banner.sort_order}</span>
-                  <AdminDeleteButton id={banner.id} table="banners" label={banner.title || "Banner"} />
+                  <div className="flex items-center gap-1">
+                    <Link href={`/admin/bannerlar/${banner.id}`} className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                      <Edit className="h-4 w-4" />
+                    </Link>
+                    <AdminDeleteButton id={banner.id} table="banners" label={banner.title || "Banner"} />
+                  </div>
                 </div>
               </div>
             </div>

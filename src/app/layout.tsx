@@ -11,33 +11,55 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Poolemark | Ev Gereçleri & Dekorasyon",
+    default: "PVC Duvar Paneli ve Mermer Folyo | Poolemark",
     template: "%s | Poolemark",
   },
   description:
-    "Poolemark - Ev gereçleri, dekorasyon ürünleri, PVC panel, duvar kaplama ve daha fazlası. Uygun fiyat, hızlı kargo, ücretsiz iade.",
+    "Poolemark ile duvar paneli, 3D tuğla panel ve mermer folyo çözümleri. Kırmadan dökmeden pratik ev yenileme, Türkiye geneline hızlı kargo. Keşfedin!",
   keywords: [
-    "ev gereçleri",
-    "dekorasyon",
-    "pvc panel",
-    "duvar kaplama",
-    "mermer folyo",
-    "ev hırdavat",
+    "pvc duvar paneli",
+    "mermer desenli duvar paneli",
+    "yapışkanlı folyo",
+    "3d duvar paneli",
+    "mermer desenli folyo",
+    "duvar kaplama paneli",
+    "mutfak tezgah arası kaplama",
+    "banyo duvar kaplama",
+    "kendinden yapışkanlı duvar paneli",
+    "boyanabilir duvar paneli",
+    "kiracı dostu dekorasyon",
+    "fayans üstüne yapışkanlı panel",
     "poolemark",
-    "mutfak gereçleri",
-    "banyo aksesuarları",
   ],
   metadataBase: new URL("https://poolemark.com"),
   alternates: {
     canonical: "/",
   },
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     type: "website",
     locale: "tr_TR",
     siteName: "Poolemark",
-    title: "Poolemark | Ev Gereçleri & Dekorasyon",
-    description: "Ev gereçleri, dekorasyon ürünleri, PVC panel ve daha fazlası. 500₺ üzeri ücretsiz kargo, 12 taksit imkanı.",
+    title: "PVC Duvar Paneli ve Mermer Folyo | Poolemark",
+    description: "Duvar paneli, 3D tuğla panel ve mermer folyo çözümleri. Kırmadan dökmeden pratik ev yenileme, Türkiye geneline hızlı kargo.",
     url: "https://poolemark.com",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 630,
+        height: 630,
+        alt: "Poolemark - PVC Duvar Paneli ve Mermer Folyo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PVC Duvar Paneli ve Mermer Folyo | Poolemark",
+    description: "Duvar paneli, 3D tuğla panel ve mermer folyo çözümleri. Kırmadan dökmeden pratik ev yenileme.",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,

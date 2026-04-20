@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { ShoppingBag, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,11 +9,25 @@ import type { ProductImage } from "@/types";
 interface ProductGalleryProps {
   images: ProductImage[];
   productName: string;
+  forcedImageUrl?: string | null;
 }
 
-export function ProductGallery({ images, productName }: ProductGalleryProps) {
+export function ProductGallery({ images, productName, forcedImageUrl }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightbox, setLightbox] = useState(false);
+
+  // Varyant değiştiğinde ilk resme dön
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [forcedImageUrl]);
+
+  // Varyant seçildiğinde o varyantın görselini öne al
+  const displayImages = forcedImageUrl
+    ? [
+        { id: "forced", product_id: "", url: forcedImageUrl, alt_text: productName, sort_order: -1, is_primary: true },
+        ...images.filter((img) => img.url !== forcedImageUrl),
+      ]
+    : images;
 
   if (images.length === 0) {
     return (
@@ -23,11 +37,13 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     );
   }
 
+  const activeImages = displayImages;
+
   function prev() {
-    setActiveIndex((i) => (i === 0 ? images.length - 1 : i - 1));
+    setActiveIndex((i) => (i === 0 ? activeImages.length - 1 : i - 1));
   }
   function next() {
-    setActiveIndex((i) => (i === images.length - 1 ? 0 : i + 1));
+    setActiveIndex((i) => (i === activeImages.length - 1 ? 0 : i + 1));
   }
 
   return (
@@ -39,8 +55,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           onClick={() => setLightbox(true)}
         >
           <Image
-            src={images[activeIndex].url}
-            alt={images[activeIndex].alt_text || productName}
+            src={activeImages[activeIndex]?.url || activeImages[0]?.url}
+            alt={activeImages[activeIndex]?.alt_text || productName}
             fill
             priority
             sizes="(max-width: 1024px) 100vw, 50vw"
@@ -53,13 +69,13 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           </div>
 
           {/* Image counter */}
-          {images.length > 1 && (
+          {activeImages.length > 1 && (
             <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-xs font-medium">
-              {activeIndex + 1} / {images.length}
+              {activeIndex + 1} / {activeImages.length}
             </div>
           )}
 
-          {images.length > 1 && (
+          {activeImages.length > 1 && (
             <>
               <button
                 onClick={(e) => { e.stopPropagation(); prev(); }}
@@ -80,14 +96,14 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         </div>
 
         {/* Thumbnails */}
-        {images.length > 1 && (
-          <div className="grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-5 lg:grid-cols-6">
-            {images.map((img, idx) => (
+        {activeImages.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {activeImages.slice(0, 5).map((img, idx) => (
               <button
                 key={img.id}
                 onClick={() => setActiveIndex(idx)}
                 className={cn(
-                  "relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-150",
+                  "relative aspect-square w-14 h-14 shrink-0 rounded-xl overflow-hidden border-2 transition-all duration-150",
                   idx === activeIndex
                     ? "border-primary shadow-md scale-[1.04]"
                     : "border-border/50 hover:border-primary/50 hover:scale-[1.02] opacity-70 hover:opacity-100"
@@ -98,7 +114,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                   src={img.url}
                   alt={img.alt_text || `${productName} - ${idx + 1}`}
                   fill
-                  sizes="100px"
+                  sizes="56px"
                   className="object-cover"
                 />
                 {idx === activeIndex && (
@@ -106,6 +122,24 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 )}
               </button>
             ))}
+            {activeImages.length > 5 && (
+              <button
+                onClick={() => setActiveIndex(5)}
+                className="relative w-14 h-14 shrink-0 rounded-xl border-2 border-border/50 overflow-hidden hover:border-primary/50 transition-all opacity-70 hover:opacity-100"
+                aria-label={`+${activeImages.length - 5} daha`}
+              >
+                <Image
+                  src={activeImages[5].url}
+                  alt=""
+                  fill
+                  sizes="56px"
+                  className="object-cover blur-[1px]"
+                />
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">+{activeImages.length - 5}</span>
+                </div>
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -123,7 +157,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           >
             ✕
           </button>
-          {images.length > 1 && (
+          {activeImages.length > 1 && (
             <>
               <button
                 onClick={(e) => { e.stopPropagation(); prev(); }}
@@ -146,8 +180,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={images[activeIndex].url}
-              alt={images[activeIndex].alt_text || productName}
+              src={activeImages[activeIndex]?.url || activeImages[0]?.url}
+              alt={activeImages[activeIndex]?.alt_text || productName}
               fill
               sizes="100vw"
               className="object-contain"

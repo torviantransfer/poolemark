@@ -17,17 +17,17 @@ export default function AuthLayout({
             Poolemark
           </Link>
           <p className="text-white/60 text-sm mt-1">
-            Ev Gereçleri & Dekorasyon
+            Yapışkanlı Duvar Paneli & Folyo
           </p>
         </div>
 
         <div className="relative z-10 max-w-md">
           <h2 className="text-3xl font-bold leading-tight">
-            Evinize modern bir dokunuş katın
+            Duvarlarınıza yeni bir hayat verin
           </h2>
           <p className="mt-4 text-white/70 leading-relaxed">
-            PVC panel, duvar kaplama, dekorasyon ürünleri ve ev gereçleri.
-            2018&apos;den bu yana binlerce mutlu müşteri.
+            PVC duvar paneli, 3D tuğla panel ve mermer desenli folyo ile
+            evinizi kırmadan dökmeden yenileyin. 2018&apos;den bu yana binlerce mutlu müşteri.
           </p>
           <div className="flex items-center gap-8 mt-8">
             <div>
@@ -36,8 +36,8 @@ export default function AuthLayout({
             </div>
             <div className="w-px h-10 bg-white/20" />
             <div>
-              <p className="text-2xl font-bold">500+</p>
-              <p className="text-xs text-white/50 mt-0.5">Ürün Çeşidi</p>
+              <p className="text-2xl font-bold">4.9/5</p>
+              <p className="text-xs text-white/50 mt-0.5">Müşteri Puanı</p>
             </div>
             <div className="w-px h-10 bg-white/20" />
             <div>
@@ -60,12 +60,28 @@ export default function AuthLayout({
       {/* Right: Auth Form */}
       <div className="flex-1 flex flex-col bg-white">
         {/* Mobile logo */}
-        <div className="lg:hidden p-6 pb-0">
+        <div className="lg:hidden p-6 pb-0 flex items-center justify-between">
           <Link
             href="/"
             className="text-2xl font-bold text-primary tracking-tight"
           >
             Poolemark
+          </Link>
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            ← Siteye Dön
+          </Link>
+        </div>
+
+        {/* Desktop back link */}
+        <div className="hidden lg:block p-6 pb-0 text-right">
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            ← Siteye Dön
           </Link>
         </div>
 

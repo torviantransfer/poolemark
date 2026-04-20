@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { formatPrice, formatDate } from "@/lib/helpers";
-import { Ticket, Plus } from "lucide-react";
+import { Ticket, Plus, Edit } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 
 export default async function AdminCouponsPage() {
@@ -19,6 +20,13 @@ export default async function AdminCouponsPage() {
             İndirim kuponlarını yönetin
           </p>
         </div>
+        <Link
+          href="/admin/kuponlar/ekle"
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          Yeni Kupon
+        </Link>
       </div>
 
       <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
@@ -38,24 +46,26 @@ export default async function AdminCouponsPage() {
             <tbody>
               {coupons && coupons.length > 0 ? (
                 coupons.map((coupon) => {
-                  const isExpired = coupon.valid_until && new Date(coupon.valid_until) < new Date();
+                  const isExpired = coupon.expires_at && new Date(coupon.expires_at) < new Date();
                   return (
                     <tr key={coupon.id} className="border-b last:border-0 hover:bg-secondary/20 transition-colors">
                       <td className="px-5 py-3 font-mono font-bold text-primary">{coupon.code}</td>
                       <td className="px-5 py-3">
-                        {coupon.discount_type === "percentage"
-                          ? `%${coupon.discount_value}`
-                          : formatPrice(coupon.discount_value)}
+                        {coupon.type === "percentage"
+                          ? `%${coupon.value}`
+                          : coupon.type === "free_shipping"
+                            ? "Ücretsiz Kargo"
+                            : formatPrice(coupon.value)}
                       </td>
                       <td className="px-5 py-3 text-foreground/70">
                         {coupon.min_order_amount ? formatPrice(coupon.min_order_amount) : "—"}
                       </td>
                       <td className="px-5 py-3 text-foreground/70">
-                        {coupon.used_count} / {coupon.usage_limit || "∞"}
+                        {coupon.used_count} / {coupon.max_uses || "∞"}
                       </td>
                       <td className="px-5 py-3 text-xs text-muted-foreground">
-                        {coupon.valid_from && formatDate(coupon.valid_from)}
-                        {coupon.valid_until && ` — ${formatDate(coupon.valid_until)}`}
+                        {coupon.starts_at && formatDate(coupon.starts_at)}
+                        {coupon.expires_at && ` — ${formatDate(coupon.expires_at)}`}
                       </td>
                       <td className="px-5 py-3">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -64,7 +74,10 @@ export default async function AdminCouponsPage() {
                           {isExpired ? "Süresi Dolmuş" : coupon.is_active ? "Aktif" : "Pasif"}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-right">
+                      <td className="px-5 py-3 text-right flex items-center justify-end gap-1">
+                        <Link href={`/admin/kuponlar/${coupon.id}`} className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                          <Edit className="h-4 w-4" />
+                        </Link>
                         <AdminDeleteButton id={coupon.id} table="coupons" label={coupon.code} />
                       </td>
                     </tr>
