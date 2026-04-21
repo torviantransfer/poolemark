@@ -5,7 +5,10 @@ import { getBlogPostBySlug } from "@/services/blog";
 import { formatDate } from "@/lib/helpers";
 import { ChevronRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BlogPostJsonLd } from "@/components/shared/json-ld";
 import type { Metadata } from "next";
+
+const BASE_URL = "https://poolemark.com";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -15,9 +18,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
   if (!post) return {};
+  const title = post.meta_title || `${post.title} | Poolemark Blog`;
+  const description = post.meta_description || post.excerpt || "";
+  const image = post.cover_image_url || `${BASE_URL}/og-image.png`;
   return {
-    title: post.meta_title || `${post.title} | Poolemark Blog`,
-    description: post.meta_description || post.excerpt || "",
+    title,
+    description,
+    alternates: { canonical: `${BASE_URL}/blog/${slug}` },
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url: `${BASE_URL}/blog/${slug}`,
+      siteName: "Poolemark",
+      locale: "tr_TR",
+      images: [{ url: image, width: 1200, height: 630, alt: post.title }],
+      publishedTime: post.published_at || undefined,
+      modifiedTime: post.updated_at || undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
   };
 }
 
@@ -29,9 +53,20 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <article className="py-8 md:py-12">
+      {post.published_at && (
+        <BlogPostJsonLd
+          title={post.title}
+          description={post.meta_description || post.excerpt || ""}
+          slug={slug}
+          image={post.cover_image_url || undefined}
+          publishedAt={post.published_at}
+          updatedAt={post.updated_at || undefined}
+          authorName={post.author ? `${post.author.first_name} ${post.author.last_name}` : "Poolemark"}
+        />
+      )}
       <div className="container mx-auto px-4">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6">
           <Link href="/" className="hover:text-primary transition-colors">
             Anasayfa
           </Link>
@@ -49,7 +84,7 @@ export default async function BlogPostPage({ params }: Props) {
           {/* Header */}
           <header className="mb-8">
             {post.published_at && (
-              <time className="text-sm text-muted-foreground">
+              <time dateTime={post.published_at} className="text-sm text-muted-foreground">
                 {formatDate(post.published_at)}
               </time>
             )}
@@ -71,6 +106,7 @@ export default async function BlogPostPage({ params }: Props) {
                 alt={post.title}
                 fill
                 priority
+                sizes="(max-width: 768px) 100vw, 800px"
                 className="object-cover"
               />
             </div>
@@ -93,7 +129,7 @@ export default async function BlogPostPage({ params }: Props) {
               Tüm Yazılar
             </Button>
             <Button
-              render={<Link href="/urunler" />}
+              render={<Link href="/products" />}
               className="gap-2"
             >
               Ürünleri Keşfet

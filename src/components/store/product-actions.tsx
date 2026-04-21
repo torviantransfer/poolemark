@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Heart, Lock, Minus, Plus, Shield, ShoppingBag, Share2, CreditCard, Zap } from "lucide-react";
@@ -37,6 +37,21 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
   const { addItem } = useCart();
   const { user } = useUser();
   const router = useRouter();
+
+  // Kullanıcının bu ürünü favorilerinde olup olmadığını kontrol et
+  useEffect(() => {
+    if (!user) return;
+    const supabase = createClient();
+    supabase
+      .from("favorites")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("product_id", product.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setIsFavorite(!!data);
+      });
+  }, [user, product.id]);
 
   const activeVariant = selectedVariant;
   const currentPrice = activeVariant ? activeVariant.price : product.price;

@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
           .select("product_name, quantity, unit_price")
           .eq("order_id", order.id);
 
-        sendOrderConfirmationEmail(recipientEmail, {
+        await sendOrderConfirmationEmail(recipientEmail, {
           firstName: recipientName,
           orderNumber: order.order_number,
           orderId: order.id,

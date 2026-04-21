@@ -39,7 +39,7 @@ export default async function OrdersPage({
     <>
       <section className="bg-secondary/40 border-b">
         <div className="container mx-auto px-4 py-8 md:py-10">
-          <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
             <Link href="/" className="hover:text-primary transition-colors">Anasayfa</Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <Link href="/hesabim" className="hover:text-primary transition-colors">Hesabım</Link>

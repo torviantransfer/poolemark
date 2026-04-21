@@ -1,60 +1,45 @@
-"use client";
-
-import { useState } from "react";
 import { SITE_CONFIG } from "@/constants";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Phone,
   Mail,
   MapPin,
   Clock,
-  Send,
-  Loader2,
-  Check,
   MessageCircle,
   Building2,
   FileText,
 } from "lucide-react";
+import { ContactForm } from "@/components/store/contact-form";
+import { BreadcrumbJsonLd } from "@/components/shared/json-ld";
+import type { Metadata } from "next";
+
+const BASE_URL = "https://poolemark.com";
+
+export const metadata: Metadata = {
+  title: "İletişim | Poolemark",
+  description:
+    "Poolemark ile iletişime geçin. Telefon, e-posta veya iletişim formu aracılığıyla sorularınızı iletin.",
+  alternates: { canonical: `${BASE_URL}/iletisim` },
+  openGraph: {
+    type: "website",
+    title: "İletişim | Poolemark",
+    description:
+      "Poolemark ile iletişime geçin. Telefon, e-posta veya iletişim formu aracılığıyla sorularınızı iletin.",
+    url: `${BASE_URL}/iletisim`,
+    siteName: "Poolemark",
+    locale: "tr_TR",
+    images: [{ url: `${BASE_URL}/og-image.png`, width: 1200, height: 630, alt: "Poolemark İletişim" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "İletişim | Poolemark",
+    description:
+      "Poolemark ile iletişime geçin. Telefon, e-posta veya iletişim formu aracılığıyla sorularınızı iletin.",
+    images: [`${BASE_URL}/og-image.png`],
+  },
+};
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    subject: "",
-    message: "",
-  });
-  const [status, setStatus] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setStatus("loading");
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (res.ok) {
-        setStatus("success");
-        setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
-      } else {
-        const data = await res.json();
-        setStatus("error");
-        setErrorMessage(data.error || "Bir hata oluştu");
-      }
-    } catch {
-      setStatus("error");
-      setErrorMessage("Bir hata oluştu, tekrar deneyin");
-    }
-  }
-
   const contactMethods = [
     {
       icon: Phone,
@@ -92,6 +77,7 @@ export default function ContactPage() {
 
   return (
     <div>
+      <BreadcrumbJsonLd items={[{ name: "Anasayfa", href: "/" }, { name: "İletişim", href: "/iletisim" }]} />
       {/* Hero */}
       <section className="bg-gradient-to-b from-primary/5 via-primary/3 to-white border-b border-border/30">
         <div className="container mx-auto px-4 pt-10 pb-12 md:pt-14 md:pb-16">
@@ -104,7 +90,7 @@ export default function ContactPage() {
               Bize{" "}
               <span className="text-primary">Ulaşın</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-lg mx-auto">
+            <p className="text-lg text-muted-foreground max-w-xl mx-auto">
               Sorularınız, önerileriniz veya talepleriniz için bize her zaman
               ulaşabilirsiniz.
             </p>
@@ -129,7 +115,7 @@ export default function ContactPage() {
                 className="group p-5 rounded-2xl bg-white border border-border/30 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
               >
                 <div
-                  className={`inline-flex items-center justify-center w-11 h-11 rounded-xl ${method.color} mb-3`}
+                  className={`inline-flex items-center justify-center w-10 h-10 rounded-xl ${method.color} mb-3`}
                 >
                   <method.icon className="h-5 w-5" />
                 </div>
@@ -265,124 +251,7 @@ export default function ContactPage() {
 
             {/* Right: Form */}
             <div className="lg:col-span-3">
-              <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">
-                İletişim Formu
-              </p>
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-                Mesajınızı Gönderin
-              </h2>
-              <p className="text-muted-foreground mb-8">
-                Formu doldurun, en kısa sürede size dönüş yapalım.
-              </p>
-
-              {status === "success" ? (
-                <div className="p-8 rounded-2xl bg-primary/5 border border-primary/20 text-center">
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-4">
-                    <Check className="h-7 w-7 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">
-                    Mesajınız Gönderildi
-                  </h3>
-                  <p className="text-muted-foreground">
-                    En kısa sürede size dönüş yapacağız. Teşekkür ederiz!
-                  </p>
-                  <Button
-                    onClick={() => setStatus("idle")}
-                    variant="outline"
-                    className="mt-6"
-                  >
-                    Yeni Mesaj Gönder
-                  </Button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Ad Soyad</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData({ ...formData, name: e.target.value })
-                        }
-                        placeholder="Adınız Soyadınız"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">E-posta</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) =>
-                          setFormData({ ...formData, email: e.target.value })
-                        }
-                        placeholder="ornek@email.com"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">
-                        Telefon{" "}
-                        <span className="text-muted-foreground">(opsiyonel)</span>
-                      </Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) =>
-                          setFormData({ ...formData, phone: e.target.value })
-                        }
-                        placeholder="05XX XXX XX XX"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="subject">Konu</Label>
-                      <Input
-                        id="subject"
-                        value={formData.subject}
-                        onChange={(e) =>
-                          setFormData({ ...formData, subject: e.target.value })
-                        }
-                        placeholder="Konu başlığı"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Mesajınız</Label>
-                    <Textarea
-                      id="message"
-                      value={formData.message}
-                      onChange={(e) =>
-                        setFormData({ ...formData, message: e.target.value })
-                      }
-                      placeholder="Mesajınızı buraya yazın..."
-                      required
-                      rows={5}
-                    />
-                  </div>
-                  {status === "error" && (
-                    <p className="text-sm text-destructive">{errorMessage}</p>
-                  )}
-                  <Button
-                    type="submit"
-                    disabled={status === "loading"}
-                    size="lg"
-                    className="w-full sm:w-auto h-12 px-8"
-                  >
-                    {status === "loading" ? (
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    ) : (
-                      <Send className="mr-2 h-5 w-5" />
-                    )}
-                    Mesajı Gönder
-                  </Button>
-                </form>
-              )}
+              <ContactForm />
             </div>
           </div>
         </div>

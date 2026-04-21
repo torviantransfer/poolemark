@@ -14,6 +14,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const sp = await searchParams;
   return {
     title: sp.q ? `"${sp.q}" araması | Poolemark` : "Arama | Poolemark",
+    robots: { index: false, follow: false },
   };
 }
 
@@ -31,7 +32,7 @@ export default async function SearchPage({ searchParams }: Props) {
     <>
       <section className="bg-secondary/40 border-b">
         <div className="container mx-auto px-4 py-8 md:py-10">
-          <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
             <Link href="/" className="hover:text-primary transition-colors">
               Anasayfa
             </Link>

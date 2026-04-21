@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import {
   ChevronRight,
   MapPin,
@@ -182,14 +183,14 @@ export default function CheckoutPage() {
         const data = await res.json();
 
         if (!res.ok || !data.success) {
-          alert(data.error || "Ödeme başlatılamadı.");
+          toast.error(data.error || "Ödeme başlatılamadı. Lütfen tekrar deneyin.");
           return;
         }
 
         setPaytrToken(data.token);
         clearCart();
       } catch {
-        alert("Bir hata oluştu. Lütfen tekrar deneyin.");
+        toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
       }
     });
   }
@@ -254,7 +255,7 @@ export default function CheckoutPage() {
     <>
       <section className="bg-secondary/40 border-b">
         <div className="container mx-auto px-4 py-8 md:py-10">
-          <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
             <Link href="/" className="hover:text-primary transition-colors">Anasayfa</Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <Link href="/sepet" className="hover:text-primary transition-colors">Sepet</Link>

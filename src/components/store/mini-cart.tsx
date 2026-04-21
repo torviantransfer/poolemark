@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import {
@@ -84,9 +85,11 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
                     className="w-16 h-16 rounded-lg bg-white overflow-hidden shrink-0"
                   >
                     {item.image ? (
-                      <img
+                      <Image
                         src={item.image}
                         alt={item.name}
+                        width={64}
+                        height={64}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -110,24 +113,27 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
                       <div className="flex items-center border rounded-md bg-white">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="p-1 text-muted-foreground hover:text-foreground"
+                          className="p-2 text-muted-foreground hover:text-foreground min-w-[32px] flex items-center justify-center"
+                          aria-label="Azalt"
                         >
-                          <Minus className="h-3 w-3" />
+                          <Minus className="h-3.5 w-3.5" />
                         </button>
-                        <span className="px-2 text-xs font-medium">{item.quantity}</span>
+                        <span className="px-2 text-xs font-medium min-w-[24px] text-center">{item.quantity}</span>
                         <button
                           onClick={() =>
                             updateQuantity(item.id, Math.min(item.quantity + 1, item.stock_quantity))
                           }
                           disabled={item.quantity >= item.stock_quantity}
-                          className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                          className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-30 min-w-[32px] flex items-center justify-center"
+                          aria-label="Artır"
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-3.5 w-3.5" />
                         </button>
                       </div>
                       <button
                         onClick={() => removeItem(item.id)}
-                        className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                        className="p-2 text-muted-foreground hover:text-destructive transition-colors min-w-[32px] flex items-center justify-center"
+                        aria-label="Ürünü kaldır"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>

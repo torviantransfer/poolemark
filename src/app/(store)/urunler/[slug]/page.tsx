@@ -127,7 +127,7 @@ export default async function ProductPage({ params }: Props) {
       <section className="pt-4 md:pt-6 pb-12 md:pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-8">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-8">
             <Link href="/" className="hover:text-primary transition-colors">
               Anasayfa
             </Link>

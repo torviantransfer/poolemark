@@ -129,24 +129,62 @@ export function ProductJsonLd({
       "@type": "Offer",
       url: `${BASE_URL}/products/${slug}`,
       priceCurrency: "TRY",
-      price: price.toFixed(2),
+      price: Number(price.toFixed(2)),
+      priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      itemCondition: "https://schema.org/NewCondition",
       availability: inStock
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
       seller: {
         "@type": "Organization",
         name: "Poolemark",
+        url: BASE_URL,
+      },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: "0",
+          currency: "TRY",
+        },
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "TR",
+        },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: {
+            "@type": "QuantitativeValue",
+            minValue: 0,
+            maxValue: 1,
+            unitCode: "DAY",
+          },
+          transitTime: {
+            "@type": "QuantitativeValue",
+            minValue: 1,
+            maxValue: 3,
+            unitCode: "DAY",
+          },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "TR",
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 14,
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/FreeReturn",
       },
     },
   };
 
-  if (rating && reviewCount) {
+  if (rating && reviewCount && reviewCount > 0) {
     jsonLd.aggregateRating = {
       "@type": "AggregateRating",
-      ratingValue: rating.toFixed(1),
-      reviewCount,
-      bestRating: "5",
-      worstRating: "1",
+      ratingValue: Number(rating.toFixed(1)),
+      reviewCount: Number(reviewCount),
+      bestRating: 5,
+      worstRating: 1,
     };
   }
 

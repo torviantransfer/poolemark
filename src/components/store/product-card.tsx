@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingBag, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Heart, ShoppingBag, Star, Check } from "lucide-react";
 import { formatPrice, calculateDiscountPercentage } from "@/lib/helpers";
 import type { Product } from "@/types";
 import { cn } from "@/lib/utils";
+import { useCart } from "@/hooks/use-cart";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   product: Product;
@@ -22,6 +26,35 @@ export function ProductCard({ product, className }: ProductCardProps) {
     ? calculateDiscountPercentage(product.price, product.compare_at_price)
     : 0;
   const outOfStock = product.stock_quantity <= 0;
+  // variants undefined = not fetched (redirect), empty array = no variants (add directly)
+  const hasVariants = product.variants === undefined || (product.variants?.length ?? 0) > 0;
+
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
+  const router = useRouter();
+
+  function handleAddToCart(e: React.MouseEvent) {
+    e.preventDefault();
+    if (hasVariants) {
+      router.push(`/products/${product.slug}`);
+      return;
+    }
+    addItem({
+      product_id: product.id,
+      variant_id: null,
+      name: product.name,
+      image: primaryImage?.url ?? null,
+      price: product.price,
+      compare_at_price: product.compare_at_price ?? null,
+      quantity: 1,
+      stock_quantity: product.stock_quantity,
+      slug: product.slug,
+      variant_name: null,
+    });
+    setAdded(true);
+    toast.success("Sepete eklendi");
+    setTimeout(() => setAdded(false), 1800);
+  }
 
   return (
     <div
@@ -150,6 +183,31 @@ export function ProductCard({ product, className }: ProductCardProps) {
             </span>
           )}
         </div>
+
+        {/* Sepete Ekle */}
+        {!outOfStock && (
+          <button
+            onClick={handleAddToCart}
+            className={cn(
+              "mt-3 w-full h-9 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200",
+              added
+                ? "bg-primary/15 text-primary"
+                : "bg-primary text-white hover:bg-primary/90 active:scale-95"
+            )}
+          >
+            {added ? (
+              <>
+                <Check className="h-3.5 w-3.5" />
+                Eklendi
+              </>
+            ) : (
+              <>
+                <ShoppingBag className="h-3.5 w-3.5" />
+                {hasVariants ? "Seçenek Seç" : "Sepete Ekle"}
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

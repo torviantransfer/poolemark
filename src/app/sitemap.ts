@@ -61,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq("is_active", true);
 
   const cmsPages: MetadataRoute.Sitemap = (pages || []).map((p) => ({
-    url: `${BASE_URL}/${p.slug}`,
+    url: `${BASE_URL}/pages/${p.slug}`,
     lastModified: new Date(p.updated_at),
     changeFrequency: "monthly" as const,
     priority: 0.4,

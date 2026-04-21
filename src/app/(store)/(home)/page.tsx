@@ -19,12 +19,12 @@ import {
   Scissors,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Product } from "@/types";
+import type { Product, Review } from "@/types";
 
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const [bannersRes, categoriesRes, productsRes, blogRes] =
+  const [bannersRes, categoriesRes, productsRes, blogRes, reviewsRes, reviewStatsRes] =
     await Promise.all([
       supabase
         .from("banners")
@@ -51,6 +51,17 @@ export default async function HomePage() {
         .eq("is_published", true)
         .order("published_at", { ascending: false })
         .limit(3),
+      supabase
+        .from("reviews")
+        .select("*, user:users!user_id(first_name, last_name)")
+        .eq("is_approved", true)
+        .gte("rating", 4)
+        .order("created_at", { ascending: false })
+        .limit(6),
+      supabase
+        .from("reviews")
+        .select("rating")
+        .eq("is_approved", true),
     ]);
 
   const banners = bannersRes.data || [];
@@ -58,6 +69,21 @@ export default async function HomePage() {
   const products = (productsRes.data || []) as Product[];
   const blogPosts = blogRes.data || [];
   const activeBanner = banners[0];
+  const reviews = (reviewsRes.data || []) as Review[];
+  const allRatings = reviewStatsRes.data || [];
+  const reviewCount = allRatings.length;
+  const reviewAvg = reviewCount > 0
+    ? (allRatings.reduce((s: number, r: { rating: number }) => s + r.rating, 0) / reviewCount).toFixed(1)
+    : "4.9";
+
+  function getReviewerDisplayName(review: Review): string {
+    if (review.user?.first_name) {
+      const last = review.user.last_name;
+      return `${review.user.first_name}${last ? " " + last[0] + "." : ""}`;
+    }
+    if (review.reviewer_name) return review.reviewer_name;
+    return "Müşteri";
+  }
 
   return (
     <>
@@ -68,6 +94,7 @@ export default async function HomePage() {
             src={activeBanner?.image_url || "/hero-banner.jpg"}
             alt={activeBanner?.title || "PVC Duvar Paneli ve Mermer Folyo - Poolemark"}
             fill
+            sizes="100vw"
             className="object-cover"
             priority
           />
@@ -96,7 +123,7 @@ export default async function HomePage() {
             <div className="flex flex-wrap gap-4">
               <Button
                 render={
-                  <Link href={activeBanner?.link_url || "/urunler"} />
+                  <Link href={activeBanner?.link_url || "/products"} />
                 }
                 size="lg"
                 className="text-base px-8 h-12 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25"
@@ -127,6 +154,11 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center animate-bounce">
+          <ChevronDown className="h-6 w-6 text-white/50" aria-hidden="true" />
+        </div>
       </section>
 
       {/* ===== TRUST BADGES ===== */}
@@ -146,7 +178,7 @@ export default async function HomePage() {
                 </h2>
               </div>
               <Link
-                href="/urunler"
+                href="/products"
                 className="hidden md:flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 Tümünü Gör
@@ -159,7 +191,7 @@ export default async function HomePage() {
               ))}
             </div>
             <div className="mt-8 text-center md:hidden">
-              <Button render={<Link href="/urunler" />} variant="outline" size="lg" className="h-11 px-6">
+              <Button render={<Link href="/products" />} variant="outline" size="lg" className="h-11 px-6">
                 Tüm Ürünleri Gör
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -239,7 +271,7 @@ export default async function HomePage() {
                 </h2>
               </div>
               <Link
-                href="/urunler"
+                href="/products"
                 className="hidden md:flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 Tümünü Gör
@@ -313,6 +345,7 @@ export default async function HomePage() {
       </section>
 
       {/* ===== CUSTOMER REVIEWS ===== */}
+      {(reviews.length > 0 || reviewCount === 0) && (
       <section className="py-16 md:py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-12">
@@ -326,56 +359,58 @@ export default async function HomePage() {
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star key={s} className="h-5 w-5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
               ))}
-              <span className="ml-2 text-sm font-semibold text-foreground">4.9 / 5</span>
-              <span className="text-sm text-muted-foreground ml-1">(200+ değerlendirme)</span>
+              <span className="ml-2 text-sm font-semibold text-foreground">{reviewAvg} / 5</span>
+              {reviewCount > 0 && (
+                <span className="text-sm text-muted-foreground ml-1">({reviewCount}+ değerlendirme)</span>
+              )}
             </div>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[
-              { name: "Ayşe K.", city: "İstanbul", rating: 5, text: "Mutfak tezgah arasına mermer paneli uyguladım, sonuç inanılmaz oldu. Eski fayansların üstüne direkt yapıştırdım, sanki profesyonel yaptırmışım gibi görünüyor.", date: "2026-03-15" },
-              { name: "Mehmet T.", city: "Ankara", rating: 5, text: "3D tuğla paneli TV arkasına uyguladım ve beyaza boyadım. Salon bambaşka bir hava aldı. Uygulama çok kolaydı, tek başıma yaptım.", date: "2026-03-10" },
-              { name: "Zeynep A.", city: "İzmir", rating: 5, text: "Kiracıyım ve fayansları değiştiremiyordum. Mermer desenli panellerle banyo tamamen değişti. Taşınırken sökeceğim, iz bırakmıyor diye çok rahatım.", date: "2026-02-28" },
-              { name: "Fatma Y.", city: "Antalya", rating: 5, text: "Mermer folyoyu mutfak dolaplarına uyguladım, eski görünen dolaplar lüks bir görünüm aldı. 5 metrelik rulo tam yetti.", date: "2026-02-20" },
-              { name: "Ali R.", city: "Bursa", rating: 5, text: "14:00'dan önce sipariş verdim, ertesi gün kargom elime ulaştı. Panellerin kalitesi beklediğimden çok daha iyi çıktı. Kesinlikle tavsiye ederim.", date: "2026-02-15" },
-              { name: "Elif S.", city: "Konya", rating: 4, text: "Yapışkanlı folyoyu tezgah üstüne uyguladım. İlk seferimdi ama blog yazılarındaki rehberi takip ettim, kabarcıksız güzel bir sonuç aldım.", date: "2026-01-30" },
-            ].map((review, i) => (
-              <article
-                key={i}
-                className="p-5 md:p-6 rounded-2xl bg-secondary/20 border border-border/30 hover:shadow-md transition-shadow"
-                itemScope
-                itemType="https://schema.org/Review"
-              >
-                <meta itemProp="itemReviewed" content="Poolemark" />
-                <div className="flex items-center gap-1 mb-3">
-                  {Array.from({ length: 5 }, (_, s) => (
-                    <Star
-                      key={s}
-                      className={`h-4 w-4 ${s < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`}
-                      aria-hidden="true"
-                    />
-                  ))}
-                  <span className="sr-only" itemProp="reviewRating" itemScope itemType="https://schema.org/Rating">
-                    <meta itemProp="ratingValue" content={String(review.rating)} />
-                    <meta itemProp="bestRating" content="5" />
-                  </span>
-                </div>
-                <p className="text-sm text-foreground leading-relaxed mb-4" itemProp="reviewBody">
-                  &ldquo;{review.text}&rdquo;
-                </p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground" itemProp="author">{review.name}</p>
-                    <p className="text-xs text-muted-foreground">{review.city}</p>
+          {reviews.length > 0 ? (
+            <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none scrollbar-hide pb-4 md:pb-0 -mx-4 md:mx-0 px-4 md:px-0">
+              {reviews.map((review) => (
+                <article
+                  key={review.id}
+                  className="shrink-0 w-[82vw] sm:w-[60vw] md:w-auto snap-start p-5 md:p-6 rounded-2xl bg-secondary/20 border border-border/30 hover:shadow-md transition-shadow"
+                  itemScope
+                  itemType="https://schema.org/Review"
+                >
+                  <meta itemProp="itemReviewed" content="Poolemark" />
+                  <div className="flex items-center gap-1 mb-3">
+                    {Array.from({ length: 5 }, (_, s) => (
+                      <Star
+                        key={s}
+                        className={`h-4 w-4 ${s < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`}
+                        aria-hidden="true"
+                      />
+                    ))}
+                    {review.is_verified_purchase && (
+                      <span className="ml-auto text-[10px] font-medium text-primary bg-primary/8 px-2 py-0.5 rounded-full">
+                        Doğrulanmış
+                      </span>
+                    )}
+                    <span className="sr-only" itemProp="reviewRating" itemScope itemType="https://schema.org/Rating">
+                      <meta itemProp="ratingValue" content={String(review.rating)} />
+                      <meta itemProp="bestRating" content="5" />
+                    </span>
                   </div>
-                  <time className="text-xs text-muted-foreground" itemProp="datePublished" dateTime={review.date}>
-                    {new Date(review.date).toLocaleDateString("tr-TR", { month: "long", year: "numeric" })}
-                  </time>
-                </div>
-              </article>
-            ))}
-          </div>
+                  <p className="text-sm text-foreground leading-relaxed mb-4" itemProp="reviewBody">
+                    &ldquo;{review.comment}&rdquo;
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground" itemProp="author">
+                      {getReviewerDisplayName(review)}
+                    </p>
+                    <time className="text-xs text-muted-foreground" itemProp="datePublished" dateTime={review.created_at}>
+                      {new Date(review.created_at).toLocaleDateString("tr-TR", { month: "long", year: "numeric" })}
+                    </time>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
+      )}
 
       {/* ===== WHY POOLEMARK ===== */}
       <section className="py-16 md:py-24 bg-secondary/30">
@@ -487,6 +522,7 @@ export default async function HomePage() {
                         src={post.cover_image_url}
                         alt={post.title}
                         fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     )}

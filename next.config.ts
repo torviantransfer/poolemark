@@ -40,8 +40,18 @@ const nextConfig: NextConfig = {
       { source: "/account/register", destination: "/kayit", permanent: true },
       { source: "/cart", destination: "/sepet", permanent: true },
       { source: "/collections", destination: "/products", permanent: true },
+      { source: "/collections/all", destination: "/products", permanent: true },
+      // Shopify koleksiyon URL'leri → kategori sayfası
+      { source: "/collections/:slug", destination: "/kategori/:slug", permanent: true },
+      // Shopify blog URL'leri → blog sayfası
+      { source: "/blogs/:blog/:slug", destination: "/blog/:slug", permanent: true },
+      { source: "/blogs/:blog", destination: "/blog", permanent: true },
+      // Shopify sayfa URL'leri (pages/ zaten mevcut)
       { source: "/pages/contact", destination: "/iletisim", permanent: true },
       { source: "/pages/hakkimizda", destination: "/hakkimizda", permanent: true },
+      { source: "/pages/iletisim", destination: "/iletisim", permanent: true },
+      { source: "/pages/about", destination: "/hakkimizda", permanent: true },
+      { source: "/pages/blog", destination: "/blog", permanent: true },
     ];
   },
   images: {

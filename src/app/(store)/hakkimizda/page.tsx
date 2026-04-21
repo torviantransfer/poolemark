@@ -18,18 +18,37 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { BreadcrumbJsonLd } from "@/components/shared/json-ld";
 import type { Metadata } from "next";
+
+const BASE_URL = "https://poolemark.com";
 
 export const metadata: Metadata = {
   title: "Hakkımızda | Poolemark",
   description:
-    "Poolemark, 2018'den bu yana ev gereçleri ve dekorasyon alanında güvenilir hizmet sunan bir markadır.",
+    "Poolemark, 2018'den bu yana PVC duvar paneli ve dekorasyon ürünleri alanında hizmet sunan Türk markasıdır. Antalya merkezli, Türkiye geneline hızlı kargo.",
+  alternates: { canonical: `${BASE_URL}/hakkimizda` },
+  openGraph: {
+    type: "website",
+    title: "Hakkımızda | Poolemark",
+    description: "PVC duvar paneli ve dekorasyon ürünleri. 2018'den bu yana kaliteli ve uygun fiyatlı ev yenileme çözümleri.",
+    url: `${BASE_URL}/hakkimizda`,
+    siteName: "Poolemark",
+    locale: "tr_TR",
+    images: [{ url: `${BASE_URL}/og-image.png`, width: 1200, height: 630, alt: "Poolemark Hakkımızda" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hakkımızda | Poolemark",
+    description: "PVC duvar paneli ve dekorasyon ürünleri. 2018'den bu yana kaliteli ve uygun fiyatlı ev yenileme çözümleri.",
+    images: [`${BASE_URL}/og-image.png`],
+  },
 };
 
 export default function AboutPage() {
   return (
     <div>
-      {/* Hero */}
+      <BreadcrumbJsonLd items={[{ name: "Anasayfa", href: "/" }, { name: "Hakkımızda", href: "/hakkimizda" }]} />
       <section className="bg-gradient-to-b from-primary/5 via-primary/3 to-white border-b border-border/30">
         <div className="container mx-auto px-4 pt-10 pb-12 md:pt-14 md:pb-16">
           <div className="max-w-3xl mx-auto text-center">
@@ -297,7 +316,7 @@ export default function AboutPage() {
                 render={<Link href="/products" />}
                 variant="outline"
                 size="lg"
-                className="border-white/40 text-white hover:bg-white/10 hover:text-white h-12 px-8 text-base"
+                className="border-white/60 text-white bg-white/10 hover:bg-white/20 hover:text-white h-12 px-8 text-base"
               >
                 Ürünleri Keşfet
                 <ArrowRight className="ml-2 h-5 w-5" />

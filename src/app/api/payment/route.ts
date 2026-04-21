@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayTRToken } from "@/lib/paytr";
 import { generateOrderNumber } from "@/lib/helpers";
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
+    const adminClient = createAdminClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -26,14 +28,14 @@ export async function POST(request: NextRequest) {
     const productIds = items.map((i: { product_id: string }) => i.product_id);
     const variantIds = items.filter((i: { variant_id?: string }) => i.variant_id).map((i: { variant_id: string }) => i.variant_id);
 
-    const { data: products } = await supabase
+    const { data: products } = await adminClient
       .from("products")
       .select("id, price, compare_at_price, stock_quantity, name")
       .in("id", productIds);
 
     let variants: { id: string; price: number; stock_quantity: number }[] = [];
     if (variantIds.length > 0) {
-      const { data: v } = await supabase
+      const { data: v } = await adminClient
         .from("product_variants")
         .select("id, price, stock_quantity")
         .in("id", variantIds);
@@ -83,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate shipping from selected shipping company
-    const { data: shippingCompany } = await supabase
+    const { data: shippingCompany } = await adminClient
       .from("shipping_companies")
       .select("id, name, price, free_shipping_threshold")
       .eq("id", shippingCompanyId)
@@ -102,7 +104,7 @@ export async function POST(request: NextRequest) {
     // Validate coupon server-side
     let calculatedDiscount = 0;
     if (couponCode) {
-      const { data: coupon } = await supabase
+      const { data: coupon } = await adminClient
         .from("coupons")
         .select("*")
         .eq("code", couponCode.toUpperCase())
@@ -126,7 +128,7 @@ export async function POST(request: NextRequest) {
           calculatedDiscount = Math.min(calculatedDiscount, calculatedSubtotal);
 
           // Increment coupon usage
-          await supabase
+          await adminClient
             .from("coupons")
             .update({ used_count: coupon.used_count + 1 })
             .eq("id", coupon.id);
@@ -150,7 +152,7 @@ export async function POST(request: NextRequest) {
 
     if (user && addressId) {
       // Logged-in user with saved address
-      const { data: address } = await supabase
+      const { data: address } = await adminClient
         .from("addresses")
         .select("*")
         .eq("id", addressId)
@@ -161,7 +163,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Adres bulunamadı" }, { status: 404 });
       }
 
-      const { data: userData } = await supabase
+      const { data: userData } = await adminClient
         .from("users")
         .select("first_name, last_name, phone")
         .eq("id", user.id)
@@ -208,7 +210,7 @@ export async function POST(request: NextRequest) {
     const orderNumber = generateOrderNumber();
 
     // Create order
-    const { data: order, error } = await supabase
+    const { data: order, error } = await adminClient
       .from("orders")
       .insert({
         user_id: userId,
@@ -229,22 +231,33 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error || !order) {
-      return NextResponse.json({ error: "Sipariş oluşturulamadı" }, { status: 500 });
+      console.error("Order insert error:", error);
+      return NextResponse.json(
+        { error: error?.message || "Sipariş oluşturulamadı" },
+        { status: 500 }
+      );
     }
 
     // Create order items (using server-validated prices)
     const orderItems = validatedItems.map((item) => ({
       order_id: order.id,
       product_id: item.product_id,
-      variant_id: item.variant_id || null,
       product_name: item.name,
-      variant_name: item.variant_name || null,
+      product_image: null,
+      variant_info: item.variant_name || null,
       quantity: item.quantity,
       unit_price: item.price,
       total_price: item.price * item.quantity,
     }));
 
-    await supabase.from("order_items").insert(orderItems);
+    const { error: orderItemsError } = await adminClient.from("order_items").insert(orderItems);
+    if (orderItemsError) {
+      console.error("Order items insert error:", orderItemsError);
+      return NextResponse.json(
+        { error: orderItemsError.message || "Sipariş ürünleri kaydedilemedi" },
+        { status: 500 }
+      );
+    }
 
     // Get user IP
     const userIp =

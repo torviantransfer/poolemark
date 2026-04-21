@@ -11,11 +11,12 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("products")
-      .select("id, name, slug, price, compare_at_price, images:product_images(url, position)")
+      .select("id, name, slug, price, compare_at_price, images:product_images(url, is_primary)")
       .eq("is_active", true);
 
     if (exclude.length > 0) {
-      query = query.not("id", "in", `(${exclude.join(",")})`);
+      const quotedIds = exclude.map((id) => `"${id}"`).join(",");
+      query = query.not("id", "in", `(${quotedIds})`);
     }
 
     switch (sort) {
@@ -38,13 +39,24 @@ export async function GET(request: NextRequest) {
 
     const products = (data || []).map((p) => ({
       ...p,
-      images: ((p.images as { url: string; position: number }[]) || [])
-        .sort((a, b) => a.position - b.position)
+      images: ((p.images as { url: string; is_primary?: boolean }[]) || [])
+        .sort((a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)))
         .map((img) => img.url),
     }));
 
     return NextResponse.json({ products });
-  } catch {
-    return NextResponse.json({ products: [] }, { status: 500 });
+  } catch (err: unknown) {
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : (err as { message?: string })?.message || JSON.stringify(err);
+    console.error("Products API error:", err);
+    return NextResponse.json(
+      {
+        products: [],
+        error: errorMessage || "Ürünler getirilemedi",
+      },
+      { status: 500 }
+    );
   }
 }

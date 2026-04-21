@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description:
       category.meta_description ||
       `${category.name} kategorisindeki ürünleri keşfedin. Uygun fiyat ve hızlı kargo ile Poolemark'ta.`,
+    alternates: { canonical: `https://poolemark.com/kategori/${slug}` },
   };
 }
 
@@ -55,7 +56,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <section className="bg-secondary/40 border-b">
         <div className="container mx-auto px-4 py-8 md:py-12">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
             <Link href="/" className="hover:text-primary transition-colors">
               Anasayfa
             </Link>
@@ -70,6 +71,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                   src={category.image_url}
                   alt={category.name}
                   fill
+                  sizes="64px"
                   className="object-cover"
                 />
               </div>

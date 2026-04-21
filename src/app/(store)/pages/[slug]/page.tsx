@@ -131,6 +131,7 @@ export async function generateMetadata({
   return {
     title: `${page.title} | Poolemark`,
     description: page.meta_description || undefined,
+    alternates: { canonical: `https://poolemark.com/pages/${slug}` },
   };
 }
 
@@ -171,7 +172,7 @@ export default async function StaticPage({ params }: PageProps) {
         <div className="container mx-auto px-4 pt-10 pb-12 md:pt-14 md:pb-16">
           <div className="max-w-5xl mx-auto">
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-8">
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-8">
               <Link href="/" className="hover:text-foreground transition-colors">
                 Anasayfa
               </Link>
