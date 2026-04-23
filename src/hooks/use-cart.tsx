@@ -29,6 +29,7 @@ export interface CartItem {
 interface CartContextType {
   items: CartItem[];
   loading: boolean;
+  mounted: boolean;
   itemCount: number;
   subtotal: number;
   addItem: (item: Omit<CartItem, "id">) => void;
@@ -44,6 +45,7 @@ const CART_STORAGE_KEY = "poolemark_cart";
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const { user } = useUser();
 
   // Load cart from localStorage on mount
@@ -57,18 +59,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // ignore
     }
     setLoading(false);
+    setMounted(true);
   }, []);
 
   // Persist to localStorage on change
   useEffect(() => {
-    if (!loading) {
+    if (mounted && !loading) {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
     }
-  }, [items, loading]);
+  }, [items, loading, mounted]);
 
   // Sync with Supabase if logged in
   useEffect(() => {
-    if (!user || loading) return;
+    if (!mounted || !user || loading) return;
 
     const supabase = createClient();
 
@@ -115,7 +118,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           });
         }
       });
-  }, [user, loading]);
+  }, [user, loading, mounted]);
 
   const addItem = useCallback(
     (item: Omit<CartItem, "id">) => {
@@ -195,13 +198,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => {
     setItems([]);
-    localStorage.removeItem(CART_STORAGE_KEY);
+    if (mounted) {
+      localStorage.removeItem(CART_STORAGE_KEY);
+    }
 
     if (user) {
       const supabase = createClient();
       supabase.from("cart_items").delete().eq("user_id", user.id);
     }
-  }, [user]);
+  }, [user, mounted]);
 
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
@@ -211,6 +216,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         items,
         loading,
+        mounted,
         itemCount,
         subtotal,
         addItem,

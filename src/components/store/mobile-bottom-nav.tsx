@@ -29,7 +29,7 @@ export function MobileBottomNav() {
         left: 0,
         right: 0,
         width: "100%",
-        zIndex: 2147483647,
+        zIndex: 40,
         backgroundColor: "#ffffff",
         borderTop: "1px solid #e5e7eb",
         boxShadow: "0 -2px 12px rgba(0,0,0,0.08)",

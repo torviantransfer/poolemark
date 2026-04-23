@@ -32,8 +32,8 @@ create policy "stock_notifications_admin_select"
   for select
   using (
     exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
+      select 1 from public.users
+      where users.id = auth.uid() and users.role = 'admin'
     )
   );
 
@@ -43,7 +43,7 @@ create policy "stock_notifications_admin_update"
   for update
   using (
     exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
+      select 1 from public.users
+      where users.id = auth.uid() and users.role = 'admin'
     )
   );

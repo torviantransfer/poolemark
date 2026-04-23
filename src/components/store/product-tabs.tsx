@@ -91,8 +91,8 @@ function ReviewList({ reviews }: { reviews: Review[] }) {
       <RatingSummary reviews={reviews} />
 
       {/* Filter bar */}
-      <div className="flex items-center justify-between gap-3 mb-5">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="flex items-center gap-2 flex-wrap">
           <select
             value={sort}
             onChange={(e) => { setSort(e.target.value as typeof sort); setPage(1); }}
@@ -131,7 +131,7 @@ function ReviewList({ reviews }: { reviews: Review[] }) {
       </div>
 
       {/* Review grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
         {paged.map((review) => {
           const displayName = review.reviewer_name
             ? maskName(review.reviewer_name)
@@ -412,31 +412,32 @@ export function ProductTabs({
     return () => window.removeEventListener("hashchange", handleHash);
   }, []);
 
-  const tabs: { id: Tab; label: string; count?: number }[] = [
-    { id: "description", label: "Ürün Açıklaması" },
-    { id: "reviews", label: "Değerlendirmeler", count: reviews.length },
-    { id: "sss", label: "SSS" },
-    { id: "shipping", label: "Kargo & İade" },
+  const tabs: { id: Tab; label: string; mobileLabel: string; count?: number }[] = [
+    { id: "description", label: "Ürün Açıklaması", mobileLabel: "Açıklama" },
+    { id: "reviews", label: "Değerlendirmeler", mobileLabel: "Yorumlar", count: reviews.length },
+    { id: "sss", label: "SSS", mobileLabel: "SSS" },
+    { id: "shipping", label: "Kargo & İade", mobileLabel: "Kargo" },
   ];
 
   return (
     <div id="degerlendirmeler" className="mt-12 md:mt-16">
       {/* Tab Headers */}
-      <div className="flex border-b gap-1 md:gap-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overflow-x-auto">
+      <div className="grid grid-cols-4 sm:flex border-b gap-1 md:gap-2">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "px-4 md:px-5 py-3 text-sm font-medium whitespace-nowrap border-b-2 rounded-t-lg transition-colors -mb-px",
+              "px-1.5 sm:px-4 md:px-5 py-2.5 sm:py-3 text-[11px] sm:text-sm text-center font-medium whitespace-nowrap border-b-2 rounded-t-lg transition-colors -mb-px",
               activeTab === tab.id
                 ? "border-primary text-primary bg-primary/5"
                 : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/60"
             )}
           >
-            {tab.label}
+            <span className="sm:hidden">{tab.mobileLabel}</span>
+            <span className="hidden sm:inline">{tab.label}</span>
             {tab.count !== undefined && (
-              <span className="ml-1.5 text-xs text-muted-foreground">
+              <span className="ml-1.5 text-xs text-muted-foreground hidden sm:inline">
                 ({tab.count})
               </span>
             )}
@@ -450,7 +451,7 @@ export function ProductTabs({
           <div>
             {description ? (
               <div
-                className="prose prose-sm max-w-none text-foreground/90 leading-relaxed"
+                className="prose prose-sm max-w-none text-foreground/90 leading-relaxed break-words prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg prose-table:block prose-table:overflow-x-auto prose-table:max-w-full prose-iframe:max-w-full prose-iframe:aspect-video prose-iframe:w-full prose-iframe:h-auto prose-pre:overflow-x-auto"
                 dangerouslySetInnerHTML={{ __html: description }}
               />
             ) : (

@@ -9,6 +9,11 @@ export interface User {
   phone: string;
   role: "customer" | "admin";
   avatar_url: string | null;
+  notification_preferences?: {
+    order?: boolean;
+    marketing?: boolean;
+    stock?: boolean;
+  } | null;
   email_verified: boolean;
   created_at: string;
   updated_at: string;

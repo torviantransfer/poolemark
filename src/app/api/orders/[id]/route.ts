@@ -30,7 +30,14 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status, payment_status, cargo_company, cargo_tracking_number } = body;
+    const {
+      status,
+      payment_status,
+      cargo_company,
+      cargo_tracking_number,
+      invoice_number,
+      invoice_url,
+    } = body;
 
     // Build tracking URL from DB-managed shipping company template; fallback to legacy mapping.
     async function getTrackingUrl(company: string, trackingNo: string): Promise<string | null> {
@@ -64,7 +71,7 @@ export async function PATCH(
     // Get current order before update (for shipped email check)
     const { data: currentOrder } = await supabase
       .from("orders")
-      .select("status, order_number, user_id, guest_email, shipping_address_json")
+      .select("status, order_number, user_id, guest_email, shipping_address_json, cargo_company, cargo_tracking_number")
       .eq("id", id)
       .single();
 
@@ -81,6 +88,8 @@ export async function PATCH(
         cargo_company: cargo_company || null,
         cargo_tracking_number: cargo_tracking_number || null,
         cargo_tracking_url: trackingUrl,
+        invoice_number: invoice_number || null,
+        invoice_url: invoice_url || null,
       })
       .eq("id", id);
 
@@ -88,8 +97,23 @@ export async function PATCH(
       return NextResponse.json({ error: "Güncelleme başarısız" }, { status: 500 });
     }
 
-    // Send shipped email if status changed to "shipped"
-    if (status === "shipped" && currentOrder.status !== "shipped" && cargo_company && cargo_tracking_number) {
+    // Send shipped email when shipping info becomes available.
+    const oldTracking = currentOrder.cargo_tracking_number || "";
+    const newTracking = cargo_tracking_number || "";
+    const oldCompany = currentOrder.cargo_company || "";
+    const newCompany = cargo_company || "";
+
+    const statusNowShippedLike =
+      status === "shipped" ||
+      status === "delivered" ||
+      currentOrder.status === "shipped" ||
+      currentOrder.status === "delivered";
+
+    const shippingBecameReady =
+      (!!newTracking && oldTracking !== newTracking) ||
+      (!!newCompany && oldCompany !== newCompany && !!newTracking);
+
+    if (statusNowShippedLike && newCompany && newTracking && shippingBecameReady) {
       let recipientEmail: string | null = null;
       let recipientName = "Değerli Müşterimiz";
 
@@ -112,12 +136,12 @@ export async function PATCH(
       }
 
       if (recipientEmail) {
-        sendShippedEmail(recipientEmail, {
+        await sendShippedEmail(recipientEmail, {
           firstName: recipientName,
           orderNumber: currentOrder.order_number,
           orderId: id,
-          cargoCompany: cargo_company,
-          trackingNumber: cargo_tracking_number,
+          cargoCompany: newCompany,
+          trackingNumber: newTracking,
           trackingUrl: trackingUrl || undefined,
         });
       }

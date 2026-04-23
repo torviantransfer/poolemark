@@ -67,7 +67,7 @@ export default async function PaymentResultPage({
             <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
               {order && isLoggedIn && (
                 <Button
-                  render={<Link href={`/hesabim/siparislerim/${order.id}`} />}
+                  render={<Link href={`/hesabim/siparislerim/${encodeURIComponent(order.order_number)}`} />}
                   className="gap-2"
                 >
                   <Package className="h-4 w-4" />

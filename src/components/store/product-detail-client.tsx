@@ -17,9 +17,9 @@ export function ProductDetailClient({ product, images, disabled, children }: Pro
   const [variantImageUrl, setVariantImageUrl] = useState<string | null>(null);
 
   return (
-    <div className="grid lg:grid-cols-2 gap-10 md:gap-16">
+    <div className="grid md:grid-cols-2 gap-6 md:gap-10 lg:gap-16 min-w-0">
       {/* Gallery + (desktop) Shipping Timeline */}
-      <div className="space-y-6">
+      <div className="space-y-6 min-w-0">
         <ProductGallery
           images={images}
           productName={product.name}
@@ -32,7 +32,7 @@ export function ProductDetailClient({ product, images, disabled, children }: Pro
       </div>
 
       {/* Info */}
-      <div>
+      <div className="min-w-0">
         {children}
         <ProductActions
           product={product}

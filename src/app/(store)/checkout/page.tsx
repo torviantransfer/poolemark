@@ -231,16 +231,16 @@ function CheckoutContent() {
             </p>
           </div>
         </section>
-        <section className="py-8 md:py-12">
-          <div className="container mx-auto px-4 max-w-2xl">
-            <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
-              <div className="flex items-center gap-2 p-5 border-b">
+        <section className="py-4 md:py-12 pb-24 md:pb-12">
+          <div className="container mx-auto px-0 md:px-4 max-w-4xl">
+            <div className="bg-white md:rounded-2xl md:border md:shadow-sm overflow-hidden">
+              <div className="flex items-center gap-2 px-4 md:px-5 py-4 border-b">
                 <Shield className="h-5 w-5 text-primary" />
                 <span className="text-sm font-medium">256-bit SSL ile Güvenli Ödeme</span>
               </div>
               <iframe
                 src={`https://www.paytr.com/odeme/guvenli/${paytrToken}`}
-                className="w-full min-h-[400px] md:min-h-[500px] border-0"
+                className="w-full min-h-[calc(100vh-180px)] md:min-h-[640px] border-0"
                 id="paytriframe"
                 frameBorder="0"
                 scrolling="yes"
@@ -269,7 +269,7 @@ function CheckoutContent() {
 
       <section className="py-8 md:py-12 pb-32 lg:pb-12">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
+          <div className="grid md:grid-cols-3 gap-4 lg:gap-8">
             {/* Left */}
             <div className="lg:col-span-2 space-y-6">
               {/* Address Selection */}

@@ -52,9 +52,8 @@ export default async function AdminCategoriesPage() {
             <tbody>
               {categories && categories.length > 0 ? (
                 categories.map((cat: Category & { children?: Category[] }) => (
-                  <>
+                  <div key={cat.id} className="contents">
                     <tr
-                      key={cat.id}
                       className="border-b hover:bg-secondary/20 transition-colors"
                     >
                       <td className="px-5 py-3">
@@ -152,7 +151,7 @@ export default async function AdminCategoriesPage() {
                         </td>
                       </tr>
                     ))}
-                  </>
+                  </div>
                 ))
               ) : (
                 <tr>

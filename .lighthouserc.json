@@ -1,0 +1,16 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "http://localhost:3000/",
+        "http://localhost:3000/urunler"
+      ],
+      "startServerCommand": "npm run start",
+      "startServerReadyPattern": "ready",
+      "numberOfRuns": 1
+    },
+    "assert": {
+      "preset": "lighthouse:recommended"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -27,9 +27,11 @@ import {
   Megaphone,
   MessageSquare,
   Star,
+  Activity,
   BarChart3,
   Settings,
   Truck,
+  RotateCcw,
   Menu,
   LogOut,
   ChevronDown,
@@ -44,6 +46,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Users,
   Ticket,
   Truck,
+  RotateCcw,
   FileText,
   File,
   Image,
@@ -51,6 +54,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   MessageSquare,
   Star,
   BarChart3,
+  Activity,
   Settings,
 };
 
@@ -59,6 +63,39 @@ export function AdminSidebar() {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [onlineCount, setOnlineCount] = useState(0);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const key = `admin-${crypto.randomUUID()}`;
+    const channel = supabase.channel("online-visitors-admin-sidebar", {
+      config: { presence: { key } },
+    });
+
+    const updateCount = () => {
+      const presence = channel.presenceState<Record<string, unknown>[]>();
+      const total = Object.values(presence).reduce(
+        (sum, list) => sum + list.length,
+        0
+      );
+      setOnlineCount(total);
+    };
+
+    channel.on("presence", { event: "sync" }, updateCount);
+    channel.on("presence", { event: "join" }, updateCount);
+    channel.on("presence", { event: "leave" }, updateCount);
+
+    channel.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await channel.track({ role: "admin-sidebar", joinedAt: new Date().toISOString() });
+      }
+    });
+
+    return () => {
+      channel.untrack();
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -97,6 +134,11 @@ export function AdminSidebar() {
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{link.label}</span>
+              {link.href === "/admin/canli-ziyaretciler" && onlineCount > 0 && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">
+                  {onlineCount}
+                </span>
+              )}
               {hasChildren && (
                 <ChevronDown
                   className={cn(

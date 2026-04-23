@@ -47,6 +47,8 @@ export function NewsletterForm({ variant = "default" }: NewsletterFormProps) {
   if (status === "success") {
     return (
       <div
+        role="status"
+        aria-live="polite"
         className={cn(
           "flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium text-sm",
           variant === "hero"
@@ -81,7 +83,7 @@ export function NewsletterForm({ variant = "default" }: NewsletterFormProps) {
           <Button
             type="submit"
             disabled={status === "loading"}
-            className="h-12 px-8 bg-white text-primary hover:bg-white/90 font-semibold rounded-xl shrink-0"
+            className="h-12 px-8 bg-white text-primary hover:bg-white/90 font-semibold rounded-xl shrink-0 w-full sm:w-auto"
           >
             {status === "loading" ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -94,7 +96,7 @@ export function NewsletterForm({ variant = "default" }: NewsletterFormProps) {
           </Button>
         </form>
         {status === "error" && (
-          <p className="text-sm text-red-200 text-center">{message}</p>
+          <p aria-live="polite" className="text-sm text-red-200 text-center">{message}</p>
         )}
       </div>
     );
@@ -123,7 +125,7 @@ export function NewsletterForm({ variant = "default" }: NewsletterFormProps) {
         <span className="hidden sm:inline">Abone Ol</span>
       </Button>
       {status === "error" && (
-        <p className="text-xs text-destructive mt-1">{message}</p>
+        <p aria-live="polite" className="text-xs text-destructive mt-1">{message}</p>
       )}
     </form>
   );

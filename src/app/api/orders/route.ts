@@ -96,21 +96,23 @@ export async function POST(request: NextRequest) {
 
     // Send order confirmation email
     const firstName = user.user_metadata?.first_name || "Değerli Müşterimiz";
-    sendOrderConfirmationEmail(user.email!, {
-      firstName,
-      orderNumber,
-      orderId: order.id,
-      items: items.map((item: any) => ({
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        image: item.image || undefined,
-      })),
-      subtotal,
-      shippingCost: shipping,
-      discount: discount || 0,
-      total,
-    });
+    if (user.email) {
+      await sendOrderConfirmationEmail(user.email, {
+        firstName,
+        orderNumber,
+        orderId: order.id,
+        items: items.map((item: any) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image || undefined,
+        })),
+        subtotal,
+        shippingCost: shipping,
+        discount: discount || 0,
+        total,
+      });
+    }
 
     return NextResponse.json({
       success: true,

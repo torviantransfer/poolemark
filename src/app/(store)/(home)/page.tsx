@@ -20,8 +20,20 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Product, Review } from "@/types";
+import { redirect } from "next/navigation";
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  const params = await searchParams;
+  // Supabase email confirmation links land on Site URL with ?code=...
+  // Forward to the auth callback handler so the session can be exchanged.
+  if (params.code) {
+    redirect(`/api/auth/callback?code=${encodeURIComponent(params.code)}`);
+  }
+
   const supabase = await createClient();
 
   const [bannersRes, categoriesRes, productsRes, blogRes, reviewsRes, reviewStatsRes] =
@@ -88,7 +100,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ===== HERO SECTION ===== */}
-      <section className="relative min-h-[85vh] md:min-h-[90vh] flex items-center -mt-16 md:-mt-[68px]">
+      <section className="relative min-h-[70vh] sm:min-h-[85vh] md:min-h-[90vh] flex items-center -mt-16 md:-mt-[68px]">
         <div className="absolute inset-0 z-0">
           <Image
             src={activeBanner?.image_url || "/hero-banner.jpg"}
@@ -97,18 +109,19 @@ export default async function HomePage() {
             sizes="100vw"
             className="object-cover"
             priority
+            fetchPriority="high"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 pt-24 pb-16">
+        <div className="relative z-10 container mx-auto px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm mb-6">
               <Sparkles className="h-4 w-4 text-primary" />
               <span>Kırmadan Dökmeden Pratik Ev Yenileme</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.1] mb-6">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.1] mb-4 sm:mb-6">
               {activeBanner?.title || (
                 <>
                   Duvarlarınıza{" "}
@@ -116,17 +129,17 @@ export default async function HomePage() {
                 </>
               )}
             </h1>
-            <p className="text-lg md:text-xl text-white/80 leading-relaxed mb-8 max-w-lg">
+            <p className="text-base sm:text-lg md:text-xl text-white/80 leading-relaxed mb-6 sm:mb-8 max-w-lg">
               {activeBanner?.subtitle ||
                 "Yapışkanlı PVC duvar paneli ve mermer folyo ile banyo, mutfak ve salonunuzu usta çağırmadan yenileyin."}
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
               <Button
                 render={
                   <Link href={activeBanner?.link_url || "/products"} />
                 }
                 size="lg"
-                className="text-base px-8 h-12 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25"
+                className="text-base px-6 sm:px-8 h-12 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 w-full sm:w-auto"
               >
                 Ürünleri İncele
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -134,7 +147,7 @@ export default async function HomePage() {
               <Button
                 render={<Link href="/blog" />}
                 size="lg"
-                className="text-base px-8 h-12 bg-white/10 border border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
+                className="text-base px-6 sm:px-8 h-12 bg-white/10 border border-white/30 text-white hover:bg-white/20 backdrop-blur-sm w-full sm:w-auto"
               >
                 Uygulama Rehberleri
               </Button>

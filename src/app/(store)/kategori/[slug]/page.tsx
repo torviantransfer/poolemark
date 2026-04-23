@@ -84,7 +84,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
           {/* Subcategories */}
           {category.children && category.children.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-5">
+            <div id="subcategories" className="flex flex-wrap gap-2 mt-5">
               {category.children.map((child) => (
                 <Link
                   key={child.id}
@@ -103,12 +103,27 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <section className="py-8 md:py-12">
         <div className="container mx-auto px-4">
           {/* Toolbar */}
-          <div className="flex items-center justify-between gap-3 mb-6">
+          <div className="sticky top-[68px] z-30 mb-6 -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-b border-border/60">
+            <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">{total}</span> ürün
               bulundu
             </p>
-            <ProductSort currentSort={sort} />
+              <div className="flex items-center gap-2">
+                {category.children && category.children.length > 0 && (
+                  <Button
+                    render={<Link href="#subcategories" />}
+                    variant="outline"
+                    size="sm"
+                    className="md:hidden"
+                  >
+                    <SlidersHorizontal className="h-4 w-4 mr-1" />
+                    Filtrele
+                  </Button>
+                )}
+                <ProductSort currentSort={sort} />
+              </div>
+            </div>
           </div>
 
           {/* Product Grid */}

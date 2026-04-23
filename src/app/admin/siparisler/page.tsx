@@ -25,7 +25,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   const supabase = await createClient();
   let query = supabase
     .from("orders")
-    .select("*, user:users!user_id(first_name, last_name, email)", {
+    .select("*, user:users!user_id(first_name, last_name, email), return_requests:order_return_requests(status, created_at)", {
       count: "exact",
     })
     .order("created_at", { ascending: false })
@@ -91,7 +91,27 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
             </thead>
             <tbody>
               {orders && orders.length > 0 ? (
-                orders.map((order) => (
+                orders.map((order) => {
+                  const latestReturn = Array.isArray((order as any).return_requests)
+                    ? [...(order as any).return_requests].sort(
+                        (a: any, b: any) =>
+                          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                      )[0]
+                    : null;
+                  const hasActiveReturn =
+                    latestReturn?.status && latestReturn.status !== "rejected";
+                  const displayStatusLabel = hasActiveReturn
+                    ? latestReturn.status === "completed"
+                      ? "İade Tamamlandı"
+                      : "İade Sürecinde"
+                    : ORDER_STATUS_LABELS[order.status] || order.status;
+                  const displayStatusColor = hasActiveReturn
+                    ? latestReturn.status === "completed"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-blue-100 text-blue-800"
+                    : ORDER_STATUS_COLORS[order.status] || "bg-gray-100 text-gray-800";
+
+                  return (
                   <tr
                     key={order.id}
                     className="border-b last:border-0 hover:bg-secondary/20 transition-colors"
@@ -123,11 +143,9 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                     </td>
                     <td className="px-5 py-3">
                       <span
-                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                          ORDER_STATUS_COLORS[order.status] || ""
-                        }`}
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${displayStatusColor}`}
                       >
-                        {ORDER_STATUS_LABELS[order.status] || order.status}
+                        {displayStatusLabel}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-muted-foreground text-xs">
@@ -142,7 +160,8 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                       </Link>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={7} className="px-5 py-16 text-center text-muted-foreground">

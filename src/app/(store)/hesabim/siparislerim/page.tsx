@@ -57,7 +57,7 @@ export default async function OrdersPage({
               {orders.map((order) => (
                 <Link
                   key={order.id}
-                  href={`/hesabim/siparislerim/${order.id}`}
+                  href={`/hesabim/siparislerim/${encodeURIComponent(order.order_number)}`}
                   className="block bg-white rounded-2xl border p-5 hover:border-primary/30 hover:shadow-sm transition-all"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

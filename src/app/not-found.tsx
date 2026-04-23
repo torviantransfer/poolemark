@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Home, Search, ArrowLeft, PackageX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getProducts } from "@/services/products";
+import { getCategories } from "@/services/categories";
 import { ProductCard } from "@/components/store/product-card";
 import type { Metadata } from "next";
 
@@ -11,9 +12,12 @@ export const metadata: Metadata = {
 };
 
 export default async function NotFound() {
+  const categories = await getCategories().catch(() => []);
   const { products } = await getProducts({ limit: 4, sort: "newest" }).catch(
     () => ({ products: [], total: 0, totalPages: 0 })
   );
+
+  const popularCategories = categories.slice(0, 6);
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,6 +35,34 @@ export default async function NotFound() {
           Aradığınız sayfa taşınmış, silinmiş ya da hiç var olmamış olabilir.
           Ana sayfaya dönebilir veya ürünlerimize göz atabilirsiniz.
         </p>
+
+        <form action="/arama" method="get" className="w-full max-w-md mb-6">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              name="q"
+              placeholder="Ürün ara..."
+              className="flex-1 h-11 rounded-lg border border-border bg-white px-3 text-sm"
+            />
+            <Button type="submit" className="h-11 px-4">
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+        </form>
+
+        {popularCategories.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-2xl">
+            {popularCategories.map((c) => (
+              <Link
+                key={c.id}
+                href={`/kategori/${c.slug}`}
+                className="text-xs px-3 py-1.5 rounded-full border border-border bg-white hover:bg-secondary transition-colors"
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        )}
 
         <div className="flex flex-wrap justify-center gap-3">
           <Button render={<Link href="/" />} size="lg">

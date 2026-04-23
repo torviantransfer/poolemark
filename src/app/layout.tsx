@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/shared/json-ld";
@@ -10,6 +10,13 @@ const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#ffffff",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -88,6 +95,12 @@ export default function RootLayout({
   return (
     <html lang="tr" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:bg-white focus:text-foreground focus:px-3 focus:py-2 focus:rounded-md focus:shadow"
+        >
+          İçeriğe atla
+        </a>
         <OrganizationJsonLd />
         <WebSiteJsonLd />
         <CartProvider>

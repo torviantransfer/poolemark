@@ -135,6 +135,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
               e.preventDefault();
               // TODO: toggle favorite
             }}
+            aria-label="Favorilere ekle"
             className="flex items-center justify-center w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm text-foreground/70 hover:text-destructive hover:bg-white shadow-sm transition-all"
           >
             <Heart className="h-4 w-4" />

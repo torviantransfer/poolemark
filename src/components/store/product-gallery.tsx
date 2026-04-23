@@ -103,7 +103,7 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
                 key={img.id}
                 onClick={() => setActiveIndex(idx)}
                 className={cn(
-                  "relative aspect-square w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden border-2 transition-all duration-150",
+                  "relative aspect-square w-16 h-16 md:w-[72px] md:h-[72px] shrink-0 rounded-xl overflow-hidden border-2 transition-all duration-150",
                   idx === activeIndex
                     ? "border-primary shadow-md scale-[1.04]"
                     : "border-border/50 hover:border-primary/50 hover:scale-[1.02] opacity-70 hover:opacity-100"
@@ -125,7 +125,7 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
             {activeImages.length > 5 && (
               <button
                 onClick={() => setActiveIndex(5)}
-                className="relative w-[72px] h-[72px] shrink-0 rounded-xl border-2 border-border/50 overflow-hidden hover:border-primary/50 transition-all opacity-70 hover:opacity-100"
+                className="relative w-16 h-16 md:w-[72px] md:h-[72px] shrink-0 rounded-xl border-2 border-border/50 overflow-hidden hover:border-primary/50 transition-all opacity-70 hover:opacity-100"
                 aria-label={`+${activeImages.length - 5} daha`}
               >
                 <Image

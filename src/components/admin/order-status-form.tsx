@@ -11,12 +11,16 @@ export function OrderStatusForm({
   currentPaymentStatus,
   cargoCompany,
   cargoTrackingNumber,
+  invoiceNumber,
+  invoiceUrl,
 }: {
   orderId: string;
   currentStatus: string;
   currentPaymentStatus: string;
   cargoCompany: string;
   cargoTrackingNumber: string;
+  invoiceNumber?: string;
+  invoiceUrl?: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -24,6 +28,8 @@ export function OrderStatusForm({
   const [paymentStatus, setPaymentStatus] = useState(currentPaymentStatus);
   const [cargo, setCargo] = useState(cargoCompany);
   const [tracking, setTracking] = useState(cargoTrackingNumber);
+  const [invoiceNo, setInvoiceNo] = useState(invoiceNumber || "");
+  const [invoiceLink, setInvoiceLink] = useState(invoiceUrl || "");
   const [shippingCompanies, setShippingCompanies] = useState<string[]>([]);
 
   useEffect(() => {
@@ -50,6 +56,8 @@ export function OrderStatusForm({
           payment_status: paymentStatus,
           cargo_company: cargo || null,
           cargo_tracking_number: tracking || null,
+          invoice_number: invoiceNo || null,
+          invoice_url: invoiceLink || null,
         }),
       });
 
@@ -139,6 +147,34 @@ export function OrderStatusForm({
           </div>
         </>
       )}
+
+      <div className="pt-2 border-t space-y-3">
+        <p className="text-sm font-medium text-foreground">Fatura Bilgisi</p>
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-1.5">
+            Fatura Numarası
+          </label>
+          <input
+            type="text"
+            value={invoiceNo}
+            onChange={(e) => setInvoiceNo(e.target.value)}
+            placeholder="Örn: PM-2026-000123"
+            className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-1.5">
+            Fatura Linki (PDF)
+          </label>
+          <input
+            type="url"
+            value={invoiceLink}
+            onChange={(e) => setInvoiceLink(e.target.value)}
+            placeholder="https://.../fatura.pdf"
+            className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+      </div>
 
       <button
         type="submit"

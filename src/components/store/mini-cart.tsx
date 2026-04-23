@@ -22,16 +22,23 @@ import {
 import { formatPrice } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function MiniCart({ transparent = false }: { transparent?: boolean }) {
-  const { items, itemCount, subtotal, updateQuantity, removeItem } = useCart();
+  const { items, itemCount, subtotal, updateQuantity, removeItem, mounted } = useCart();
   const [open, setOpen] = useState(false);
 
   const FREE_SHIPPING_THRESHOLD = 500;
 
+  if (!mounted) {
+    return <Skeleton className="h-10 w-10 rounded-full" />;
+  }
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger className={cn(
+      <SheetTrigger
+        aria-label="Sepeti aç"
+        className={cn(
         "relative p-2.5 transition-colors rounded-full",
         transparent
           ? "text-white/75 hover:text-white hover:bg-white/10"

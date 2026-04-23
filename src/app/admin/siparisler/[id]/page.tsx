@@ -27,6 +27,8 @@ export default async function AdminOrderDetailPage({ params }: Props) {
 
   if (!order) notFound();
 
+  const orderExt = order as any;
+
   const shippingAddr = order.shipping_address_json;
 
   return (
@@ -167,6 +169,8 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             currentPaymentStatus={order.payment_status}
             cargoCompany={order.cargo_company || ""}
             cargoTrackingNumber={order.cargo_tracking_number || ""}
+            invoiceNumber={orderExt.invoice_number || ""}
+            invoiceUrl={orderExt.invoice_url || ""}
           />
 
           {/* Customer */}
@@ -253,6 +257,25 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                 >
                   {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
                 </span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-muted-foreground">Fatura No</span>
+                <span className="font-medium text-right break-all">{orderExt.invoice_number || "—"}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-muted-foreground">Fatura</span>
+                {orderExt.invoice_url ? (
+                  <a
+                    href={orderExt.invoice_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Görüntüle
+                  </a>
+                ) : (
+                  <span className="font-medium">—</span>
+                )}
               </div>
             </div>
           </div>

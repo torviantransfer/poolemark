@@ -138,7 +138,27 @@ export default async function AdminDashboard() {
               </thead>
               <tbody>
                 {recentOrders.length > 0 ? (
-                  recentOrders.map((order) => (
+                  recentOrders.map((order) => {
+                    const latestReturn = Array.isArray((order as any).return_requests)
+                      ? [...(order as any).return_requests].sort(
+                          (a: any, b: any) =>
+                            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                        )[0]
+                      : null;
+                    const hasActiveReturn =
+                      latestReturn?.status && latestReturn.status !== "rejected";
+                    const displayStatusLabel = hasActiveReturn
+                      ? latestReturn.status === "completed"
+                        ? "İade Tamamlandı"
+                        : "İade Sürecinde"
+                      : ORDER_STATUS_LABELS[order.status] || order.status;
+                    const displayStatusColor = hasActiveReturn
+                      ? latestReturn.status === "completed"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-blue-100 text-blue-800"
+                      : ORDER_STATUS_COLORS[order.status] || "bg-gray-100 text-gray-800";
+
+                    return (
                     <tr
                       key={order.id}
                       className="border-t hover:bg-secondary/30 transition-colors"
@@ -161,18 +181,17 @@ export default async function AdminDashboard() {
                       </td>
                       <td className="px-5 py-3">
                         <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                            ORDER_STATUS_COLORS[order.status] || ""
-                          }`}
+                          className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${displayStatusColor}`}
                         >
-                          {ORDER_STATUS_LABELS[order.status] || order.status}
+                          {displayStatusLabel}
                         </span>
                       </td>
                       <td className="px-5 py-3 text-muted-foreground text-xs">
                         {formatDateTime(order.created_at)}
                       </td>
                     </tr>
-                  ))
+                    );
+                  })
                 ) : (
                   <tr>
                     <td

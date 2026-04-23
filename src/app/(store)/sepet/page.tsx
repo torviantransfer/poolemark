@@ -21,9 +21,10 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
 import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CartPage() {
-  const { items, loading, itemCount, subtotal, updateQuantity, removeItem } =
+  const { items, loading, mounted, itemCount, subtotal, updateQuantity, removeItem } =
     useCart();
   const [couponCode, setCouponCode] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
@@ -94,10 +95,28 @@ export default function CartPage() {
   const shippingProgress = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
   const remainingForFreeShipping = FREE_SHIPPING_THRESHOLD - subtotal;
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="container mx-auto px-4 py-10">
+        <div className="grid md:grid-cols-3 gap-4 lg:gap-8">
+          <div className="lg:col-span-2 space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl border p-4 flex gap-4">
+                <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-xl" />
+                <div className="flex-1 space-y-2.5">
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-10 w-36" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="bg-secondary/40 rounded-2xl p-4 md:p-6 space-y-4 h-fit">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -147,7 +166,7 @@ export default function CartPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
+            <div className="grid md:grid-cols-3 gap-4 lg:gap-8">
               {/* Cart Items */}
               <div className="lg:col-span-2">
                 <div className="space-y-3">

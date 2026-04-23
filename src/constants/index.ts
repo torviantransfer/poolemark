@@ -73,6 +73,7 @@ export const ACCOUNT_NAV_LINKS = [
   { label: "Adreslerim", href: "/hesabim/adreslerim", icon: "MapPin" },
   { label: "Favorilerim", href: "/hesabim/favorilerim", icon: "Heart" },
   { label: "Bilgilerim", href: "/hesabim/bilgilerim", icon: "User" },
+  { label: "Bildirimler", href: "/hesabim/bildirimler", icon: "Bell" },
 ] as const;
 
 export const ADMIN_NAV_LINKS = [
@@ -91,6 +92,7 @@ export const ADMIN_NAV_LINKS = [
   { label: "Müşteriler", href: "/admin/musteriler", icon: "Users" },
   { label: "Kuponlar", href: "/admin/kuponlar", icon: "Ticket" },
   { label: "Kargo Firmaları", href: "/admin/kargolar", icon: "Truck" },
+  { label: "İade Talepleri", href: "/admin/iadeler", icon: "RotateCcw" },
   {
     label: "Blog",
     href: "/admin/blog",
@@ -105,6 +107,7 @@ export const ADMIN_NAV_LINKS = [
   { label: "Duyurular", href: "/admin/duyurular", icon: "Megaphone" },
   { label: "Mesajlar", href: "/admin/mesajlar", icon: "MessageSquare" },
   { label: "Yorumlar", href: "/admin/yorumlar", icon: "Star" },
+  { label: "Canlı Ziyaretçi", href: "/admin/canli-ziyaretciler", icon: "Activity" },
   { label: "Raporlar", href: "/admin/raporlar", icon: "BarChart3" },
   { label: "Ayarlar", href: "/admin/ayarlar", icon: "Settings" },
 ] as const;

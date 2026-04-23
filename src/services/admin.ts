@@ -10,7 +10,7 @@ export async function getAdminStats() {
     { count: totalCustomers },
     { count: todayOrders },
     { data: todaySales },
-    { count: pendingOrders },
+    { data: pendingOrderIds },
     { count: lowStockProducts },
     { count: unreadMessages },
     { count: pendingReviews },
@@ -18,11 +18,26 @@ export async function getAdminStats() {
     supabase.from("users").select("*", { count: "exact", head: true }).eq("role", "customer"),
     supabase.from("orders").select("*", { count: "exact", head: true }).gte("created_at", todayISO),
     supabase.from("orders").select("total").gte("created_at", todayISO).eq("payment_status", "paid"),
-    supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("orders").select("id").eq("status", "pending"),
     supabase.from("products").select("*", { count: "exact", head: true }).eq("is_active", true).lt("stock_quantity", 5),
     supabase.from("contact_messages").select("*", { count: "exact", head: true }).eq("is_read", false),
     supabase.from("reviews").select("*", { count: "exact", head: true }).eq("is_approved", false),
   ]);
+
+  let pendingOrders = pendingOrderIds?.length || 0;
+  if (pendingOrderIds && pendingOrderIds.length > 0) {
+    const pendingIds = pendingOrderIds.map((o) => o.id);
+    const { data: activeReturns } = await supabase
+      .from("order_return_requests")
+      .select("order_id,status")
+      .in("order_id", pendingIds)
+      .neq("status", "rejected");
+
+    const activeReturnOrderIds = new Set(
+      (activeReturns || []).map((r) => r.order_id)
+    );
+    pendingOrders = pendingIds.filter((id) => !activeReturnOrderIds.has(id)).length;
+  }
 
   const todayRevenue = todaySales?.reduce((sum, o) => sum + (o.total || 0), 0) || 0;
 
@@ -41,7 +56,7 @@ export async function getRecentOrders(limit = 10) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")
-    .select("*, user:users!user_id(first_name, last_name, email)")
+    .select("*, user:users!user_id(first_name, last_name, email), return_requests:order_return_requests(status, created_at)")
     .order("created_at", { ascending: false })
     .limit(limit);
 

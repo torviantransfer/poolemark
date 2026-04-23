@@ -73,6 +73,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
+  const FREE_SHIPPING_THRESHOLD = 500;
   const { slug } = await params;
   const product = await getProductBySlug(slug);
 
@@ -95,6 +96,8 @@ export default async function ProductPage({ params }: Props) {
   const discount = product.compare_at_price
     ? calculateDiscountPercentage(product.price, product.compare_at_price)
     : 0;
+
+  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - product.price);
 
   const images =
     product.images?.sort((a, b) => {
@@ -126,10 +129,10 @@ export default async function ProductPage({ params }: Props) {
           { name: product.name, href: `/products/${product.slug}` },
         ]}
       />
-      <section className="pt-4 md:pt-6 pb-12 md:pb-16">
+      <section className="pt-4 md:pt-6 pb-24 md:pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
           {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-x-1.5 gap-y-1 text-sm text-muted-foreground mb-8">
+          <nav aria-label="Breadcrumb" className="flex items-center flex-nowrap gap-x-1.5 text-xs sm:text-sm text-muted-foreground mb-6 md:mb-8 min-w-0">
             <Link href="/" className="hover:text-primary transition-colors shrink-0">
               Anasayfa
             </Link>
@@ -142,10 +145,10 @@ export default async function ProductPage({ params }: Props) {
                 >
                   {product.category.name}
                 </Link>
-                <ChevronRight className="h-3.5 w-3.5 shrink-0 hidden md:block" />
+                <ChevronRight className="h-3.5 w-3.5 shrink-0" />
               </>
             )}
-            <span className="text-foreground font-medium line-clamp-1 min-w-0 hidden md:block">
+            <span className="text-foreground font-medium min-w-0 truncate">
               {product.name}
             </span>
           </nav>
@@ -198,7 +201,7 @@ export default async function ProductPage({ params }: Props) {
 
               {/* Price */}
               <div className="mt-5 rounded-2xl bg-secondary/30 border border-border/40 p-4">
-                <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
+                <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5">
                   <span className="text-2xl md:text-3xl font-bold text-foreground leading-none">
                     {formatPrice(product.price)}
                   </span>
@@ -213,8 +216,21 @@ export default async function ProductPage({ params }: Props) {
                         </span>
                       </>
                     )}
+                </div>
+                <div className="mt-2 flex items-center flex-wrap gap-2">
                   <span className="text-[11px] font-medium text-muted-foreground bg-white border border-border/60 rounded-md px-2 py-1 leading-none">
                     KDV Dahil
+                  </span>
+                  <span
+                    className={`text-[11px] font-semibold rounded-md px-2 py-1 leading-none border ${
+                      product.price >= FREE_SHIPPING_THRESHOLD
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : "bg-amber-50 text-amber-700 border-amber-200"
+                    }`}
+                  >
+                    {product.price >= FREE_SHIPPING_THRESHOLD
+                      ? `${FREE_SHIPPING_THRESHOLD} TL üzeri ücretsiz kargo`
+                      : `${FREE_SHIPPING_THRESHOLD} TL üzeri ücretsiz kargo · ${formatPrice(remainingForFreeShipping)} kaldı`}
                   </span>
                 </div>
                 {/* Installment hint */}
@@ -265,14 +281,14 @@ export default async function ProductPage({ params }: Props) {
 
           {/* Related Products */}
           {recommendedProducts.length > 0 && (
-            <div className="mt-20 pt-10 border-t border-border/30">
-              <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">
+            <div className="mt-12 md:mt-20 pt-8 md:pt-10 border-t border-border/30">
+              <p className="text-xs sm:text-sm font-semibold text-primary uppercase tracking-wider mb-2">
                 {relatedProducts.length > 0 ? "Benzer Ürünler" : "Önerilen Ürünler"}
               </p>
-              <h2 className="text-2xl font-bold text-foreground mb-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6 md:mb-8">
                 Bunlar da İlginizi Çekebilir
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                 {recommendedProducts.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}

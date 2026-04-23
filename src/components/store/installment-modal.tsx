@@ -64,17 +64,17 @@ export function InstallmentModal({ price }: InstallmentModalProps) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors text-left group"
+        className="w-full sm:w-auto inline-flex items-start sm:items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors text-left group"
       >
         <CreditCard className="h-3.5 w-3.5 text-primary shrink-0" />
-        <span>
-          12 taksitte yalnızca{" "}
-          <span className="font-semibold text-foreground group-hover:text-primary">
+        <span className="inline-flex flex-wrap items-center gap-x-1.5 gap-y-0.5 min-w-0">
+          <span>12 taksitte yalnızca</span>
+          <span className="font-semibold text-foreground group-hover:text-primary whitespace-nowrap">
             {formatPrice(Math.ceil(price / 12))}/ay
           </span>
-        </span>
-        <span className="text-primary font-medium underline underline-offset-2 decoration-dashed">
-          taksit tablosu
+          <span className="text-primary font-medium underline underline-offset-2 decoration-dashed whitespace-nowrap">
+            taksit tablosu
+          </span>
         </span>
       </button>
 

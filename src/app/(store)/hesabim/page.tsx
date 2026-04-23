@@ -8,6 +8,7 @@ import {
   Heart,
   MapPin,
   User,
+  Bell,
   ChevronRight,
   ShoppingBag,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   MapPin,
   Heart,
   User,
+  Bell,
 };
 
 export default async function AccountPage() {
@@ -64,7 +66,7 @@ export default async function AccountPage() {
       <section className="py-8 md:py-12">
         <div className="container mx-auto px-4">
           {/* Quick Links */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 mb-8">
             {ACCOUNT_NAV_LINKS.filter((l) => l.href !== "/hesabim").map(
               (link) => {
                 const Icon = ICON_MAP[link.icon] || Package;
@@ -101,7 +103,7 @@ export default async function AccountPage() {
                 {orders.map((order) => (
                   <Link
                     key={order.id}
-                    href={`/hesabim/siparislerim/${order.id}`}
+                    href={`/hesabim/siparislerim/${encodeURIComponent(order.order_number)}`}
                     className="flex items-center justify-between py-3 border-b last:border-0 hover:bg-secondary/30 -mx-2 px-2 rounded-lg transition-colors"
                   >
                     <div>

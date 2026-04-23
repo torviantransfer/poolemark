@@ -64,7 +64,7 @@ export default async function SearchPage({ searchParams }: Props) {
         <div className="container mx-auto px-4">
           {products.length > 0 ? (
             <>
-              <div className="flex items-center justify-between gap-3 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <p className="text-sm text-muted-foreground">
                   <span className="font-semibold text-foreground">{total}</span> sonuç
                 </p>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { NewsletterForm } from "@/components/store/newsletter-form";
 import { SITE_CONFIG, NAV_LINKS } from "@/constants";
 
 export function Footer() {
@@ -58,6 +59,14 @@ export function Footer() {
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
                 </SocialLink>
+              </div>
+
+              <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
+                <p className="text-sm font-semibold text-white">Fırsatları Kaçırmayın</p>
+                <p className="text-xs text-white/50 mt-1 mb-3">
+                  Bültene katıl, yeni ürünleri ve kampanyaları ilk sen öğren.
+                </p>
+                <NewsletterForm />
               </div>
             </div>
 
@@ -241,11 +250,23 @@ export function Footer() {
           <img
             src="/payment-methods/footer-bilgi.png"
             alt="Güvenli ödeme yöntemleri"
+            width={665}
+            height={42}
+            loading="lazy"
+            decoding="async"
             className="h-7 w-auto object-contain opacity-70 mx-auto mt-3"
           />
           <p className="pt-2">
             &copy; {new Date().getFullYear()} {SITE_CONFIG.companyName}
           </p>
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <p className="text-sm font-semibold text-white text-center">Bültene Katıl</p>
+          <p className="text-xs text-white/50 text-center mt-1 mb-3">
+            Kampanyaları ilk öğrenen sen ol.
+          </p>
+          <NewsletterForm />
         </div>
       </div>
 
@@ -262,6 +283,10 @@ export function Footer() {
           <img
             src="/payment-methods/footer-bilgi.png"
             alt="Güvenli ödeme yöntemleri"
+            width={665}
+            height={48}
+            loading="lazy"
+            decoding="async"
             className="h-8 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
           />
           <div className="flex items-center gap-1 text-white/30">

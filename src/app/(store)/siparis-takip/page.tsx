@@ -132,6 +132,11 @@ function SiparisTakipInner() {
   const isCancelled =
     result?.status === "cancelled" || result?.status === "refunded";
 
+  function resetQuery() {
+    setResult(null);
+    setError("");
+  }
+
   return (
     <section className="pt-8 pb-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-2xl">
@@ -147,65 +152,67 @@ function SiparisTakipInner() {
         </div>
 
         {/* Form */}
-        <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-          {/* Tab Toggle */}
-          <div className="flex rounded-xl border border-border overflow-hidden mb-5 text-sm font-medium">
-            <button
-              type="button"
-              onClick={() => { setTab("email"); setEmailOrPhone(""); }}
-              className={`flex-1 py-2.5 transition-colors ${tab === "email" ? "bg-primary text-white" : "hover:bg-secondary/60 text-muted-foreground"}`}
-            >
-              E-posta ile sorgula
-            </button>
-            <button
-              type="button"
-              onClick={() => { setTab("phone"); setEmailOrPhone(""); }}
-              className={`flex-1 py-2.5 transition-colors ${tab === "phone" ? "bg-primary text-white" : "hover:bg-secondary/60 text-muted-foreground"}`}
-            >
-              Telefon ile sorgula
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="orderNumber" className="mb-1.5 block">Sipariş Numarası</Label>
-              <Input
-                id="orderNumber"
-                placeholder="Örn: PM-20250419-1234"
-                value={orderNumber}
-                onChange={(e) => setOrderNumber(e.target.value)}
-                required
-                className="h-11"
-              />
-            </div>
-            <div>
-              <Label htmlFor="identifier" className="mb-1.5 block">
-                {tab === "email" ? "E-posta Adresi" : "Telefon Numarası"}
-              </Label>
-              <Input
-                id="identifier"
-                type={tab === "email" ? "email" : "tel"}
-                placeholder={tab === "email" ? "ornek@mail.com" : "05XX XXX XX XX"}
-                value={emailOrPhone}
-                onChange={(e) => setEmailOrPhone(e.target.value)}
-                required
-                className="h-11"
-              />
+        {!result && (
+          <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+            {/* Tab Toggle */}
+            <div className="flex rounded-xl border border-border overflow-hidden mb-5 text-sm font-medium">
+              <button
+                type="button"
+                onClick={() => { setTab("email"); setEmailOrPhone(""); }}
+                className={`flex-1 py-2.5 transition-colors ${tab === "email" ? "bg-primary text-white" : "hover:bg-secondary/60 text-muted-foreground"}`}
+              >
+                E-posta ile sorgula
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTab("phone"); setEmailOrPhone(""); }}
+                className={`flex-1 py-2.5 transition-colors ${tab === "phone" ? "bg-primary text-white" : "hover:bg-secondary/60 text-muted-foreground"}`}
+              >
+                Telefon ile sorgula
+              </button>
             </div>
 
-            {error && (
-              <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2.5">
-                <XCircle className="h-4 w-4 shrink-0" />
-                {error}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="orderNumber" className="mb-1.5 block">Sipariş Numarası</Label>
+                <Input
+                  id="orderNumber"
+                  placeholder="Örn: PM-20250419-1234"
+                  value={orderNumber}
+                  onChange={(e) => setOrderNumber(e.target.value)}
+                  required
+                  className="h-11"
+                />
               </div>
-            )}
+              <div>
+                <Label htmlFor="identifier" className="mb-1.5 block">
+                  {tab === "email" ? "E-posta Adresi" : "Telefon Numarası"}
+                </Label>
+                <Input
+                  id="identifier"
+                  type={tab === "email" ? "email" : "tel"}
+                  placeholder={tab === "email" ? "ornek@mail.com" : "05XX XXX XX XX"}
+                  value={emailOrPhone}
+                  onChange={(e) => setEmailOrPhone(e.target.value)}
+                  required
+                  className="h-11"
+                />
+              </div>
 
-            <Button type="submit" className="w-full h-11 gap-2" disabled={loading}>
-              <Search className="h-4 w-4" />
-              {loading ? "Sorgulanıyor..." : "Siparişi Sorgula"}
-            </Button>
-          </form>
-        </div>
+              {error && (
+                <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2.5">
+                  <XCircle className="h-4 w-4 shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              <Button type="submit" className="w-full h-11 gap-2" disabled={loading}>
+                <Search className="h-4 w-4" />
+                {loading ? "Sorgulanıyor..." : "Siparişi Sorgula"}
+              </Button>
+            </form>
+          </div>
+        )}
 
         {/* Result */}
         {result && (
@@ -221,6 +228,9 @@ function SiparisTakipInner() {
                   <p className="text-xs text-muted-foreground">Tarih</p>
                   <p className="text-sm font-medium">{formatDateTime(result.createdAt)}</p>
                 </div>
+                <Button type="button" variant="outline" size="sm" onClick={resetQuery}>
+                  Yeni Sorgu
+                </Button>
               </div>
             </div>
 

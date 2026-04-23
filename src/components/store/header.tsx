@@ -30,6 +30,7 @@ import {
   LogOut,
   Package,
   MapPin,
+  Bell,
   Settings,
   X,
 } from "lucide-react";
@@ -90,6 +91,7 @@ export function Header() {
           <div className="flex items-center gap-3">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger
+                aria-label="Menüyü aç"
                 className={cn(
                   "lg:hidden p-2 -ml-2 transition-colors",
                   transparent
@@ -99,7 +101,7 @@ export function Header() {
               >
                 <Menu className="h-5 w-5" />
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] p-0 flex flex-col overflow-hidden">
+              <SheetContent side="left" className="w-full max-w-[320px] sm:w-[300px] p-0 flex flex-col overflow-hidden">
                 <SheetHeader className="p-6 pb-4 border-b shrink-0">
                   <SheetTitle>
                     <Link
@@ -187,6 +189,14 @@ export function Header() {
                       <Heart className="h-4 w-4" />
                       Favorilerim
                     </Link>
+                    <Link
+                      href="/hesabim/bildirimler"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-accent/50 transition-colors"
+                    >
+                      <Bell className="h-4 w-4" />
+                      Bildirimler
+                    </Link>
                     <button
                       onClick={() => {
                         handleLogout();
@@ -262,6 +272,7 @@ export function Header() {
                     setSearchOpen(false);
                     setSearchQuery("");
                   }}
+                  aria-label="Aramayı kapat"
                   className="p-2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <X className="h-5 w-5" />
@@ -270,6 +281,7 @@ export function Header() {
             ) : (
               <button
                 onClick={() => setSearchOpen(true)}
+                aria-label="Arama yap"
                 className={cn(
                   "p-2.5 transition-colors rounded-full",
                   transparent
@@ -344,6 +356,12 @@ export function Header() {
                     >
                       <Settings className="mr-2 h-4 w-4" />
                       Bilgilerim
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      render={<Link href="/hesabim/bildirimler" />}
+                    >
+                      <Bell className="mr-2 h-4 w-4" />
+                      Bildirimler
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
