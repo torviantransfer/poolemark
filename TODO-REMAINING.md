@@ -105,7 +105,26 @@ PVC paneller için ROI düşük (her kategoride farklı attribute). "Son Gezdikl
 - `tests/auth.spec.ts`: kayıt + giriş + şifre sıfırlama
 - `tests/admin.spec.ts`: admin login + ürün listele
 
-## 20. PWA (Sonra)
+## 20. Canlı Ziyaretçi Sayacı (Admin Panel) — ÜCRETSİZ
+**Yaklaşım:** Supabase Realtime Presence API (DB yazımı sıfır, mevcut plan yeterli — $0)
+
+- Tüm store sayfalarında client component: `<PresenceTracker />`
+  - Supabase channel'a join: `supabase.channel('online-visitors', { config: { presence: { key: sessionId } } })`
+  - `track({ path, userId, joinedAt })` ile presence sync
+  - Route değiştiğinde update, unmount'ta untrack
+- Admin sayfası: `src/app/admin/canli-ziyaretciler/page.tsx`
+  - Aynı channel'a join
+  - `presenceState()` ile aktif liste; toplam sayı, sayfa bazında dağılım, üye/misafir oranı
+  - Realtime güncelleme (her sync/leave'de re-render)
+- Layout konumlandırma:
+  - `(store)/layout.tsx`'e `<PresenceTracker />` ekle
+  - Admin sidebar'a "Canlı Ziyaretçi" linki + canlı sayı badge
+
+**Opsiyonel ek (sonra):** günlük özet için `visitor_stats_hourly` tablosu — saatlik snapshot cron'u (anlık sayım için gerekmez).
+
+---
+
+## 21. PWA (Sonra)
 - `next-pwa` veya manuel service worker
 - `manifest.json`, ikonlar
 - Offline fallback sayfası
