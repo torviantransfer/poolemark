@@ -22,7 +22,7 @@ export default async function EditCategoryPage({ params }: Props) {
 
   const { data: parentCategories } = await supabase
     .from("categories")
-    .select("id, name")
+    .select("*")
     .is("parent_id", null)
     .order("name");
 

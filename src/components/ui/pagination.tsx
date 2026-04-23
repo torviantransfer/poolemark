@@ -119,8 +119,69 @@ function PaginationEllipsis({
   )
 }
 
+function PageNav({
+  currentPage,
+  totalPages,
+  basePath,
+}: {
+  currentPage: number;
+  totalPages: number;
+  basePath: string;
+}) {
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const showEllipsisBefore = currentPage > 3;
+  const showEllipsisAfter = currentPage < totalPages - 2;
+  const visiblePages = pages.filter(
+    (p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1
+  );
+
+  return (
+    <Pagination>
+      <PaginationContent>
+        {currentPage > 1 && (
+          <PaginationItem>
+            <PaginationPrevious
+              href={`${basePath}?page=${currentPage - 1}`}
+              text="Önceki"
+            />
+          </PaginationItem>
+        )}
+        {visiblePages.map((p, i) => {
+          const prev = visiblePages[i - 1];
+          return (
+            <React.Fragment key={p}>
+              {prev && p - prev > 1 && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
+              <PaginationItem>
+                <PaginationLink
+                  href={`${basePath}?page=${p}`}
+                  isActive={p === currentPage}
+                >
+                  {p}
+                </PaginationLink>
+              </PaginationItem>
+            </React.Fragment>
+          );
+        })}
+        {currentPage < totalPages && (
+          <PaginationItem>
+            <PaginationNext
+              href={`${basePath}?page=${currentPage + 1}`}
+              text="Sonraki"
+            />
+          </PaginationItem>
+        )}
+      </PaginationContent>
+    </Pagination>
+  );
+}
+
 export {
   Pagination,
+  PageNav,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,

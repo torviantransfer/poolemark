@@ -7,7 +7,7 @@ export default async function AddCategoryPage() {
   const supabase = await createClient();
   const { data: categories } = await supabase
     .from("categories")
-    .select("id, name")
+    .select("*")
     .is("parent_id", null)
     .order("name");
 

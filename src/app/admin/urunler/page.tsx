@@ -176,7 +176,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
                       <td className="px-5 py-3">
                         <div className="flex items-center justify-end gap-1">
                           <Link
-                            href={`/products/${product.slug}`
+                            href={`/products/${product.slug}`}
                             target="_blank"
                             className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
                             title="Önizle"

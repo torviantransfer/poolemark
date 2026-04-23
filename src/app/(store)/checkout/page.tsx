@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
@@ -62,7 +62,7 @@ const emptyGuest: GuestAddress = {
   address_line: "",
 };
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { user, loading: authLoading } = useUser();
   const { items, subtotal, clearCart, loading: cartLoading } = useCart();
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -598,5 +598,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-8">Yükleniyor...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }

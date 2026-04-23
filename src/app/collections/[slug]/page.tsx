@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getProducts, getFeaturedProducts, getNewProducts } from "@/services/products";
 import { ProductCard } from "@/components/store/product-card";
-import { Pagination } from "@/components/ui/pagination";
+import { PageNav } from "@/components/ui/pagination";
 import type { Metadata } from "next";
 
 interface CollectionProps {
@@ -108,7 +108,7 @@ export default async function CollectionPage({ params, searchParams }: Collectio
             {/* Pagination */}
             {result.totalPages > 1 && (
               <div className="flex justify-center mt-12">
-                <Pagination
+                <PageNav
                   currentPage={currentPage}
                   totalPages={result.totalPages}
                   basePath={`/collections/${slug}`}
