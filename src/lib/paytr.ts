@@ -119,24 +119,21 @@ export async function createPayTRToken(params: PayTRTokenParams): Promise<string
   }
 
   if (data.status !== "success" || !data.token) {
-    console.error("PayTR token request failed", {
-      reason: data.reason,
-      status: response.status,
-      merchantIdLength: PAYTR_MERCHANT_ID.length,
-      merchantKeyLength: PAYTR_MERCHANT_KEY.length,
-      merchantSaltLength: PAYTR_MERCHANT_SALT.length,
-      merchantIdPreview: PAYTR_MERCHANT_ID.slice(0, 3),
-      merchantOid,
-      userIp: params.userIp,
-      paymentAmount,
-      basketItems,
-      testMode,
-      merchantOkUrl,
-    });
+    const diagnostics = [
+      `reason=${data.reason || "unknown"}`,
+      `status=${response.status}`,
+      `merchantIdLength=${PAYTR_MERCHANT_ID.length}`,
+      `merchantKeyLength=${PAYTR_MERCHANT_KEY.length}`,
+      `merchantSaltLength=${PAYTR_MERCHANT_SALT.length}`,
+      `merchantIdPreview=${PAYTR_MERCHANT_ID.slice(0, 3)}`,
+      `merchantOid=${merchantOid}`,
+      `userIp=${params.userIp}`,
+      `paymentAmount=${paymentAmount}`,
+      `testMode=${testMode}`,
+      `merchantOkUrl=${merchantOkUrl}`,
+    ].join(", ");
 
-    throw new Error(
-      data.reason || `PayTR token oluşturulamadı (HTTP ${response.status}, oid=${merchantOid}, ip=${params.userIp})`
-    );
+    throw new Error(`PayTR token request failed: ${diagnostics}`);
   }
 
   return data.token;
