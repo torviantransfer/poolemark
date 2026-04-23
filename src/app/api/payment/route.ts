@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createPayTRToken } from "@/lib/paytr";
+import { createPayTRToken, normalizePayTRUserIp } from "@/lib/paytr";
 import { generateOrderNumber } from "@/lib/helpers";
 
 export async function POST(request: NextRequest) {
@@ -260,10 +260,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user IP
-    const userIp =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    const userIp = normalizePayTRUserIp(
+      request.headers.get("x-forwarded-for") ||
       request.headers.get("x-real-ip") ||
-      "127.0.0.1";
+      request.headers.get("x-vercel-forwarded-for") ||
+      request.headers.get("cf-connecting-ip")
+    );
 
     // Create PayTR token
     const token = await createPayTRToken({

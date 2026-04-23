@@ -57,7 +57,6 @@ export default async function AdminShippingCompaniesPage() {
                               src={company.logo_url || `/shipping/${company.code}.png`}
                               alt={company.name}
                               className="max-h-7 max-w-[80px] w-auto object-contain"
-                              onError={(e) => { e.currentTarget.style.display = "none"; }}
                             />
                           </div>
                           <span className="font-medium text-sm">{company.name}</span>

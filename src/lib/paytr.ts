@@ -32,6 +32,19 @@ export function getPossibleOrderNumbersFromMerchantOid(merchantOid: string): str
   return Array.from(candidates);
 }
 
+export function normalizePayTRUserIp(rawIp: string | null | undefined): string {
+  const value = (rawIp || "").split(",")[0].trim();
+
+  if (!value) return "127.0.0.1";
+
+  const withoutMappedPrefix = value.replace(/^::ffff:/i, "");
+  const withoutPort = withoutMappedPrefix.replace(/:(\d+)$/, (match, port, offset, full) => {
+    return full.includes(".") ? "" : match;
+  });
+
+  return withoutPort || "127.0.0.1";
+}
+
 export async function createPayTRToken(params: PayTRTokenParams): Promise<string> {
   const merchantOid = toPayTRMerchantOid(params.orderNumber);
   const paymentAmount = Math.round(params.totalAmount * 100); // PayTR expects kuruş
@@ -45,7 +58,7 @@ export async function createPayTRToken(params: PayTRTokenParams): Promise<string
 
   const basketItems = params.items.map((item) => [
     item.name,
-    (Math.round(item.price * 100)).toString(),
+    item.price.toFixed(2),
     item.quantity.toString(),
   ]);
   const userBasket = Buffer.from(JSON.stringify(basketItems)).toString("base64");
@@ -97,7 +110,9 @@ export async function createPayTRToken(params: PayTRTokenParams): Promise<string
   }
 
   if (data.status !== "success" || !data.token) {
-    throw new Error(data.reason || `PayTR token oluşturulamadı (HTTP ${response.status})`);
+    throw new Error(
+      data.reason || `PayTR token oluşturulamadı (HTTP ${response.status}, oid=${merchantOid}, ip=${params.userIp})`
+    );
   }
 
   return data.token;
