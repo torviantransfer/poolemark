@@ -38,6 +38,7 @@ export default function CartPage() {
   const discount = appliedCoupon?.discount || 0;
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
   const total = subtotal - discount + shipping;
+  const kdv = total * 20 / 120; // Fiyatlar KDV dahil olduğundan içeriden hesaplanır
 
   async function applyCoupon() {
     if (!couponCode.trim()) return;
@@ -146,10 +147,11 @@ export default function CartPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
               {/* Cart Items */}
-              <div className="lg:col-span-2 space-y-3">
-                {items.map((item) => (
+              <div className="lg:col-span-2">
+                <div className="space-y-3">
+                  {items.map((item) => (
                   <div
                     key={item.id}
                     className="bg-white rounded-2xl border p-4 flex gap-4"
@@ -237,11 +239,58 @@ export default function CartPage() {
                     </div>
                   </div>
                 ))}
+                </div>
+
+                {/* Önerilen Ürünler - Sol Kolon */}
+                {recommended.length > 0 && (
+                  <div className="mt-8">
+                    <h2 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <Gift className="h-4 w-4 text-primary" />
+                      Bunları da Beğenebilirsiniz
+                    </h2>
+                    <div className="grid grid-cols-2 gap-3">
+                      {recommended.map((product) => (
+                        <Link
+                          key={product.id}
+                          href={`/products/${product.slug}`}
+                          className="bg-white rounded-xl border p-3 hover:shadow-md transition-shadow group flex gap-3 items-center"
+                        >
+                          <div className="w-14 h-14 rounded-lg bg-secondary overflow-hidden shrink-0">
+                            {product.images?.[0] ? (
+                              <Image
+                                src={product.images[0]}
+                                alt={product.name}
+                                width={56}
+                                height={56}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <ShoppingBag className="h-5 w-5 text-muted-foreground/20" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium line-clamp-2 text-foreground group-hover:text-primary transition-colors">
+                              {product.name}
+                            </p>
+                            <div className="mt-1 flex items-center gap-1">
+                              <span className="text-sm font-bold text-foreground">{formatPrice(product.price)}</span>
+                              {product.compare_at_price && (
+                                <span className="text-[10px] text-muted-foreground line-through">{formatPrice(product.compare_at_price)}</span>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Summary */}
               <div className="lg:col-span-1">
-                <div className="bg-secondary/40 rounded-2xl p-6 sticky top-24 space-y-5">
+                <div className="bg-secondary/40 rounded-2xl p-4 md:p-6 lg:sticky lg:top-24 space-y-5">
                   <h3 className="text-lg font-semibold text-foreground">
                     Sipariş Özeti
                   </h3>
@@ -333,6 +382,10 @@ export default function CartPage() {
                           {formatPrice(total)}
                         </span>
                       </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-xs text-muted-foreground">KDV (%20) dahil</span>
+                        <span className="text-xs text-muted-foreground">{formatPrice(kdv)}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -367,6 +420,23 @@ export default function CartPage() {
                       <span>500₺ üzeri ücretsiz kargo</span>
                     </div>
                   </div>
+
+                  {/* Ödeme Yöntemleri Logoları */}
+                  <div className="pt-4 border-t">
+                    <p className="text-[10px] text-muted-foreground text-center mb-2">Güvenli Ödeme</p>
+                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                      {["visa", "mastercard", "troy"].map((name) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          key={name}
+                          src={`/payment-methods/${name}.png`}
+                          alt={name}
+                          className="h-6 w-auto object-contain grayscale"
+                          onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -374,51 +444,7 @@ export default function CartPage() {
         </div>
       </section>
 
-      {/* Upsell: Recommended Products */}
-      {items.length > 0 && recommended.length > 0 && (
-        <section className="py-8 md:py-12 border-t bg-secondary/20">
-          <div className="container mx-auto px-4">
-            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Gift className="h-5 w-5 text-primary" />
-              Bunları da Beğenebilirsiniz
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {recommended.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/products/${product.slug}`}
-                  className="bg-white rounded-xl border p-3 hover:shadow-md transition-shadow group"
-                >
-                  <div className="aspect-square rounded-lg bg-secondary overflow-hidden mb-2">
-                    {product.images?.[0] ? (
-                      <Image
-                        src={product.images[0]}
-                        alt={product.name}
-                        width={200}
-                        height={200}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingBag className="h-8 w-8 text-muted-foreground/20" />
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="text-xs md:text-sm font-medium line-clamp-2 text-foreground group-hover:text-primary transition-colors">
-                    {product.name}
-                  </h3>
-                  <div className="mt-1 flex items-center gap-1.5">
-                    <span className="text-sm font-bold text-foreground">{formatPrice(product.price)}</span>
-                    {product.compare_at_price && (
-                      <span className="text-[10px] text-muted-foreground line-through">{formatPrice(product.compare_at_price)}</span>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+
     </>
   );
 }

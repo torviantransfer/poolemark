@@ -3,15 +3,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { getCategoryBySlug } from "@/services/categories";
 import { getProducts } from "@/services/products";
-import { ProductCard, ProductCardSkeleton } from "@/components/store/product-card";
+import { ProductCard } from "@/components/store/product-card";
+import { ProductSort } from "@/components/store/product-sort";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ChevronRight, SlidersHorizontal } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -109,21 +103,19 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <section className="py-8 md:py-12">
         <div className="container mx-auto px-4">
           {/* Toolbar */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between gap-3 mb-6">
             <p className="text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">{total}</span> ürün
               bulundu
             </p>
-            <div className="flex items-center gap-3">
-              <SortSelect currentSort={sort} slug={slug} />
-            </div>
+            <ProductSort currentSort={sort} />
           </div>
 
           {/* Product Grid */}
           {products.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {products.map((product, i) => (
+                <ProductCard key={product.id} product={product} priority={i < 4} />
               ))}
             </div>
           ) : (
@@ -201,37 +193,5 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         </div>
       </section>
     </>
-  );
-}
-
-function SortSelect({ currentSort, slug }: { currentSort: string; slug: string }) {
-  const options = [
-    { value: "newest", label: "En Yeni" },
-    { value: "price_asc", label: "Fiyat: Düşükten Yükseğe" },
-    { value: "price_desc", label: "Fiyat: Yüksekten Düşüğe" },
-    { value: "name_asc", label: "A-Z Sıralama" },
-  ];
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="hidden sm:inline text-sm text-muted-foreground">Sırala:</span>
-      <Select defaultValue={currentSort}>
-        <SelectTrigger className="w-[180px] h-9 text-sm">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              <Link
-                href={`/kategori/${slug}?sort=${opt.value}`}
-                className="block w-full"
-              >
-                {opt.label}
-              </Link>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
   );
 }

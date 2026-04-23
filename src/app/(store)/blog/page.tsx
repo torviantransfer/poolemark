@@ -104,7 +104,7 @@ export default async function BlogPage({ searchParams }: Props) {
               </div>
 
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-10">
+                <div className="flex items-center justify-center gap-2 mt-10 flex-wrap">
                   {page > 1 && (
                     <Button
                       render={<Link href={`/blog?sayfa=${page - 1}`} />}
@@ -114,6 +114,26 @@ export default async function BlogPage({ searchParams }: Props) {
                       Önceki
                     </Button>
                   )}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(
+                      (p) =>
+                        p === 1 || p === totalPages || Math.abs(p - page) <= 1
+                    )
+                    .map((p, idx, arr) => (
+                      <span key={p} className="contents">
+                        {idx > 0 && arr[idx - 1] !== p - 1 && (
+                          <span className="px-1 text-muted-foreground">…</span>
+                        )}
+                        <Button
+                          render={<Link href={`/blog?sayfa=${p}`} />}
+                          variant={p === page ? "default" : "outline"}
+                          size="sm"
+                          className="w-9"
+                        >
+                          {p}
+                        </Button>
+                      </span>
+                    ))}
                   {page < totalPages && (
                     <Button
                       render={<Link href={`/blog?sayfa=${page + 1}`} />}

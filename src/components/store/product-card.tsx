@@ -14,9 +14,11 @@ import { toast } from "sonner";
 interface ProductCardProps {
   product: Product;
   className?: string;
+  /** First few cards above the fold benefit from priority loading for LCP */
+  priority?: boolean;
 }
 
-export function ProductCard({ product, className }: ProductCardProps) {
+export function ProductCard({ product, className, priority = false }: ProductCardProps) {
   const primaryImage = product.images?.find((img) => img.is_primary) ||
     product.images?.[0];
   const secondImage = product.images?.find(
@@ -52,7 +54,12 @@ export function ProductCard({ product, className }: ProductCardProps) {
       variant_name: null,
     });
     setAdded(true);
-    toast.success("Sepete eklendi");
+    toast.success("Sepete eklendi", {
+      action: {
+        label: "Sepete Git",
+        onClick: () => router.push("/sepet"),
+      },
+    });
     setTimeout(() => setAdded(false), 1800);
   }
 
@@ -74,6 +81,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
               src={primaryImage.url}
               alt={primaryImage.alt_text || product.name}
               fill
+              priority={priority}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className={cn(
                 "object-cover transition-all duration-500",
@@ -121,13 +129,13 @@ export function ProductCard({ product, className }: ProductCardProps) {
         )}
 
         {/* Quick Actions */}
-        <div className="absolute top-2.5 right-2.5 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="absolute top-2.5 right-2.5 flex flex-col gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
           <button
             onClick={(e) => {
               e.preventDefault();
               // TODO: toggle favorite
             }}
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-foreground/70 hover:text-destructive hover:bg-white shadow-sm transition-all"
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm text-foreground/70 hover:text-destructive hover:bg-white shadow-sm transition-all"
           >
             <Heart className="h-4 w-4" />
           </button>
@@ -173,15 +181,18 @@ export function ProductCard({ product, className }: ProductCardProps) {
         )}
 
         {/* Price */}
-        <div className="flex items-baseline gap-2 mt-2">
-          <span className="text-base font-bold text-foreground">
-            {formatPrice(product.price)}
-          </span>
-          {product.compare_at_price && product.compare_at_price > product.price && (
-            <span className="text-xs text-muted-foreground line-through">
-              {formatPrice(product.compare_at_price)}
+        <div className="mt-2">
+          <div className="flex items-baseline gap-2">
+            <span className="text-base font-bold text-foreground">
+              {formatPrice(product.price)}
             </span>
-          )}
+            {product.compare_at_price && product.compare_at_price > product.price && (
+              <span className="text-xs text-muted-foreground line-through">
+                {formatPrice(product.compare_at_price)}
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground">KDV Dahil</p>
         </div>
 
         {/* Sepete Ekle */}

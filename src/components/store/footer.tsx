@@ -5,7 +5,7 @@ import { SITE_CONFIG, NAV_LINKS } from "@/constants";
 
 export function Footer() {
   return (
-    <footer className="bg-[#0F172A] text-white">
+    <footer className="bg-[#0F172A] text-white relative" style={{ zIndex: 1 }}>
       {/* Desktop Footer */}
       <div className="hidden lg:block">
         <div className="container mx-auto px-4 py-16">
@@ -237,6 +237,12 @@ export function Footer() {
             </a>
           </p>
           <p>{SITE_CONFIG.address}</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/payment-methods/footer-bilgi.png"
+            alt="Güvenli ödeme yöntemleri"
+            className="h-7 w-auto object-contain opacity-70 mx-auto mt-3"
+          />
           <p className="pt-2">
             &copy; {new Date().getFullYear()} {SITE_CONFIG.companyName}
           </p>
@@ -246,11 +252,18 @@ export function Footer() {
       {/* Bottom Bar - Desktop */}
       <Separator className="hidden lg:block bg-white/10" />
       <div className="hidden lg:block container mx-auto px-4 py-5">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-white/40">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/40">
           <p>
             &copy; {new Date().getFullYear()} {SITE_CONFIG.companyName}. Tüm
             hakları saklıdır.
           </p>
+          {/* Ödeme Logoları */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/payment-methods/footer-bilgi.png"
+            alt="Güvenli ödeme yöntemleri"
+            className="h-8 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
+          />
           <div className="flex items-center gap-1 text-white/30">
             <span>{SITE_CONFIG.taxOffice}</span>
             <span>·</span>

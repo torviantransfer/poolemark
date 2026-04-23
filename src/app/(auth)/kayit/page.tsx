@@ -91,7 +91,7 @@ export default function KayitPage() {
     setLoading(true);
     const supabase = createClient();
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
@@ -115,8 +115,15 @@ export default function KayitPage() {
       return;
     }
 
-    toast.success("Kayıt başarılı! Hoş geldiniz.");
-    router.push("/");
+    if (data.session) {
+      // E-posta onayı kapalıysa direkt oturum açılır
+      toast.success("Kayıt başarılı! Hoş geldiniz.");
+      router.push("/hesabim");
+    } else {
+      // E-posta onayı gerekiyor
+      toast.success("Kayıt başarılı! Lütfen e-posta adresinize gönderilen onay bağlantısına tıklayın.", { duration: 6000 });
+      router.push("/giris");
+    }
     router.refresh();
   }
 
@@ -261,13 +268,15 @@ export default function KayitPage() {
           >
             <Link
               href="/uyelik-sozlesmesi"
+              target="_blank"
               className="text-primary hover:underline font-medium"
             >
               Üyelik Sözleşmesi
             </Link>
             {" "}ve{" "}
             <Link
-              href="/kvkk"
+              href="/kvkk-aydinlatma-metni"
+              target="_blank"
               className="text-primary hover:underline font-medium"
             >
               KVKK Aydınlatma Metni

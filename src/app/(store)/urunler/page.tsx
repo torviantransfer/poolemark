@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getProducts } from "@/services/products";
 import { getCategories } from "@/services/categories";
 import { ProductCard } from "@/components/store/product-card";
+import { ProductSort } from "@/components/store/product-sort";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, SlidersHorizontal } from "lucide-react";
 import type { Metadata } from "next";
@@ -116,18 +117,18 @@ export default async function ProductsPage({ searchParams }: Props) {
             {/* Main Content */}
             <div className="flex-1 min-w-0">
               {/* Mobile toolbar */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between gap-3 mb-6">
                 <p className="text-sm text-muted-foreground">
                   <span className="font-semibold text-foreground">{total}</span>{" "}
                   ürün bulundu
                 </p>
-                {/* Mobile sort dropdown could go here */}
+                <ProductSort currentSort={sort} />
               </div>
 
               {products.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                  {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                  {products.map((product, i) => (
+                    <ProductCard key={product.id} product={product} priority={i < 4} />
                   ))}
                 </div>
               ) : (

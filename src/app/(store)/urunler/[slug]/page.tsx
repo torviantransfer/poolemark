@@ -11,6 +11,8 @@ import { ProductDetailClient } from "@/components/store/product-detail-client";
 import { ProductTabs } from "@/components/store/product-tabs";
 import { InstallmentModal } from "@/components/store/installment-modal";
 import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
+import { RecentProductTracker } from "@/components/store/recent-product-tracker";
+import { RecentProducts } from "@/components/store/recent-products";
 import { formatPrice, calculateDiscountPercentage } from "@/lib/helpers";
 import {
   ChevronRight,
@@ -127,23 +129,23 @@ export default async function ProductPage({ params }: Props) {
       <section className="pt-4 md:pt-6 pb-12 md:pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
           {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-8">
-            <Link href="/" className="hover:text-primary transition-colors">
+          <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-x-1.5 gap-y-1 text-sm text-muted-foreground mb-8">
+            <Link href="/" className="hover:text-primary transition-colors shrink-0">
               Anasayfa
             </Link>
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
             {product.category && (
               <>
                 <Link
                   href={`/kategori/${product.category.slug}`}
-                  className="hover:text-primary transition-colors"
+                  className="hover:text-primary transition-colors shrink-0"
                 >
                   {product.category.name}
                 </Link>
-                <ChevronRight className="h-3.5 w-3.5" />
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 hidden md:block" />
               </>
             )}
-            <span className="text-foreground font-medium truncate max-w-[200px]">
+            <span className="text-foreground font-medium line-clamp-1 min-w-0 hidden md:block">
               {product.name}
             </span>
           </nav>
@@ -195,25 +197,30 @@ export default async function ProductPage({ params }: Props) {
               </div>
 
               {/* Price */}
-              <div className="mt-5">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-2xl md:text-3xl font-bold text-foreground">
+              <div className="mt-5 rounded-2xl bg-secondary/30 border border-border/40 p-4">
+                <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
+                  <span className="text-2xl md:text-3xl font-bold text-foreground leading-none">
                     {formatPrice(product.price)}
                   </span>
                   {product.compare_at_price &&
                     product.compare_at_price > product.price && (
                       <>
-                        <span className="text-lg text-muted-foreground line-through">
+                        <span className="text-base text-muted-foreground line-through leading-none">
                           {formatPrice(product.compare_at_price)}
                         </span>
-                        <span className="px-2 py-0.5 text-xs font-bold bg-destructive text-white rounded-md">
+                        <span className="px-2 py-1 text-[11px] font-bold bg-destructive text-white rounded-md leading-none">
                           %{discount} İNDİRİM
                         </span>
                       </>
                     )}
+                  <span className="text-[11px] font-medium text-muted-foreground bg-white border border-border/60 rounded-md px-2 py-1 leading-none">
+                    KDV Dahil
+                  </span>
                 </div>
                 {/* Installment hint */}
-                <InstallmentModal price={product.price} />
+                <div className="mt-3 pt-3 border-t border-border/40">
+                  <InstallmentModal price={product.price} />
+                </div>
               </div>
 
               {/* Short Description */}
@@ -272,6 +279,17 @@ export default async function ProductPage({ params }: Props) {
               </div>
             </div>
           )}
+
+          {/* Recent products (localStorage) */}
+          <RecentProducts excludeId={product.id} />
+          <RecentProductTracker
+            id={product.id}
+            slug={product.slug}
+            name={product.name}
+            image={images?.[0]?.url || null}
+            price={product.price}
+            compareAtPrice={product.compare_at_price ?? null}
+          />
         </div>
       </section>
     </>

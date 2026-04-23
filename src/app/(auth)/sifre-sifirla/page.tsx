@@ -7,16 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { toast } from "sonner";
-import { Eye, EyeOff, Loader2, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle, Lock, ArrowRight } from "lucide-react";
 
 function validatePassword(password: string): string | null {
   if (password.length < 8) return "Şifre en az 8 karakter olmalıdır.";
@@ -37,7 +29,6 @@ export default function SifreSifirlaPage() {
 
   useEffect(() => {
     const supabase = createClient();
-    // Supabase otomatik olarak URL hash'ten token'ı okur
     supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setSessionReady(true);
@@ -61,10 +52,7 @@ export default function SifreSifirlaPage() {
 
     setLoading(true);
     const supabase = createClient();
-
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
+    const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
       toast.error("Şifre güncellenirken bir hata oluştu. Lütfen tekrar deneyin.");
@@ -79,91 +67,95 @@ export default function SifreSifirlaPage() {
 
   if (success) {
     return (
-      <Card>
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle className="h-6 w-6 text-green-600" />
+      <div>
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+            <CheckCircle className="h-7 w-7 text-green-600" />
           </div>
-          <CardTitle className="text-2xl">Şifre Güncellendi</CardTitle>
-          <CardDescription>
-            Şifreniz başarıyla güncellendi. Artık yeni şifrenizle giriş
-            yapabilirsiniz.
-          </CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Button className="w-full" onClick={() => router.push("/giris")}>
-            Giriş Yap
-          </Button>
-        </CardFooter>
-      </Card>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+            Şifre Güncellendi
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Şifreniz başarıyla güncellendi. Artık yeni şifrenizle giriş yapabilirsiniz.
+          </p>
+        </div>
+        <Button className="w-full h-11 gap-2" onClick={() => router.push("/giris")}>
+          Giriş Yap
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
     );
   }
 
   if (!sessionReady) {
     return (
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Şifre Sıfırlama</CardTitle>
-          <CardDescription>
+      <div>
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+            Şifre Sıfırlama
+          </h1>
+          <p className="text-muted-foreground mt-2">
             Bağlantı doğrulanıyor, lütfen bekleyin...
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center py-8">
+          </p>
+        </div>
+        <div className="flex justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </CardContent>
-        <CardFooter className="justify-center">
+        </div>
+        <div className="mt-6 pt-6 border-t text-center">
           <Link
             href="/sifremi-unuttum"
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             Bağlantı çalışmıyor mu? Yeni bağlantı isteyin
           </Link>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Yeni Şifre Belirleyin</CardTitle>
-        <CardDescription>
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+          Yeni Şifre Belirleyin
+        </h1>
+        <p className="text-muted-foreground mt-2">
           Hesabınız için yeni bir şifre oluşturun.
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="password">Yeni Şifre</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="En az 8 karakter"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Büyük harf, küçük harf ve rakam içermelidir.
-            </p>
-          </div>
+        </p>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="passwordConfirm">Yeni Şifre Tekrar</Label>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="password">Yeni Şifre</Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="En az 8 karakter"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+              className="pl-10 pr-10 h-11"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Büyük harf, küçük harf ve rakam içermelidir.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="passwordConfirm">Yeni Şifre Tekrar</Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="passwordConfirm"
               type="password"
@@ -172,16 +164,15 @@ export default function SifreSifirlaPage() {
               onChange={(e) => setPasswordConfirm(e.target.value)}
               autoComplete="new-password"
               required
+              className="pl-10 h-11"
             />
           </div>
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Şifreyi Güncelle
-          </Button>
-        </CardFooter>
+        </div>
+
+        <Button type="submit" className="w-full h-11 text-base gap-2" disabled={loading}>
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Şifreyi Güncelle"}
+        </Button>
       </form>
-    </Card>
+    </div>
   );
 }

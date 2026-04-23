@@ -6,16 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, MailCheck } from "lucide-react";
+import { Loader2, ArrowLeft, MailCheck, Mail } from "lucide-react";
 
 export default function SifremiUnuttumPage() {
   const [email, setEmail] = useState("");
@@ -49,42 +41,48 @@ export default function SifremiUnuttumPage() {
 
   if (sent) {
     return (
-      <Card>
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent">
-            <MailCheck className="h-6 w-6 text-primary" />
+      <div>
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent">
+            <MailCheck className="h-7 w-7 text-primary" />
           </div>
-          <CardTitle className="text-2xl">E-posta Gönderildi</CardTitle>
-          <CardDescription>
-            Şifre sıfırlama bağlantısı <strong>{email}</strong> adresine
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+            E-posta Gönderildi
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Şifre sıfırlama bağlantısı{" "}
+            <strong className="text-foreground">{email}</strong> adresine
             gönderildi. Lütfen gelen kutunuzu kontrol edin.
-          </CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Link href="/giris" className="w-full">
-            <Button variant="outline" className="w-full">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Giriş Sayfasına Dön
-            </Button>
-          </Link>
-        </CardFooter>
-      </Card>
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          className="w-full h-11 gap-2"
+          render={<Link href="/giris" />}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Giriş Sayfasına Dön
+        </Button>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Şifremi Unuttum</CardTitle>
-        <CardDescription>
-          E-posta adresinizi girin, size şifre sıfırlama bağlantısı
-          gönderelim.
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">E-posta</Label>
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+          Şifremi Unuttum
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          E-posta adresinizi girin, size şifre sıfırlama bağlantısı gönderelim.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="email">E-posta Adresi</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="email"
               type="email"
@@ -93,23 +91,33 @@ export default function SifremiUnuttumPage() {
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               required
+              className="pl-10 h-11"
             />
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sıfırlama Bağlantısı Gönder
-          </Button>
-          <Link
-            href="/giris"
-            className="text-sm text-muted-foreground hover:text-foreground text-center"
-          >
-            <ArrowLeft className="inline mr-1 h-3 w-3" />
-            Giriş sayfasına dön
-          </Link>
-        </CardFooter>
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-11 text-base gap-2"
+          disabled={loading}
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            "Sıfırlama Bağlantısı Gönder"
+          )}
+        </Button>
       </form>
-    </Card>
+
+      <div className="mt-8 pt-6 border-t text-center">
+        <Link
+          href="/giris"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Giriş sayfasına dön
+        </Link>
+      </div>
+    </div>
   );
 }

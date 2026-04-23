@@ -81,7 +81,7 @@ export function Header() {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         transparent
           ? "bg-transparent"
-          : "bg-white/95 backdrop-blur-xl shadow-sm border-b border-border/40"
+          : "bg-white/95 shadow-sm border-b border-border/40 md:backdrop-blur-xl"
       )}
     >
       <div className="container mx-auto px-4">
@@ -99,8 +99,8 @@ export function Header() {
               >
                 <Menu className="h-5 w-5" />
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] p-0">
-                <SheetHeader className="p-6 pb-4 border-b">
+              <SheetContent side="left" className="w-[300px] p-0 flex flex-col overflow-hidden">
+                <SheetHeader className="p-6 pb-4 border-b shrink-0">
                   <SheetTitle>
                     <Link
                       href="/"
@@ -111,20 +111,31 @@ export function Header() {
                     </Link>
                   </SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-col py-4">
-                  {NAV_LINKS.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="px-6 py-3.5 text-[15px] font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+                <nav className="flex flex-col py-4 flex-1 overflow-y-auto">
+                  {NAV_LINKS.map((link) => {
+                    const isActive =
+                      link.href === "/"
+                        ? pathname === "/"
+                        : pathname.startsWith(link.href);
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          "px-6 py-3.5 text-[15px] font-medium transition-colors",
+                          isActive
+                            ? "text-primary bg-primary/5 border-l-2 border-primary"
+                            : "text-foreground/80 hover:text-primary hover:bg-primary/5"
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
                 </nav>
                 {!user && !loading && (
-                  <div className="p-6 pt-2 border-t space-y-3">
+                  <div className="p-6 pt-4 border-t space-y-3 shrink-0">
                     <Button
                       render={
                         <Link
@@ -151,7 +162,7 @@ export function Header() {
                   </div>
                 )}
                 {user && (
-                  <div className="p-6 pt-2 border-t space-y-1">
+                  <div className="p-6 pt-2 border-t space-y-1 shrink-0">
                     <Link
                       href="/hesabim"
                       onClick={() => setMobileMenuOpen(false)}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +17,6 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { formatPrice, formatDateTime } from "@/lib/helpers";
-import type { Metadata } from "next";
 
 interface TrackResult {
   orderNumber: string;
@@ -52,12 +52,46 @@ const STATUS_STEPS = [
 const STATUS_ORDER = ["pending", "confirmed", "preparing", "shipped", "delivered"];
 
 export default function SiparisTakipPage() {
+  return (
+    <Suspense fallback={<TrackingFallback />}>
+      <SiparisTakipInner />
+    </Suspense>
+  );
+}
+
+function TrackingFallback() {
+  return (
+    <section className="pt-8 pb-16">
+      <div className="container mx-auto px-4 max-w-2xl">
+        <div className="h-64 rounded-2xl bg-secondary/30 animate-pulse" />
+      </div>
+    </section>
+  );
+}
+
+function SiparisTakipInner() {
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<"email" | "phone">("email");
   const [orderNumber, setOrderNumber] = useState("");
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<TrackResult | null>(null);
+
+  // Pre-fill from query string (e.g. ?no=PM-...&email=foo@bar.com)
+  useEffect(() => {
+    const no = searchParams.get("no");
+    const email = searchParams.get("email");
+    const phone = searchParams.get("phone");
+    if (no) setOrderNumber(no);
+    if (email) {
+      setTab("email");
+      setEmailOrPhone(email);
+    } else if (phone) {
+      setTab("phone");
+      setEmailOrPhone(phone);
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -226,7 +260,7 @@ export default function SiparisTakipPage() {
                         >
                           <Icon className="w-4 h-4" />
                         </div>
-                        <p className={`text-[10px] text-center mt-1.5 font-medium ${done ? "text-primary" : "text-muted-foreground"}`}>
+                        <p className={`text-[11px] sm:text-xs text-center mt-1.5 font-medium leading-tight ${done ? "text-primary" : "text-muted-foreground"}`}>
                           {step.label}
                         </p>
                       </div>

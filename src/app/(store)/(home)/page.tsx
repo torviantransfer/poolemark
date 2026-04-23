@@ -88,7 +88,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ===== HERO SECTION ===== */}
-      <section className="relative min-h-[85vh] md:min-h-[90vh] flex items-center overflow-hidden -mt-16 md:-mt-[68px]">
+      <section className="relative min-h-[85vh] md:min-h-[90vh] flex items-center -mt-16 md:-mt-[68px]">
         <div className="absolute inset-0 z-0">
           <Image
             src={activeBanner?.image_url || "/hero-banner.jpg"}
@@ -346,7 +346,7 @@ export default async function HomePage() {
 
       {/* ===== CUSTOMER REVIEWS ===== */}
       {(reviews.length > 0 || reviewCount === 0) && (
-      <section className="py-16 md:py-24 bg-white">
+      <section className="py-16 md:py-24 bg-white overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">
@@ -366,7 +366,7 @@ export default async function HomePage() {
             </div>
           </div>
           {reviews.length > 0 ? (
-            <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none scrollbar-hide pb-4 md:pb-0 -mx-4 md:mx-0 px-4 md:px-0">
+            <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory md:snap-none scrollbar-hide pb-4 md:pb-0 -mx-4 md:mx-0 px-4 md:px-0">
               {reviews.map((review) => (
                 <article
                   key={review.id}

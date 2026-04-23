@@ -45,7 +45,13 @@ function GirisForm() {
     });
 
     if (error) {
-      toast.error("E-posta veya şifre hatalı.");
+      if (error.message.toLowerCase().includes("email not confirmed")) {
+        toast.error("E-posta adresinizi henüz onaylamadınız. Lütfen gelen kutunuzu kontrol edin.");
+      } else if (error.message.toLowerCase().includes("invalid login") || error.status === 400) {
+        toast.error("E-posta veya şifre hatalı.");
+      } else {
+        toast.error("Giriş yapılamadı. Lütfen tekrar deneyin.");
+      }
       setLoading(false);
       return;
     }

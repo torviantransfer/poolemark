@@ -61,18 +61,18 @@ export default async function OrdersPage({
                   className="block bg-white rounded-2xl border p-5 hover:border-primary/30 hover:shadow-sm transition-all"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-foreground">{order.order_number}</p>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-foreground truncate">{order.order_number}</p>
                       <p className="text-sm text-muted-foreground mt-0.5">
                         {formatDate(order.created_at)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${ORDER_STATUS_COLORS[order.status] || "bg-gray-100 text-gray-800"}`}>
                         {ORDER_STATUS_LABELS[order.status] || order.status}
                       </span>
-                      <span className="font-bold text-foreground">{formatPrice(order.total)}</span>
-                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-bold text-foreground tabular-nums">{formatPrice(order.total)}</span>
+                      <Eye className="h-4 w-4 text-muted-foreground hidden sm:block" />
                     </div>
                   </div>
                 </Link>

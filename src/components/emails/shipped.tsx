@@ -126,30 +126,6 @@ export function ShippedEmail({
     </EmailLayout>
   );
 }
-import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Link,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
-import { baseUrl, styles } from "./shared";
-
-interface ShippedEmailProps {
-  firstName: string;
-  orderNumber: string;
-  orderId: string;
-  cargoCompany: string;
-  trackingNumber: string;
-  trackingUrl?: string;
-}
-
-export function ShippedEmail({
   firstName,
   orderNumber,
   orderId,

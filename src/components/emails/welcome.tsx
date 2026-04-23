@@ -60,27 +60,6 @@ export function WelcomeEmail({ firstName }: WelcomeEmailProps) {
     </EmailLayout>
   );
 }
-import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Link,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
-import { baseUrl, styles } from "./shared";
-
-interface WelcomeEmailProps {
-  firstName: string;
-}
-
-export function WelcomeEmail({ firstName }: WelcomeEmailProps) {
-  return (
-    <Html>
       <Head />
       <Preview>Poolemark ailesine hoş geldin, {firstName}!</Preview>
       <Body style={styles.body}>

@@ -71,8 +71,20 @@ export default function ProfilePage() {
     e.preventDefault();
     setPasswordError("");
 
-    if (newPassword.length < 6) {
-      setPasswordError("Şifre en az 6 karakter olmalıdır.");
+    if (newPassword.length < 8) {
+      setPasswordError("Şifre en az 8 karakter olmalıdır.");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      setPasswordError("Şifre en az bir küçük harf içermelidir.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      setPasswordError("Şifre en az bir büyük harf içermelidir.");
+      return;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      setPasswordError("Şifre en az bir rakam içermelidir.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -178,8 +190,9 @@ export default function ProfilePage() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 className="mt-1"
-                minLength={6}
+                minLength={8}
               />
+              <p className="text-xs text-muted-foreground mt-1">En az 8 karakter, büyük/küçük harf ve rakam içermelidir.</p>
             </div>
             <div>
               <Label htmlFor="confirmPassword">Yeni Şifre (Tekrar)</Label>
@@ -190,7 +203,7 @@ export default function ProfilePage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 className="mt-1"
-                minLength={6}
+                minLength={8}
               />
             </div>
 

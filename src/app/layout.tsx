@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/shared/json-ld";
+import { CartProvider } from "@/hooks/use-cart";
+import { RootMobileNav } from "@/components/store/root-mobile-nav";
 import "./globals.css";
 
 const inter = Inter({
@@ -88,8 +90,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
         <OrganizationJsonLd />
         <WebSiteJsonLd />
-        {children}
-        <Toaster position="top-right" richColors />
+        <CartProvider>
+          {children}
+          <RootMobileNav />
+        </CartProvider>
+        <Toaster position="top-right" richColors duration={2500} closeButton />
       </body>
     </html>
   );

@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Upload, X } from "lucide-react";
 
 interface ShippingCompany {
   id: string;
   name: string;
   code: string;
+  logo_url: string | null;
   price: number;
   free_shipping_threshold: number | null;
   estimated_days: string | null;
@@ -34,10 +35,14 @@ export function ShippingCompanyForm({ company }: Props) {
   const router = useRouter();
   const isEditing = !!company;
   const [loading, setLoading] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>(company?.logo_url || "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     name: company?.name || "",
     code: company?.code || "",
+    logo_url: company?.logo_url || "",
     price: company?.price?.toString() || "",
     free_shipping_threshold: company?.free_shipping_threshold?.toString() || "500",
     estimated_days: company?.estimated_days || "1-3 İş Günü",
@@ -48,6 +53,22 @@ export function ShippingCompanyForm({ company }: Props) {
 
   function updateField(field: string, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleLogoFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    // logo_url'i temizle — yüklenen dosya kullanılacak
+    updateField("logo_url", "");
+  }
+
+  function clearLogo() {
+    setLogoFile(null);
+    setLogoPreview("");
+    updateField("logo_url", "");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -66,9 +87,25 @@ export function ShippingCompanyForm({ company }: Props) {
     setLoading(true);
     try {
       const supabase = createClient();
+
+      let finalLogoUrl = form.logo_url.trim() || null;
+
+      // Dosya yüklendiyse Supabase Storage'a yükle
+      if (logoFile) {
+        const ext = logoFile.name.split(".").pop();
+        const path = `${slugifyCode(form.code)}-${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("cargo-logos")
+          .upload(path, logoFile, { upsert: true, contentType: logoFile.type });
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from("cargo-logos").getPublicUrl(path);
+        finalLogoUrl = urlData.publicUrl;
+      }
+
       const payload = {
         name: form.name.trim(),
         code: slugifyCode(form.code),
+        logo_url: finalLogoUrl,
         price: parsedPrice,
         free_shipping_threshold: form.free_shipping_threshold
           ? parseFloat(form.free_shipping_threshold)
@@ -190,6 +227,51 @@ export function ShippingCompanyForm({ company }: Props) {
           <p className="text-xs text-muted-foreground">
             Takip numarası için <span className="font-mono">{"{tracking_number}"}</span> kullanın.
           </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Logo</label>
+          <div className="flex items-start gap-3">
+            {/* Önizleme */}
+            {logoPreview && (
+              <div className="relative shrink-0 flex items-center justify-center w-24 h-14 rounded-lg border bg-secondary/40">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logoPreview}
+                  alt="Logo önizleme"
+                  className="max-h-10 max-w-[88px] object-contain"
+                />
+                <button
+                  type="button"
+                  onClick={clearLogo}
+                  className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+            {/* Yükleme butonu */}
+            <div className="flex-1 space-y-1.5">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                onChange={handleLogoFileChange}
+                className="hidden"
+                id="logo-file-input"
+              />
+              <label
+                htmlFor="logo-file-input"
+                className="inline-flex items-center gap-2 cursor-pointer h-10 rounded-md border border-dashed border-input px-4 text-sm text-muted-foreground hover:border-primary hover:text-foreground transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                {logoFile ? logoFile.name : "PNG / JPG / SVG seç"}
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Logo yüklenmezse <span className="font-mono">/shipping/{form.code || "kod"}.png</span> otomatik kullanılır.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

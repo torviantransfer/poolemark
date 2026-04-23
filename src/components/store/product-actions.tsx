@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Heart, Lock, Minus, Plus, Shield, ShoppingBag, Share2, CreditCard, Zap } from "lucide-react";
+import { Heart, Minus, Plus, ShoppingBag, Share2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { useUser } from "@/hooks/use-user";
@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import type { Product } from "@/types";
 import { SITE_CONFIG } from "@/constants";
-import { ShippingTimeline } from "@/components/store/shipping-timeline";
+import { StockNotifyForm } from "@/components/store/stock-notify-form";
 
 interface ProductActionsProps {
   product: Product;
@@ -73,7 +73,12 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
       quantity,
       variant_name: activeVariant?.name ?? null,
     });
-    toast.success("Ürün sepete eklendi");
+    toast.success("Ürün sepete eklendi", {
+      action: {
+        label: "Sepete Git",
+        onClick: () => router.push("/sepet"),
+      },
+    });
   }
 
   function handleBuyNow() {
@@ -228,7 +233,13 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
           {isOutOfStock ? "Stok Yok" : "Sepete Ekle"}
         </Button>
       </div>
-
+      {/* ── Stoğa girince haber ver (sadece tükendiğinde) ── */}
+      {isOutOfStock && (
+        <StockNotifyForm
+          productId={product.id}
+          variantId={activeVariant?.id ?? null}
+        />
+      )}
       {/* ── Hızlı Satın Al ──────────────────────────────────── */}
       {!isOutOfStock && (
         <Button
@@ -275,26 +286,22 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
         </div>
       </div>
 
-      {/* ── Güven Rozetleri ─────────────────────────────────── */}
-      <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/30 px-4 py-3 gap-2">
-        <div className="flex items-center gap-1.5 text-muted-foreground">
-          <Lock className="h-3.5 w-3.5 text-green-600" />
-          <span className="text-[11px] font-semibold text-green-700">256-Bit SSL</span>
-        </div>
-        <div className="h-4 w-px bg-border/60" />
-        <div className="flex items-center gap-1.5">
-          <Shield className="h-3.5 w-3.5 text-blue-500" />
-          <span className="text-[11px] font-semibold text-blue-700">PayTR Güvenli</span>
-        </div>
-        <div className="h-4 w-px bg-border/60" />
-        <div className="flex items-center gap-1.5">
-          <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-[11px] font-semibold text-foreground/70">Tüm Kartlar</span>
-        </div>
+      {/* ── Ödeme Logoları ─────────────────────────────────── */}
+      <div className="flex flex-col gap-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/payment-methods/kart-odeme.svg"
+          alt="Kart ile güvenli ödeme"
+          className="w-full h-auto object-contain"
+        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/payment-methods/footer-bilgi.png"
+          alt="Güvenli ödeme yöntemleri"
+          className="w-full h-auto object-contain"
+        />
       </div>
 
-      {/* ── Kargo Zaman Çizelgesi ────────────────────────────── */}
-      <ShippingTimeline />
 
     </div>
   );

@@ -22,7 +22,6 @@ import {
   Plus,
   Shield,
   Truck,
-  CheckCircle2,
   User,
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
@@ -45,6 +44,7 @@ interface ShippingCompanyOption {
   id: string;
   name: string;
   code: string;
+  logo_url: string | null;
   price: number;
   free_shipping_threshold: number | null;
   estimated_days: string | null;
@@ -84,6 +84,7 @@ export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const couponCode = searchParams.get("coupon") || "";
   const total = subtotal + shipping; // Server will recalculate with coupon
+  const kdv = total * 20 / 120; // Fiyatlar KDV dahil
 
   const isGuest = !authLoading && !user;
 
@@ -112,7 +113,7 @@ export default function CheckoutPage() {
     const supabase = createClient();
     const { data } = await supabase
       .from("shipping_companies")
-      .select("id, name, code, price, free_shipping_threshold, estimated_days")
+      .select("id, name, code, logo_url, price, free_shipping_threshold, estimated_days")
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: false });
@@ -266,9 +267,9 @@ export default function CheckoutPage() {
         </div>
       </section>
 
-      <section className="py-8 md:py-12">
+      <section className="py-8 md:py-12 pb-32 lg:pb-12">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
             {/* Left */}
             <div className="lg:col-span-2 space-y-6">
               {/* Address Selection */}
@@ -424,28 +425,36 @@ export default function CheckoutPage() {
                 </h2>
 
                 {shippingCompanies.length > 0 ? (
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="flex flex-wrap gap-2">
                     {shippingCompanies.map((company) => {
                       const isFree = company.free_shipping_threshold && subtotal >= company.free_shipping_threshold;
+                      const isSelected = selectedShippingId === company.id;
                       return (
                         <button
                           key={company.id}
                           onClick={() => setSelectedShippingId(company.id)}
-                          className={`text-left p-4 rounded-xl border-2 transition-all ${
-                            selectedShippingId === company.id
+                          title={`${company.name} – ${isFree ? "Ücretsiz" : formatPrice(company.price)}`}
+                          className={`relative flex items-center justify-center p-3 rounded-xl border-2 transition-all ${
+                            isSelected
                               ? "border-primary bg-accent/30"
-                              : "border-transparent bg-secondary/40 hover:border-primary/20"
+                              : "border-border bg-white hover:border-primary/40"
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="font-medium text-sm">{company.name}</p>
-                            <span className="text-sm font-semibold text-foreground">
-                              {isFree ? "Ücretsiz" : formatPrice(company.price)}
-                            </span>
+                          <div className="w-20 h-7 flex items-center justify-center">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={company.logo_url || `/shipping/${company.code}.png`}
+                              alt={company.name}
+                              className="max-h-7 max-w-[80px] w-auto object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                const span = document.createElement("span");
+                                span.className = "text-xs font-medium";
+                                span.textContent = company.name;
+                                e.currentTarget.parentElement?.appendChild(span);
+                              }}
+                            />
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {company.estimated_days || "1-3 İş Günü"}
-                          </p>
                         </button>
                       );
                     })}
@@ -467,59 +476,12 @@ export default function CheckoutPage() {
                 />
               </div>
 
-              {/* Trust */}
-              <div className="bg-white rounded-2xl border p-5 md:p-6">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
-                      <Shield className="h-5 w-5 text-green-600" />
-                    </div>
-                    <span className="text-xs font-medium text-foreground">256-bit SSL</span>
-                    <span className="text-[10px] text-muted-foreground">Güvenli Ödeme</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-                      <Truck className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <span className="text-xs font-medium text-foreground">Hızlı Kargo</span>
-                    <span className="text-[10px] text-muted-foreground">{selectedShipping?.estimated_days || "1-3 İş Günü"}</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
-                      <CheckCircle2 className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <span className="text-xs font-medium text-foreground">Kolay İade</span>
-                    <span className="text-[10px] text-muted-foreground">14 Gün İçinde</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
-                      <CreditCard className="h-5 w-5 text-orange-600" />
-                    </div>
-                    <span className="text-xs font-medium text-foreground">12 Taksit</span>
-                    <span className="text-[10px] text-muted-foreground">Tüm Kartlara</span>
-                  </div>
-                </div>
 
-                {/* Payment Logos */}
-                <div className="mt-5 pt-4 border-t">
-                  <p className="text-[10px] text-muted-foreground text-center mb-2">Desteklenen Ödeme Yöntemleri</p>
-                  <div className="flex items-center justify-center gap-3 flex-wrap">
-                    <div className="bg-secondary/60 rounded px-2 py-1 text-[10px] font-semibold text-foreground/70">VISA</div>
-                    <div className="bg-secondary/60 rounded px-2 py-1 text-[10px] font-semibold text-foreground/70">Mastercard</div>
-                    <div className="bg-secondary/60 rounded px-2 py-1 text-[10px] font-semibold text-foreground/70">Troy</div>
-                    <div className="bg-secondary/60 rounded px-2 py-1 text-[10px] font-semibold text-foreground/70">Bonus</div>
-                    <div className="bg-secondary/60 rounded px-2 py-1 text-[10px] font-semibold text-foreground/70">World</div>
-                    <div className="bg-secondary/60 rounded px-2 py-1 text-[10px] font-semibold text-foreground/70">Maximum</div>
-                    <div className="bg-secondary/60 rounded px-2 py-1 text-[10px] font-semibold text-foreground/70">CardFinans</div>
-                    <div className="bg-secondary/60 rounded px-2 py-1 text-[10px] font-semibold text-foreground/70">Axess</div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Sidebar */}
             <div>
-              <div className="bg-secondary/40 rounded-2xl p-6 sticky top-24">
+              <div className="bg-secondary/40 rounded-2xl p-4 md:p-6 lg:sticky lg:top-24">
                 <h3 className="text-lg font-semibold text-foreground mb-4">Sipariş Özeti</h3>
 
                 <div className="space-y-3 mb-5">
@@ -555,7 +517,9 @@ export default function CheckoutPage() {
                       Kargo{selectedShipping ? ` (${selectedShipping.name})` : ""}
                     </span>
                     <span className="font-medium">
-                      {shipping === 0 ? (
+                      {!selectedShipping ? (
+                        <span className="text-muted-foreground text-xs">Seçiniz</span>
+                      ) : shipping === 0 ? (
                         <span className="text-green-600">Ücretsiz</span>
                       ) : (
                         formatPrice(shipping)
@@ -571,6 +535,10 @@ export default function CheckoutPage() {
                   <div className="border-t pt-2 mt-2 flex justify-between">
                     <span className="font-semibold">Toplam</span>
                     <span className="text-xl font-bold">{formatPrice(total)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-muted-foreground">KDV (%20) dahil</span>
+                    <span className="text-xs text-muted-foreground">{formatPrice(kdv)}</span>
                   </div>
                 </div>
 
@@ -595,11 +563,40 @@ export default function CheckoutPage() {
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Sepete Dön
                 </Link>
+
+                {/* Ödeme Logoları */}
+                <div className="mt-4 pt-4 border-t">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/payment-methods/kart-odeme.svg"
+                    alt="Güvenli ödeme yöntemleri"
+                    className="w-full h-auto object-contain"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Mobile sticky CTA */}
+      <div className="lg:hidden fixed bottom-16 left-0 right-0 z-40 bg-white border-t shadow-[0_-4px_20px_rgba(0,0,0,0.06)] p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] text-muted-foreground leading-none">Toplam</p>
+            <p className="text-base font-bold text-foreground tabular-nums leading-tight mt-0.5">{formatPrice(total)}</p>
+          </div>
+          <Button
+            size="lg"
+            className="flex-1 gap-2 h-11"
+            onClick={handlePlaceOrder}
+            disabled={isPending || !canCheckout}
+          >
+            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+            {isPending ? "İşleniyor..." : "Ödemeye Geç"}
+          </Button>
+        </div>
+      </div>
     </>
   );
 }

@@ -243,49 +243,6 @@ export function OrderConfirmationEmail({
     </EmailLayout>
   );
 }
-import {
-  Body,
-  Column,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Link,
-  Preview,
-  Row,
-  Section,
-  Text,
-} from "@react-email/components";
-import { baseUrl, styles } from "./shared";
-
-interface OrderItem {
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-}
-
-interface OrderConfirmationEmailProps {
-  firstName: string;
-  orderNumber: string;
-  orderId: string;
-  items: OrderItem[];
-  subtotal: number;
-  shippingCost: number;
-  discount: number;
-  total: number;
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency: "TRY",
-    minimumFractionDigits: 2,
-  }).format(price);
-}
-
-export function OrderConfirmationEmail({
   firstName,
   orderNumber,
   orderId,

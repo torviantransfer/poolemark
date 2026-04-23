@@ -97,13 +97,13 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
 
         {/* Thumbnails */}
         {activeImages.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
             {activeImages.slice(0, 5).map((img, idx) => (
               <button
                 key={img.id}
                 onClick={() => setActiveIndex(idx)}
                 className={cn(
-                  "relative aspect-square w-14 h-14 shrink-0 rounded-xl overflow-hidden border-2 transition-all duration-150",
+                  "relative aspect-square w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden border-2 transition-all duration-150",
                   idx === activeIndex
                     ? "border-primary shadow-md scale-[1.04]"
                     : "border-border/50 hover:border-primary/50 hover:scale-[1.02] opacity-70 hover:opacity-100"
@@ -114,7 +114,7 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
                   src={img.url}
                   alt={img.alt_text || `${productName} - ${idx + 1}`}
                   fill
-                  sizes="56px"
+                  sizes="72px"
                   className="object-cover"
                 />
                 {idx === activeIndex && (
@@ -125,14 +125,14 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
             {activeImages.length > 5 && (
               <button
                 onClick={() => setActiveIndex(5)}
-                className="relative w-14 h-14 shrink-0 rounded-xl border-2 border-border/50 overflow-hidden hover:border-primary/50 transition-all opacity-70 hover:opacity-100"
+                className="relative w-[72px] h-[72px] shrink-0 rounded-xl border-2 border-border/50 overflow-hidden hover:border-primary/50 transition-all opacity-70 hover:opacity-100"
                 aria-label={`+${activeImages.length - 5} daha`}
               >
                 <Image
                   src={activeImages[5].url}
                   alt=""
                   fill
-                  sizes="56px"
+                  sizes="72px"
                   className="object-cover blur-[1px]"
                 />
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

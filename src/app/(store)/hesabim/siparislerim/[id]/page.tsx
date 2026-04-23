@@ -8,7 +8,7 @@ import {
   CreditCard,
   Truck,
 } from "lucide-react";
-import { formatPrice, formatDate, formatDateTime } from "@/lib/helpers";
+import { formatPrice, formatDateTime } from "@/lib/helpers";
 import {
   ORDER_STATUS_LABELS,
   ORDER_STATUS_COLORS,
@@ -115,16 +115,27 @@ export default async function OrderDetailPage({
               {/* Cargo Tracking */}
               {order.cargo_tracking_number && (
                 <div className="bg-white rounded-2xl border p-5 md:p-6">
-                  <h2 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <h2 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                     <Truck className="h-5 w-5 text-primary" />
                     Kargo Takibi
                   </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Kargo firması: <span className="text-foreground">{order.cargo_company || "-"}</span>
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Takip No: <span className="font-mono text-foreground">{order.cargo_tracking_number}</span>
-                  </p>
+                  <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Kargo Firması</p>
+                      <p className="text-foreground font-medium mt-0.5">{order.cargo_company || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Takip Numarası</p>
+                      <p className="font-mono text-foreground font-medium mt-0.5 break-all">{order.cargo_tracking_number}</p>
+                    </div>
+                  </div>
+                  <Link
+                    href={`/siparis-takip?no=${order.cargo_tracking_number}`}
+                    className="inline-flex items-center gap-1.5 mt-4 text-sm font-medium text-primary hover:underline underline-offset-4"
+                  >
+                    Kargoyu Takip Et
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Link>
                 </div>
               )}
             </div>

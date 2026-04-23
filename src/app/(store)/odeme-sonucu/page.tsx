@@ -20,7 +20,7 @@ export default async function PaymentResultPage({
   const status = params.status || "success";
   const isSuccess = status === "success";
 
-  let order: any = null;
+  let order: { id: string; order_number: string; total: number; created_at: string } | null = null;
   let isLoggedIn = false;
 
   if (orderId) {
@@ -76,7 +76,7 @@ export default async function PaymentResultPage({
               )}
               {order && !isLoggedIn && (
                 <Button
-                  render={<Link href="/siparis-takip" />}
+                  render={<Link href={`/siparis-takip?no=${order.order_number}`} />}
                   className="gap-2"
                 >
                   <Package className="h-4 w-4" />

@@ -11,7 +11,6 @@ import {
   Heart,
   ShoppingBag,
   Loader2,
-  Trash2,
   ShoppingCart,
 } from "lucide-react";
 import { formatPrice, calculateDiscountPercentage } from "@/lib/helpers";

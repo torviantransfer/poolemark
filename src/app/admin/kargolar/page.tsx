@@ -3,6 +3,7 @@ import Link from "next/link";
 import { formatPrice } from "@/lib/helpers";
 import { Truck, Plus, Edit } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
+import { AdminToggleActiveButton } from "@/components/admin/toggle-active-button";
 
 export default async function AdminShippingCompaniesPage() {
   const supabase = await createClient();
@@ -48,7 +49,20 @@ export default async function AdminShippingCompaniesPage() {
               {companies && companies.length > 0 ? (
                 companies.map((company) => (
                   <tr key={company.id} className="border-b last:border-0 hover:bg-secondary/20 transition-colors">
-                    <td className="px-5 py-3 font-medium">{company.name}</td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                          <div className="w-20 h-7 flex items-center shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={company.logo_url || `/shipping/${company.code}.png`}
+                              alt={company.name}
+                              className="max-h-7 max-w-[80px] w-auto object-contain"
+                              onError={(e) => { e.currentTarget.style.display = "none"; }}
+                            />
+                          </div>
+                          <span className="font-medium text-sm">{company.name}</span>
+                        </div>
+                    </td>
                     <td className="px-5 py-3 text-muted-foreground font-mono text-xs">{company.code}</td>
                     <td className="px-5 py-3">{formatPrice(company.price || 0)}</td>
                     <td className="px-5 py-3 text-foreground/70">
@@ -56,11 +70,11 @@ export default async function AdminShippingCompaniesPage() {
                     </td>
                     <td className="px-5 py-3 text-foreground/70">{company.estimated_days || "-"}</td>
                     <td className="px-5 py-3">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                        company.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-                      }`}>
-                        {company.is_active ? "Aktif" : "Pasif"}
-                      </span>
+                      <AdminToggleActiveButton
+                        id={company.id}
+                        table="shipping_companies"
+                        isActive={company.is_active}
+                      />
                     </td>
                     <td className="px-5 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
