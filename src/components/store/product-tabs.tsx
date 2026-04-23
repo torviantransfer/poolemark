@@ -343,7 +343,7 @@ function ReviewForm({ productId }: { productId: string }) {
             type="text"
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value)}
-            placeholder="PM-XXXXXXXX"
+            placeholder="PM-26040001"
             required
             className="w-full h-9 px-3 text-sm rounded-lg border border-border bg-white placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
           />

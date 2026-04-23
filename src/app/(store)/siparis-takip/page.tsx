@@ -78,7 +78,7 @@ function SiparisTakipInner() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<TrackResult | null>(null);
 
-  // Pre-fill from query string (e.g. ?no=PM-...&email=foo@bar.com)
+  // Pre-fill from query string (e.g. ?no=PM-26040001&email=foo@bar.com)
   useEffect(() => {
     const no = searchParams.get("no");
     const email = searchParams.get("email");
@@ -177,7 +177,7 @@ function SiparisTakipInner() {
                 <Label htmlFor="orderNumber" className="mb-1.5 block">Sipariş Numarası</Label>
                 <Input
                   id="orderNumber"
-                  placeholder="Örn: PM-20250419-1234"
+                  placeholder="Örn: PM-26040001"
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
                   required

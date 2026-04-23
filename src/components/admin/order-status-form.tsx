@@ -158,7 +158,7 @@ export function OrderStatusForm({
             type="text"
             value={invoiceNo}
             onChange={(e) => setInvoiceNo(e.target.value)}
-            placeholder="Örn: PM-2026-000123"
+            placeholder="Örn: PM-26040001"
             className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           />
         </div>

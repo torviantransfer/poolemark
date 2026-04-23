@@ -17,8 +17,23 @@ interface PayTRTokenParams {
   totalAmount: number; // in TRY (e.g. 150.90)
 }
 
+export function toPayTRMerchantOid(orderNumber: string): string {
+  return orderNumber.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+}
+
+export function getPossibleOrderNumbersFromMerchantOid(merchantOid: string): string[] {
+  const normalized = merchantOid.trim().toUpperCase();
+  const candidates = new Set<string>([normalized]);
+
+  if (normalized.startsWith("PM") && !normalized.startsWith("PM-")) {
+    candidates.add(`PM-${normalized.slice(2)}`);
+  }
+
+  return Array.from(candidates);
+}
+
 export async function createPayTRToken(params: PayTRTokenParams): Promise<string> {
-  const merchantOid = params.orderNumber;
+  const merchantOid = toPayTRMerchantOid(params.orderNumber);
   const paymentAmount = Math.round(params.totalAmount * 100); // PayTR expects kuruş
   const currency = "TL";
   const testMode = process.env.PAYTR_TEST_MODE === "1" ? "1" : "0";

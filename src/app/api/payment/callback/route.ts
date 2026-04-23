@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { verifyPayTRCallback } from "@/lib/paytr";
+import { getPossibleOrderNumbersFromMerchantOid, verifyPayTRCallback } from "@/lib/paytr";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
@@ -18,11 +18,13 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
-    // Find order by order_number (merchantOid = order_number)
+    const possibleOrderNumbers = getPossibleOrderNumbersFromMerchantOid(merchantOid);
+
+    // Find order by order_number
     const { data: order } = await supabase
       .from("orders")
       .select("id, user_id, payment_status, order_number, subtotal, shipping_cost, discount_amount, total")
-      .eq("order_number", merchantOid)
+      .in("order_number", possibleOrderNumbers)
       .single();
 
     if (!order) {
