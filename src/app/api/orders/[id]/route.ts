@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { sendShippedEmail } from "@/lib/email";
+import { sendShippedEmail, sendOrderConfirmationEmail } from "@/lib/email";
 
 export async function PATCH(
   request: NextRequest,
@@ -71,7 +71,7 @@ export async function PATCH(
     // Get current order before update (for shipped email check)
     const { data: currentOrder } = await supabase
       .from("orders")
-      .select("status, order_number, user_id, guest_email, shipping_address_json, cargo_company, cargo_tracking_number")
+      .select("status, payment_status, order_number, user_id, guest_email, shipping_address_json, cargo_company, cargo_tracking_number, subtotal, shipping_cost, discount_amount, total")
       .eq("id", id)
       .single();
 
@@ -110,10 +110,9 @@ export async function PATCH(
       currentOrder.status === "delivered";
 
     const shippingBecameReady =
-      (!!newTracking && oldTracking !== newTracking) ||
-      (!!newCompany && oldCompany !== newCompany && !!newTracking);
+      newCompany && (oldCompany !== newCompany || (!!newTracking && oldTracking !== newTracking));
 
-    if (statusNowShippedLike && newCompany && newTracking && shippingBecameReady) {
+    if (statusNowShippedLike && newCompany && shippingBecameReady) {
       let recipientEmail: string | null = null;
       let recipientName = "Değerli Müşterimiz";
 
@@ -143,6 +142,52 @@ export async function PATCH(
           cargoCompany: newCompany,
           trackingNumber: newTracking,
           trackingUrl: trackingUrl || undefined,
+        });
+      }
+    }
+
+    // Send order confirmation email when payment status becomes paid
+    if (payment_status === "paid" && currentOrder.payment_status !== "paid") {
+      let recipientEmail: string | null = null;
+      let recipientName = "Değerli Müşterimiz";
+
+      if (currentOrder.user_id) {
+        const { data: orderUser } = await supabase
+          .from("users")
+          .select("email, first_name")
+          .eq("id", currentOrder.user_id)
+          .single();
+        if (orderUser?.email) {
+          recipientEmail = orderUser.email;
+          recipientName = orderUser.first_name || recipientName;
+        }
+      }
+
+      if (!recipientEmail && currentOrder.guest_email) {
+        recipientEmail = currentOrder.guest_email;
+        const shippingJson = currentOrder.shipping_address_json as Record<string, string> | null;
+        recipientName = shippingJson?.first_name || recipientName;
+      }
+
+      if (recipientEmail) {
+        const { data: items } = await supabase
+          .from("order_items")
+          .select("product_name, quantity, unit_price")
+          .eq("order_id", id);
+
+        await sendOrderConfirmationEmail(recipientEmail, {
+          firstName: recipientName,
+          orderNumber: currentOrder.order_number,
+          orderId: id,
+          items: (items || []).map((i) => ({
+            name: i.product_name,
+            quantity: i.quantity,
+            price: i.unit_price,
+          })),
+          subtotal: currentOrder.subtotal,
+          shippingCost: currentOrder.shipping_cost,
+          discount: currentOrder.discount_amount,
+          total: currentOrder.total,
         });
       }
     }

@@ -16,5 +16,5 @@ export const resend = {
   },
 };
 
-export const FROM_EMAIL = "Poolemark <noreply@poolemark.com>";
+export const FROM_EMAIL = "Poolemark <onboarding@resend.dev>";
 export const ADMIN_EMAIL = "info@poolemark.com";
