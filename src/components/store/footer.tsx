@@ -4,7 +4,26 @@ import { Separator } from "@/components/ui/separator";
 import { NewsletterForm } from "@/components/store/newsletter-form";
 import { SITE_CONFIG, NAV_LINKS } from "@/constants";
 
-export function Footer() {
+export interface FooterSettings {
+  phone?: string;
+  phoneRaw?: string;
+  email?: string;
+  address?: string;
+  instagram_url?: string;
+  facebook_url?: string;
+  twitter_url?: string;
+  whatsapp_number?: string;
+}
+
+export function Footer({ settings }: { settings?: FooterSettings }) {
+  const phone = settings?.phone || SITE_CONFIG.phone;
+  const phoneRaw = settings?.phoneRaw || settings?.phone?.replace(/\s/g, "") || SITE_CONFIG.phoneRaw;
+  const email = settings?.email || SITE_CONFIG.email;
+  const address = settings?.address || SITE_CONFIG.address;
+  const instagramUrl = settings?.instagram_url || SITE_CONFIG.socialMedia.instagram;
+  const facebookUrl = settings?.facebook_url || SITE_CONFIG.socialMedia.facebook;
+  const twitterUrl = settings?.twitter_url || SITE_CONFIG.socialMedia.twitter;
+
   return (
     <footer className="bg-[#0F172A] text-white relative" style={{ zIndex: 1 }}>
       {/* Desktop Footer */}
@@ -24,7 +43,7 @@ export function Footer() {
               </p>
               <div className="flex items-center gap-3 mt-6">
                 <SocialLink
-                  href={SITE_CONFIG.socialMedia.instagram}
+                  href={instagramUrl}
                   label="Instagram"
                 >
                   <svg
@@ -36,7 +55,7 @@ export function Footer() {
                   </svg>
                 </SocialLink>
                 <SocialLink
-                  href={SITE_CONFIG.socialMedia.facebook}
+                  href={facebookUrl}
                   label="Facebook"
                 >
                   <svg
@@ -48,7 +67,7 @@ export function Footer() {
                   </svg>
                 </SocialLink>
                 <SocialLink
-                  href={SITE_CONFIG.socialMedia.twitter}
+                  href={twitterUrl}
                   label="Twitter / X"
                 >
                   <svg
@@ -144,31 +163,31 @@ export function Footer() {
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 shrink-0">
                     <Phone className="h-4 w-4 text-primary" />
                   </div>
-                  <a
-                    href={`tel:${SITE_CONFIG.phoneRaw}`}
-                    className="text-sm text-white/50 hover:text-primary transition-colors pt-1"
-                  >
-                    {SITE_CONFIG.phone}
-                  </a>
+                    <a
+                      href={`tel:${phoneRaw}`}
+                      className="text-sm text-white/50 hover:text-primary transition-colors pt-1"
+                    >
+                      {phone}
+                    </a>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 shrink-0">
                     <Mail className="h-4 w-4 text-primary" />
                   </div>
-                  <a
-                    href={`mailto:${SITE_CONFIG.email}`}
-                    className="text-sm text-white/50 hover:text-primary transition-colors pt-1"
-                  >
-                    {SITE_CONFIG.email}
-                  </a>
+                    <a
+                      href={`mailto:${email}`}
+                      className="text-sm text-white/50 hover:text-primary transition-colors pt-1"
+                    >
+                      {email}
+                    </a>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 shrink-0">
                     <MapPin className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="text-sm text-white/50 pt-1">
-                    {SITE_CONFIG.address}
-                  </span>
+                    <span className="text-sm text-white/50 pt-1">
+                      {address}
+                    </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 shrink-0">
@@ -232,20 +251,20 @@ export function Footer() {
         <div className="text-center space-y-1 text-xs text-white/40">
           <p>
             <a
-              href={`tel:${SITE_CONFIG.phoneRaw}`}
+              href={`tel:${phoneRaw}`}
               className="hover:text-primary"
             >
-              {SITE_CONFIG.phone}
+              {phone}
             </a>
             {" · "}
             <a
-              href={`mailto:${SITE_CONFIG.email}`}
+              href={`mailto:${email}`}
               className="hover:text-primary"
             >
-              {SITE_CONFIG.email}
+              {email}
             </a>
           </p>
-          <p>{SITE_CONFIG.address}</p>
+          <p>{address}</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/payment-methods/footer-bilgi.png"
