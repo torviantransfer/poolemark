@@ -1,8 +1,12 @@
 import crypto from "crypto";
 
-const PAYTR_MERCHANT_ID = process.env.PAYTR_MERCHANT_ID!;
-const PAYTR_MERCHANT_KEY = process.env.PAYTR_MERCHANT_KEY!;
-const PAYTR_MERCHANT_SALT = process.env.PAYTR_MERCHANT_SALT!;
+function readEnv(name: "PAYTR_MERCHANT_ID" | "PAYTR_MERCHANT_KEY" | "PAYTR_MERCHANT_SALT" | "NEXT_PUBLIC_SITE_URL") {
+  return (process.env[name] || "").trim();
+}
+
+const PAYTR_MERCHANT_ID = readEnv("PAYTR_MERCHANT_ID");
+const PAYTR_MERCHANT_KEY = readEnv("PAYTR_MERCHANT_KEY");
+const PAYTR_MERCHANT_SALT = readEnv("PAYTR_MERCHANT_SALT");
 const PAYTR_BASE_URL = "https://www.paytr.com/odeme/api/get-token";
 
 interface PayTRTokenParams {
@@ -46,6 +50,10 @@ export function normalizePayTRUserIp(rawIp: string | null | undefined): string {
 }
 
 export async function createPayTRToken(params: PayTRTokenParams): Promise<string> {
+  if (!PAYTR_MERCHANT_ID || !PAYTR_MERCHANT_KEY || !PAYTR_MERCHANT_SALT) {
+    throw new Error("PayTR env değerleri eksik");
+  }
+
   const merchantOid = toPayTRMerchantOid(params.orderNumber);
   const paymentAmount = Math.round(params.totalAmount * 100); // PayTR expects kuruş
   const currency = "TL";
@@ -63,8 +71,9 @@ export async function createPayTRToken(params: PayTRTokenParams): Promise<string
   ]);
   const userBasket = Buffer.from(JSON.stringify(basketItems)).toString("base64");
 
-  const merchantOkUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/odeme-sonucu?status=success&order=${params.orderId}`;
-  const merchantFailUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/odeme-sonucu?status=fail&order=${params.orderId}`;
+  const siteUrl = readEnv("NEXT_PUBLIC_SITE_URL");
+  const merchantOkUrl = `${siteUrl}/odeme-sonucu?status=success&order=${params.orderId}`;
+  const merchantFailUrl = `${siteUrl}/odeme-sonucu?status=fail&order=${params.orderId}`;
 
   // PayTR hash string
   const hashStr = `${PAYTR_MERCHANT_ID}${params.userIp}${merchantOid}${params.userEmail}${paymentAmount}${userBasket}${noInstallment}${maxInstallment}${currency}${testMode}`;
@@ -110,6 +119,21 @@ export async function createPayTRToken(params: PayTRTokenParams): Promise<string
   }
 
   if (data.status !== "success" || !data.token) {
+    console.error("PayTR token request failed", {
+      reason: data.reason,
+      status: response.status,
+      merchantIdLength: PAYTR_MERCHANT_ID.length,
+      merchantKeyLength: PAYTR_MERCHANT_KEY.length,
+      merchantSaltLength: PAYTR_MERCHANT_SALT.length,
+      merchantIdPreview: PAYTR_MERCHANT_ID.slice(0, 3),
+      merchantOid,
+      userIp: params.userIp,
+      paymentAmount,
+      basketItems,
+      testMode,
+      merchantOkUrl,
+    });
+
     throw new Error(
       data.reason || `PayTR token oluşturulamadı (HTTP ${response.status}, oid=${merchantOid}, ip=${params.userIp})`
     );
