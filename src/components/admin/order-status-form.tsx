@@ -13,6 +13,7 @@ export function OrderStatusForm({
   cargoTrackingNumber,
   invoiceNumber,
   invoiceUrl,
+  orderTotal,
 }: {
   orderId: string;
   currentStatus: string;
@@ -21,6 +22,7 @@ export function OrderStatusForm({
   cargoTrackingNumber: string;
   invoiceNumber?: string;
   invoiceUrl?: string;
+  orderTotal: number;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -31,6 +33,7 @@ export function OrderStatusForm({
   const [invoiceNo, setInvoiceNo] = useState(invoiceNumber || "");
   const [invoiceLink, setInvoiceLink] = useState(invoiceUrl || "");
   const [shippingCompanies, setShippingCompanies] = useState<string[]>([]);
+  const [refunding, setRefunding] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -71,6 +74,34 @@ export function OrderStatusForm({
       alert(err.message || "Güncelleme başarısız oldu.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleRefund() {
+    const ok = window.confirm(`Bu sipariş için ${orderTotal.toFixed(2)} TL iade yapılsın mı?`);
+    if (!ok) return;
+
+    setRefunding(true);
+    try {
+      const res = await fetch(`/api/orders/${orderId}/refund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: orderTotal }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "İade işlemi başarısız");
+      }
+
+      setPaymentStatus("refunded");
+      setStatus("returned");
+      alert("İade başarıyla tamamlandı.");
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || "İade işlemi başarısız oldu.");
+    } finally {
+      setRefunding(false);
     }
   }
 
@@ -178,12 +209,24 @@ export function OrderStatusForm({
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || refunding}
         className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
       >
         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
         Güncelle
       </button>
+
+      {paymentStatus === "paid" && (
+        <button
+          type="button"
+          onClick={handleRefund}
+          disabled={loading || refunding}
+          className="w-full flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+        >
+          {refunding && <Loader2 className="h-4 w-4 animate-spin" />}
+          {refunding ? "İade İşleniyor..." : `Tam İade Yap (${orderTotal.toFixed(2)} TL)`}
+        </button>
+      )}
     </form>
   );
 }

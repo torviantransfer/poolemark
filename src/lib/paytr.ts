@@ -8,6 +8,7 @@ const PAYTR_MERCHANT_ID = readEnv("PAYTR_MERCHANT_ID");
 const PAYTR_MERCHANT_KEY = readEnv("PAYTR_MERCHANT_KEY");
 const PAYTR_MERCHANT_SALT = readEnv("PAYTR_MERCHANT_SALT");
 const PAYTR_BASE_URL = "https://www.paytr.com/odeme/api/get-token";
+const PAYTR_REFUND_URL = "https://www.paytr.com/odeme/iade";
 
 interface PayTRTokenParams {
   orderId: string;
@@ -151,4 +152,79 @@ export function verifyPayTRCallback(
     .update(hashStr)
     .digest("base64");
   return token === hash;
+}
+
+interface PayTRRefundParams {
+  orderNumber: string;
+  returnAmount: number;
+  referenceNo?: string;
+}
+
+export async function createPayTRRefund(params: PayTRRefundParams): Promise<{
+  status: string;
+  is_test?: string;
+  merchant_oid?: string;
+  return_amount?: string;
+  reference_no?: string;
+  err_no?: string;
+  err_msg?: string;
+}> {
+  if (!PAYTR_MERCHANT_ID || !PAYTR_MERCHANT_KEY || !PAYTR_MERCHANT_SALT) {
+    throw new Error("PayTR env değerleri eksik");
+  }
+
+  const merchantOid = toPayTRMerchantOid(params.orderNumber);
+  const returnAmount = params.returnAmount.toFixed(2);
+  const paytrToken = crypto
+    .createHmac("sha256", PAYTR_MERCHANT_KEY)
+    .update(`${PAYTR_MERCHANT_ID}${merchantOid}${returnAmount}${PAYTR_MERCHANT_SALT}`)
+    .digest("base64");
+
+  const formData = new URLSearchParams({
+    merchant_id: PAYTR_MERCHANT_ID,
+    merchant_oid: merchantOid,
+    return_amount: returnAmount,
+    paytr_token: paytrToken,
+  });
+
+  if (params.referenceNo) {
+    formData.set("reference_no", params.referenceNo);
+  }
+
+  const response = await fetch(PAYTR_REFUND_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formData.toString(),
+  });
+
+  const raw = await response.text();
+  let data: {
+    status?: string;
+    is_test?: string;
+    merchant_oid?: string;
+    return_amount?: string;
+    reference_no?: string;
+    err_no?: string;
+    err_msg?: string;
+  } = {};
+
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    throw new Error(`PayTR iade geçersiz yanıt döndürdü (HTTP ${response.status})`);
+  }
+
+  if (data.status !== "success") {
+    throw new Error(`PayTR iade başarısız: ${data.err_no || "unknown"} - ${data.err_msg || "Bilinmeyen hata"}`);
+  }
+
+  return {
+    status: data.status,
+    is_test: data.is_test,
+    merchant_oid: data.merchant_oid,
+    return_amount: data.return_amount,
+    reference_no: data.reference_no,
+    err_no: data.err_no,
+    err_msg: data.err_msg,
+  };
 }

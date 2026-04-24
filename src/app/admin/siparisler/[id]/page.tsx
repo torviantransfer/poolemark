@@ -171,6 +171,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             cargoTrackingNumber={order.cargo_tracking_number || ""}
             invoiceNumber={orderExt.invoice_number || ""}
             invoiceUrl={orderExt.invoice_url || ""}
+            orderTotal={order.total}
           />
 
           {/* Customer */}
