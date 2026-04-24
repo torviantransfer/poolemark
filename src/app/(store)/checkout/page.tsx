@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
 import { CITY_LIST, TURKEY_CITIES } from "@/constants/turkey";
+import Script from "next/script";
 import type { Address } from "@/types";
 
 interface GuestAddress {
@@ -224,6 +225,14 @@ function CheckoutContent() {
   if (paytrToken) {
     return (
       <>
+          <Script
+            src="https://www.paytr.com/js/iframeResizer.min.js"
+            strategy="afterInteractive"
+            onLoad={() => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (window as any).iFrameResize({}, "#paytriframe");
+            }}
+          />
         <section className="bg-secondary/40 border-b">
           <div className="container mx-auto px-4 py-8 md:py-10">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Ödeme</h1>
@@ -232,19 +241,19 @@ function CheckoutContent() {
             </p>
           </div>
         </section>
-        <section className="py-4 md:py-12 pb-24 md:pb-12">
+          <section className="py-4 md:py-12">
           <div className="container mx-auto px-0 md:px-4 max-w-4xl">
-            <div className="bg-white md:rounded-2xl md:border md:shadow-sm overflow-hidden">
+              <div className="bg-white md:rounded-2xl md:border md:shadow-sm">
               <div className="flex items-center gap-2 px-4 md:px-5 py-4 border-b">
                 <Shield className="h-5 w-5 text-primary" />
                 <span className="text-sm font-medium">256-bit SSL ile Güvenli Ödeme</span>
               </div>
               <iframe
                 src={`https://www.paytr.com/odeme/guvenli/${paytrToken}`}
-                className="w-full min-h-[calc(100vh-180px)] md:min-h-[640px] border-0"
+                  className="w-full min-h-[600px] border-0 block"
                 id="paytriframe"
                 frameBorder="0"
-                scrolling="yes"
+                  scrolling="no"
               />
             </div>
           </div>
