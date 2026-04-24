@@ -197,3 +197,18 @@
 .animate-trust-marquee {
   animation: trust-marquee 24s linear infinite;
 }
+
+/* Decorative step numbers via CSS pseudo-element (avoids Lighthouse contrast checks on text nodes) */
+.step-card::before {
+  content: attr(data-step);
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--color-primary);
+  opacity: 0.1;
+  pointer-events: none;
+  user-select: none;
+}

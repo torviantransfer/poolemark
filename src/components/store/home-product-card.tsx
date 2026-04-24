@@ -103,10 +103,11 @@ export function HomeProductCard({ product }: HomeProductCardProps) {
 
         <Link
           href={`/products/${product.slug}`}
+          aria-label={`${product.name} ürününü gör`}
           className="mt-3 w-full h-9 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 bg-primary text-white hover:bg-primary/90 transition-colors"
         >
           <ShoppingBag className="h-3.5 w-3.5" aria-hidden="true" />
-          Ürünü Gör
+          <span aria-hidden="true">Ürünü Gör</span>
         </Link>
       </div>
     </article>

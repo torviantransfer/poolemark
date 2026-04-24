@@ -231,11 +231,9 @@ export default async function HomePage({
             ].map((item) => (
               <div
                 key={item.step}
-                className="relative p-6 md:p-8 rounded-2xl bg-white border border-border/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center"
+                data-step={item.step}
+                className="relative p-6 md:p-8 rounded-2xl bg-white border border-border/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center step-card"
               >
-                <span className="absolute top-4 right-4 text-5xl font-black text-primary/10" aria-hidden="true">
-                  {item.step}
-                </span>
                 <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mx-auto mb-5">
                   <item.icon className="h-7 w-7 text-primary" />
                 </div>

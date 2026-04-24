@@ -23,6 +23,7 @@ import {
   Shield,
   Truck,
   User,
+  FileText,
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
 import { CITY_LIST, TURKEY_CITIES } from "@/constants/turkey";
@@ -469,14 +470,27 @@ function CheckoutContent() {
 
               {/* Order Notes */}
               <div className="bg-white rounded-2xl border p-5 md:p-6">
-                <h2 className="font-semibold mb-3">Sipariş Notu (Opsiyonel)</h2>
+                <Label
+                  htmlFor="order-notes"
+                  className="flex items-center gap-2 font-semibold text-base mb-3 cursor-pointer"
+                >
+                  <FileText className="h-5 w-5 text-primary shrink-0" />
+                  Sipariş Notu
+                  <span className="text-muted-foreground font-normal text-sm">(Opsiyonel)</span>
+                </Label>
                 <Textarea
+                  id="order-notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Sipariş ile ilgili not ekleyebilirsiniz..."
+                  placeholder="Teslimat saati, kapı kodu, özel istek gibi notlar ekleyebilirsiniz..."
                   rows={3}
                   className="resize-none"
+                  maxLength={500}
+                  aria-describedby="order-notes-hint"
                 />
+                <p id="order-notes-hint" className="text-xs text-muted-foreground mt-1.5 text-right tabular-nums">
+                  {notes.length}/500
+                </p>
               </div>
 
 

@@ -142,7 +142,7 @@ export default function CartPage() {
         </div>
       </section>
 
-      <section className="py-8 md:py-12">
+      <section className="py-8 md:py-12 pb-28 md:pb-12">
         <div className="container mx-auto px-4">
           {items.length === 0 ? (
             <div className="text-center py-16 md:py-24">
@@ -457,6 +457,25 @@ export default function CartPage() {
         </div>
       </section>
 
+      {/* Mobile sticky CTA */}
+      {items.length > 0 && (
+        <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 bg-white border-t shadow-[0_-4px_20px_rgba(0,0,0,0.06)] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] text-muted-foreground leading-none">Toplam</p>
+              <p className="text-base font-bold text-foreground tabular-nums leading-tight mt-0.5">{formatPrice(total)}</p>
+            </div>
+            <Button
+              render={<Link href={appliedCoupon ? `/checkout?coupon=${appliedCoupon.code}` : "/checkout"} />}
+              size="lg"
+              className="flex-1 gap-2 h-11"
+            >
+              Siparişi Tamamla
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
     </>
   );
