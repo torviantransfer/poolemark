@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
-import { ProductCard } from "@/components/store/product-card";
+import { HomeProductCard } from "@/components/store/home-product-card";
 import { TrustBadges } from "@/components/store/trust-badges";
 import {
   ArrowRight,
@@ -34,7 +34,7 @@ export default async function HomePage({
 
   const supabase = await createClient();
 
-  const [bannersRes, categoriesRes, productsRes, blogRes, reviewsRes, reviewStatsRes] =
+  const [bannersRes, categoriesRes, productsRes, blogRes, reviewsRes] =
     await Promise.all([
       supabase
         .from("banners")
@@ -68,10 +68,6 @@ export default async function HomePage({
         .gte("rating", 4)
         .order("created_at", { ascending: false })
         .limit(6),
-      supabase
-        .from("reviews")
-        .select("rating")
-        .eq("is_approved", true),
     ]);
 
   const banners = bannersRes.data || [];
@@ -80,10 +76,9 @@ export default async function HomePage({
   const blogPosts = blogRes.data || [];
   const activeBanner = banners[0];
   const reviews = (reviewsRes.data || []) as Review[];
-  const allRatings = reviewStatsRes.data || [];
-  const reviewCount = allRatings.length;
+  const reviewCount = reviews.length;
   const reviewAvg = reviewCount > 0
-    ? (allRatings.reduce((s: number, r: { rating: number }) => s + r.rating, 0) / reviewCount).toFixed(1)
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviewCount).toFixed(1)
     : "4.9";
 
   function getReviewerDisplayName(review: Review): string {
@@ -186,7 +181,7 @@ export default async function HomePage({
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <HomeProductCard key={product.id} product={product} />
               ))}
             </div>
             <div className="mt-8 text-center md:hidden">
@@ -622,7 +617,7 @@ export default async function HomePage({
             "@context": "https://schema.org",
             "@type": "Store",
             name: "Poolemark",
-            image: "https://poolemark.com/logo.png",
+            image: "https://poolemark.com/hero-banner.jpg",
             url: "https://poolemark.com",
             telephone: "+908508401327",
             email: "info@poolemark.com",

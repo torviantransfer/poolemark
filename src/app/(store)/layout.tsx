@@ -33,9 +33,11 @@ export default async function StoreLayout({
     // DB erişimi başarısız olursa SITE_CONFIG fallback'i kullanılır
   }
 
+  const enablePresence = process.env.NEXT_PUBLIC_ENABLE_PRESENCE === "true";
+
   return (
     <>
-      <PresenceTracker />
+      {enablePresence ? <PresenceTracker /> : null}
       <Header />
       <main id="main" className="flex-1 pb-16 lg:pb-0 pt-16 md:pt-[68px]">{children}</main>
       <Footer settings={footerSettings} />

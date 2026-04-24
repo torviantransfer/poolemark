@@ -116,9 +116,13 @@ export function NewsletterForm({ variant = "default" }: NewsletterFormProps) {
         type="submit"
         disabled={status === "loading"}
         className="shrink-0 gap-2"
+        aria-label="Bultene abone ol"
       >
         {status === "loading" ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="sr-only">Yukleniyor</span>
+          </>
         ) : (
           <Send className="h-4 w-4" />
         )}

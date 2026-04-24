@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import { BrandWordmark } from "@/components/shared/brand-wordmark";
 import { Separator } from "@/components/ui/separator";
 import { NewsletterForm } from "@/components/store/newsletter-form";
 import { SITE_CONFIG, NAV_LINKS } from "@/constants";
@@ -33,18 +33,12 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
           <div className="grid grid-cols-12 gap-8">
             {/* Brand */}
             <div className="col-span-4">
-              <Link
-                href="/"
-                className="inline-flex items-center"
-              >
-                <Image
-                  src="/logo.png"
-                  alt="Poolemark"
-                  width={170}
-                  height={44}
-                  className="h-9 w-auto"
-                />
-              </Link>
+              <BrandWordmark
+                tone="light"
+                size="lg"
+                subtitle="Antalya'dan Tüm Türkiye'ye"
+                logoSrc="/seffaflogohero.png"
+              />
               <p className="text-sm text-white/50 mt-3 leading-relaxed max-w-sm">
                 2018&apos;den bu yana Antalya&apos;dan tüm Türkiye&apos;ye ev gereçleri, dekorasyon ve yaşam ürünleri sunuyoruz. Kaliteli ürünler, hızlı kargo ve müşteri memnuniyeti odaklı hizmet anlayışımızla 10.000&apos;den fazla mutlu müşteriye ulaştık.
               </p>
@@ -213,18 +207,13 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
       {/* Mobile Footer */}
       <div className="lg:hidden container mx-auto px-4 py-8 pb-24 space-y-6">
         <div className="text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center"
-          >
-            <Image
-              src="/logo.png"
-              alt="Poolemark"
-              width={150}
-              height={40}
-              className="h-8 w-auto"
-            />
-          </Link>
+          <BrandWordmark
+            tone="light"
+            size="md"
+            subtitle="Antalya'dan Tüm Türkiye'ye"
+            logoSrc="/seffaflogohero.png"
+            className="gap-0.5 [&>span:last-child]:text-left"
+          />
           <p className="text-xs text-white/40 mt-1 max-w-xs mx-auto">
             Antalya&apos;dan tüm Türkiye&apos;ye ev gereçleri ve dekorasyon. 10.000+ mutlu müşteri.
           </p>

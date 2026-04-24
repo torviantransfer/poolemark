@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
 import { NAV_LINKS } from "@/constants";
+import { BrandWordmark } from "@/components/shared/brand-wordmark";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -105,20 +105,9 @@ export function Header() {
               <SheetContent side="left" className="w-full max-w-[320px] sm:w-[300px] p-0 flex flex-col overflow-hidden">
                 <SheetHeader className="p-6 pb-4 border-b shrink-0">
                   <SheetTitle>
-                    <Link
-                      href="/"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="inline-flex items-center"
-                    >
-                      <Image
-                        src="/logo.png"
-                        alt="Poolemark"
-                        width={150}
-                        height={40}
-                        className="h-8 w-auto"
-                        priority
-                      />
-                    </Link>
+                    <div onClick={() => setMobileMenuOpen(false)}>
+                      <BrandWordmark size="md" subtitle="Ev & Yaşam & Dekorasyon" logoSrc="/beyaznavbar.png" />
+                    </div>
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col py-4 flex-1 overflow-y-auto">
@@ -220,22 +209,19 @@ export function Header() {
               </SheetContent>
             </Sheet>
 
-            <Link
-              href="/"
+            <div
               className={cn(
-                "inline-flex items-center transition-opacity",
+                "transition-opacity",
                 transparent ? "hover:opacity-90" : "hover:opacity-80"
               )}
             >
-              <Image
-                src={transparent ? "/logo.png" : "/buson.png"}
-                alt="Poolemark"
-                width={160}
-                height={42}
-                className="h-8 md:h-9 w-auto"
-                priority
+              <BrandWordmark
+                size="md"
+                tone={transparent ? "light" : "dark"}
+                subtitle="Ev & Yaşam & Dekorasyon"
+                logoSrc={transparent ? "/seffaflogohero.png" : "/beyaznavbar.png"}
               />
-            </Link>
+            </div>
           </div>
 
           {/* Center: Desktop Nav */}

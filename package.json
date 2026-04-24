@@ -46,5 +46,18 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "xlsx": "^0.18.5"
+  },
+  "browserslist": {
+    "production": [
+      "chrome >= 107",
+      "edge >= 107",
+      "firefox >= 104",
+      "safari >= 16"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

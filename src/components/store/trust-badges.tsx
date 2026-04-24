@@ -1,6 +1,3 @@
-"use client";
-
-import { useEffect, useRef } from "react";
 import { Truck, CreditCard, RotateCcw, Package } from "lucide-react";
 
 const badges = [
@@ -27,52 +24,6 @@ const badges = [
 ];
 
 export function TrustBadges() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    // Only auto-scroll on mobile (< 768px)
-    const mq = window.matchMedia("(max-width: 767px)");
-    if (!mq.matches) return;
-
-    let animId: number;
-    let paused = false;
-    let pos = 0;
-    const speed = 0.5; // px per frame
-
-    function step() {
-      if (!el || paused) {
-        animId = requestAnimationFrame(step);
-        return;
-      }
-      pos += speed;
-      // scrollWidth / 2 because we duplicate the items
-      const half = el.scrollWidth / 2;
-      if (pos >= half) pos = 0;
-      el.scrollLeft = pos;
-      animId = requestAnimationFrame(step);
-    }
-
-    // Pause on touch
-    const pause = () => { paused = true; };
-    const resume = () => { 
-      paused = false; 
-      pos = el.scrollLeft;
-    };
-    el.addEventListener("touchstart", pause, { passive: true });
-    el.addEventListener("touchend", resume, { passive: true });
-
-    animId = requestAnimationFrame(step);
-
-    return () => {
-      cancelAnimationFrame(animId);
-      el.removeEventListener("touchstart", pause);
-      el.removeEventListener("touchend", resume);
-    };
-  }, []);
-
   return (
     <section className="py-4 md:py-5 bg-white border-b border-border/30" aria-label="Avantajlar">
       {/* Desktop: flex row */}
@@ -93,24 +44,19 @@ export function TrustBadges() {
         </div>
       </div>
 
-      {/* Mobile: horizontal auto-scroll marquee */}
-      <div
-        ref={scrollRef}
-        className="md:hidden flex overflow-x-auto scrollbar-hide"
-        style={{ WebkitOverflowScrolling: "touch" }}
-        role="marquee"
-        aria-label="Avantajlar"
-      >
-        {/* Duplicate for seamless loop */}
-        {[...badges, ...badges].map((item, i) => (
-          <div key={`${item.label}-${i}`} className="flex items-center gap-3 px-5 shrink-0">
-            <item.icon className="h-5 w-5 text-primary shrink-0" aria-hidden="true" />
-            <div className="whitespace-nowrap">
-              <p className="text-sm font-semibold text-foreground">{item.label}</p>
-              <p className="text-xs text-muted-foreground">{item.desc}</p>
+      {/* Mobile: CSS marquee (no JS layout thrash) */}
+      <div className="md:hidden overflow-hidden" aria-label="Avantajlar">
+        <div className="flex min-w-max animate-trust-marquee motion-reduce:animate-none">
+          {[...badges, ...badges].map((item, i) => (
+            <div key={`${item.label}-${i}`} className="flex items-center gap-3 px-5 shrink-0">
+              <item.icon className="h-5 w-5 text-primary shrink-0" aria-hidden="true" />
+              <div className="whitespace-nowrap">
+                <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                <p className="text-xs text-muted-foreground">{item.desc}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

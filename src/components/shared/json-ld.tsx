@@ -6,7 +6,6 @@ export function OrganizationJsonLd() {
     "@type": "Organization",
     name: "Poolemark",
     url: BASE_URL,
-    logo: `${BASE_URL}/logo.png`,
     description: "Ev gereçleri, dekorasyon ürünleri, PVC panel, duvar kaplama ve daha fazlası. 2018'den bu yana Antalya'dan tüm Türkiye'ye.",
     foundingDate: "2018-11-04",
     contactPoint: {
@@ -231,10 +230,6 @@ export function BlogPostJsonLd({
     publisher: {
       "@type": "Organization",
       name: "Poolemark",
-      logo: {
-        "@type": "ImageObject",
-        url: `${BASE_URL}/logo.png`,
-      },
     },
   };
 

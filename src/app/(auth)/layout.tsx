@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { BrandWordmark } from "@/components/shared/brand-wordmark";
 
 export default function AuthLayout({
   children,
@@ -11,22 +11,9 @@ export default function AuthLayout({
       {/* Left: Branding Panel (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-[45%] relative bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-white p-12 flex-col justify-between overflow-hidden">
         <div className="relative z-10">
-          <Link
-            href="/"
-            className="inline-flex items-center hover:opacity-90 transition-opacity"
-          >
-            <Image
-              src="/logo.png"
-              alt="Poolemark"
-              width={200}
-              height={52}
-              className="h-10 w-auto"
-              priority
-            />
-          </Link>
-          <p className="text-white/60 text-sm mt-1">
-            Yapışkanlı Duvar Paneli & Folyo
-          </p>
+          <div className="hover:opacity-90 transition-opacity">
+            <BrandWordmark tone="light" size="lg" subtitle="Ev & Yaşam & Dekorasyon" />
+          </div>
         </div>
 
         <div className="relative z-10 max-w-md">
@@ -69,19 +56,7 @@ export default function AuthLayout({
       <div className="flex-1 flex flex-col bg-white">
         {/* Mobile logo */}
         <div className="lg:hidden p-6 pb-0 flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center"
-          >
-            <Image
-              src="/logo.png"
-              alt="Poolemark"
-              width={155}
-              height={40}
-              className="h-8 w-auto"
-              priority
-            />
-          </Link>
+          <BrandWordmark size="md" subtitle="Ev & Yaşam & Dekorasyon" />
           <Link
             href="/"
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
