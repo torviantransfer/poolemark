@@ -175,7 +175,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
               ))}
             </div>
             <span className="text-[11px] text-muted-foreground">
-              ({product.review_count})
+              {product.average_rating.toFixed(1)} · {product.review_count || 0} doğrulanmış yorum
             </span>
           </div>
         )}
@@ -192,7 +192,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
               </span>
             )}
           </div>
-          <p className="text-[10px] text-muted-foreground">KDV Dahil</p>
+          <p className="text-[10px] text-muted-foreground">KDV Dahil · 3D Secure Güvenli Ödeme</p>
         </div>
 
         {/* Sepete Ekle */}

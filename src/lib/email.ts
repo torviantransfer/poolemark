@@ -219,3 +219,31 @@ export async function sendReturnLabelEmail(
     console.error("Return label email error:", error);
   }
 }
+
+export async function sendRefundCompletedEmail(
+  email: string,
+  data: {
+    firstName: string;
+    orderNumber: string;
+    refundedAmount: number;
+  }
+) {
+  const allowed = await canSendByPreference(email, "order");
+  if (!allowed) return;
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: `İade tamamlandı — ${data.orderNumber}`,
+      react: ReturnUpdateEmail({
+        firstName: data.firstName,
+        orderNumber: data.orderNumber,
+        title: "Ödeme İadeniz Tamamlandı",
+        message: `${data.refundedAmount.toFixed(2)} TL tutarındaki iadeniz başarıyla başlatıldı. Bankanıza bağlı olarak karta yansıma süresi 1-7 iş günü sürebilir.`,
+      }),
+    });
+  } catch (error) {
+    console.error("Refund completed email error:", error);
+  }
+}

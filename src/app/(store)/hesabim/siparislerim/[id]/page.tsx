@@ -137,6 +137,14 @@ export default async function OrderDetailPage({
 
   const isShippedLike = ["shipped", "delivered"].includes(order.status);
   const hasTracking = !!order.cargo_tracking_number;
+  const statusSteps = [
+    { key: "pending", label: "Beklemede" },
+    { key: "confirmed", label: "Onaylandı" },
+    { key: "preparing", label: "Hazırlanıyor" },
+    { key: "shipped", label: "Kargoda" },
+    { key: "delivered", label: "Teslim" },
+  ];
+  const timelineIndex = statusSteps.findIndex((s) => s.key === order.status);
 
   return (
     <>
@@ -187,6 +195,32 @@ export default async function OrderDetailPage({
 
       <section className="py-8 md:py-12 pb-24 md:pb-12">
         <div className="container mx-auto px-4">
+          {timelineIndex >= 0 && !hasActiveReturn && (
+            <div className="bg-white rounded-2xl border p-5 md:p-6 mb-5">
+              <h2 className="font-semibold text-foreground mb-4">Sipariş Zaman Çizelgesi</h2>
+              <div className="relative grid grid-cols-5">
+                <div className="absolute top-4 left-[10%] right-[10%] h-0.5 bg-border" />
+                {timelineIndex > 0 && (
+                  <div
+                    className="absolute top-4 left-[10%] h-0.5 bg-primary"
+                    style={{ width: `${(timelineIndex / (statusSteps.length - 1)) * 80}%` }}
+                  />
+                )}
+                {statusSteps.map((step, i) => {
+                  const done = i <= timelineIndex;
+                  return (
+                    <div key={step.key} className="flex flex-col items-center">
+                      <div className={`relative z-10 w-8 h-8 rounded-full border-2 ${done ? "bg-primary border-primary" : "bg-white border-border"}`} />
+                      <p className={`text-[11px] sm:text-xs mt-2 text-center ${done ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+                        {step.label}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="grid md:grid-cols-3 gap-6">
             {/* Order Items */}
             <div className="md:col-span-2 space-y-4">

@@ -48,6 +48,7 @@ export function ReturnRequestForm({
         <RotateCcw className="h-5 w-5 text-primary" />
         <h3 className="font-semibold text-foreground">İade Talebi</h3>
       </div>
+      <p className="text-xs text-muted-foreground -mt-2">14 gün içinde kolay iade süreciyle talebinizi güvenle oluşturabilirsiniz.</p>
 
       {existingStatus ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -86,7 +87,7 @@ export function ReturnRequestForm({
             className="inline-flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            İade Talebi Oluştur
+            Güvenli İade Talebi Oluştur
           </button>
         </form>
       )}

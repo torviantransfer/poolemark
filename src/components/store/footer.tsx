@@ -316,6 +316,9 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
             </a>
           </p>
           <p>{address}</p>
+          <p className="text-white/75">
+            {SITE_CONFIG.legalName} · {SITE_CONFIG.taxOffice} · VKN: {SITE_CONFIG.taxNumber}
+          </p>
           <div className="mt-3 grid grid-cols-8 gap-1">
             {paymentLogos.map((logo) => (
               <div key={logo.src} className="h-6 rounded bg-white px-0.5 flex items-center justify-center">
@@ -366,6 +369,9 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
             <span>VKN: {SITE_CONFIG.taxNumber}</span>
           </div>
         </div>
+        <p className="mt-3 text-center text-[11px] text-white/45">
+          {SITE_CONFIG.legalName} · Antalya / Türkiye
+        </p>
       </div>
     </footer>
   );

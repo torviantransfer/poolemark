@@ -132,6 +132,16 @@ function SiparisTakipInner() {
   const isCancelled =
     result?.status === "cancelled" || result?.status === "refunded";
 
+  const etaLabel = (() => {
+    if (!result) return "Güncelleme bekleniyor";
+    if (result.status === "delivered") return "Teslim edildi";
+    if (result.status === "shipped") return "1-3 iş günü";
+    if (result.status === "preparing") return "Kargoya hazırlanıyor";
+    if (result.status === "confirmed") return "24 saat içinde hazırlanır";
+    if (result.status === "pending") return "Ödeme onayı bekleniyor";
+    return "Güncelleme bekleniyor";
+  })();
+
   function resetQuery() {
     setResult(null);
     setError("");
@@ -208,7 +218,7 @@ function SiparisTakipInner() {
 
               <Button type="submit" className="w-full h-11 gap-2" disabled={loading}>
                 <Search className="h-4 w-4" />
-                {loading ? "Sorgulanıyor..." : "Siparişi Sorgula"}
+                {loading ? "Sorgulanıyor..." : "Siparişi Güvenle Sorgula"}
               </Button>
             </form>
           </div>
@@ -231,6 +241,23 @@ function SiparisTakipInner() {
                 <Button type="button" variant="outline" size="sm" onClick={resetQuery}>
                   Yeni Sorgu
                 </Button>
+              </div>
+            </div>
+
+            <div className="p-5 border-b bg-white">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="rounded-lg border bg-secondary/20 px-3 py-2">
+                  <p className="text-[11px] text-muted-foreground">Ödeme Durumu</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{result.paymentStatus === "paid" ? "Ödeme Onaylandı" : "Ödeme Bekleniyor"}</p>
+                </div>
+                <div className="rounded-lg border bg-secondary/20 px-3 py-2">
+                  <p className="text-[11px] text-muted-foreground">Tahmini Teslim</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{etaLabel}</p>
+                </div>
+                <div className="rounded-lg border bg-secondary/20 px-3 py-2">
+                  <p className="text-[11px] text-muted-foreground">Son Güncelleme</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{formatDateTime(result.updatedAt)}</p>
+                </div>
               </div>
             </div>
 

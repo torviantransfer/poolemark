@@ -414,7 +414,7 @@ export default function CartPage() {
                     size="lg"
                     className="w-full mt-6 gap-2"
                   >
-                    Siparişi Tamamla
+                    Güvenli Ödemeye Geç
                     <ArrowRight className="h-4 w-4" />
                   </Button>
 
@@ -470,7 +470,7 @@ export default function CartPage() {
               size="lg"
               className="flex-1 gap-2 h-11"
             >
-              Siparişi Tamamla
+              Güvenli Ödemeye Geç
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>

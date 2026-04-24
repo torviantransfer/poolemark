@@ -282,6 +282,20 @@ function CheckoutContent() {
             <span className="text-foreground font-medium">Ödeme</span>
           </nav>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Siparişi Tamamla</h1>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-3xl">
+            <div className="flex items-center gap-2 rounded-lg border bg-white/80 px-3 py-2">
+              <Shield className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-xs font-medium text-foreground/90">256-bit SSL & 3D Secure</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border bg-white/80 px-3 py-2">
+              <CreditCard className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-xs font-medium text-foreground/90">Tüm kartlarla güvenli ödeme</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border bg-white/80 px-3 py-2">
+              <Truck className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-xs font-medium text-foreground/90">Hızlı gönderim & canlı takip</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -587,7 +601,7 @@ function CheckoutContent() {
                   ) : (
                     <CreditCard className="h-4 w-4" />
                   )}
-                  {isPending ? "İşleniyor..." : "Ödemeye Geç"}
+                  {isPending ? "İşleniyor..." : "Güvenli Ödemeye Geç"}
                 </Button>
 
                 <Link
@@ -627,7 +641,7 @@ function CheckoutContent() {
             disabled={isPending || !canCheckout}
           >
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-            {isPending ? "İşleniyor..." : "Ödemeye Geç"}
+            {isPending ? "İşleniyor..." : "Güvenli Ödemeye Geç"}
           </Button>
         </div>
       </div>

@@ -85,7 +85,7 @@ export function HomeProductCard({ product }: HomeProductCardProps) {
                 />
               ))}
             </div>
-            <span className="text-[11px] text-muted-foreground">({product.review_count})</span>
+            <span className="text-[11px] text-muted-foreground">{product.average_rating.toFixed(1)} · {product.review_count || 0} yorum</span>
           </div>
         ) : null}
 
@@ -98,7 +98,7 @@ export function HomeProductCard({ product }: HomeProductCardProps) {
               </span>
             ) : null}
           </div>
-          <p className="text-[10px] text-muted-foreground">KDV Dahil</p>
+          <p className="text-[10px] text-muted-foreground">KDV Dahil · Güvenli ödeme</p>
         </div>
 
         <Link

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createPayTRRefund } from "@/lib/paytr";
+import { sendRefundCompletedEmail } from "@/lib/email";
 
 export async function POST(
   request: NextRequest,
@@ -33,7 +34,7 @@ export async function POST(
 
     const { data: order } = await supabase
       .from("orders")
-      .select("id, order_number, total, payment_status, status")
+      .select("id, order_number, total, payment_status, status, user_id, guest_email, shipping_address_json")
       .eq("id", id)
       .single();
 
@@ -81,6 +82,35 @@ export async function POST(
       .update({ status: "completed" })
       .eq("order_id", order.id)
       .in("status", ["requested", "approved", "in_transit"] as never);
+
+    let recipientEmail: string | null = null;
+    let recipientName = "Değerli Müşterimiz";
+
+    if (order.user_id) {
+      const { data: profile } = await supabase
+        .from("users")
+        .select("email, first_name")
+        .eq("id", order.user_id)
+        .single();
+      if (profile?.email) {
+        recipientEmail = profile.email;
+        recipientName = profile.first_name || recipientName;
+      }
+    }
+
+    if (!recipientEmail && order.guest_email) {
+      recipientEmail = order.guest_email;
+      const shippingJson = order.shipping_address_json as Record<string, string> | null;
+      recipientName = shippingJson?.first_name || recipientName;
+    }
+
+    if (recipientEmail) {
+      await sendRefundCompletedEmail(recipientEmail, {
+        firstName: recipientName,
+        orderNumber: order.order_number,
+        refundedAmount: amount,
+      });
+    }
 
     return NextResponse.json({ success: true, refundedAmount: amount.toFixed(2) });
   } catch (error: unknown) {
