@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Heart, Minus, Plus, ShoppingBag, Share2, Zap } from "lucide-react";
+import { Heart, Minus, Plus, ShoppingBag, Share2, Zap, Shield, CreditCard, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { useUser } from "@/hooks/use-user";
@@ -298,6 +298,21 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
           alt="Kart ve güvenli ödeme yöntemleri"
           className="w-full h-auto object-contain"
         />
+        {/* Trust Badges */}
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
+            <Shield className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-[11px] leading-tight text-muted-foreground">256-bit SSL güvenli ödeme</span>
+          </div>
+          <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
+            <CreditCard className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-[11px] leading-tight text-muted-foreground">Tüm kartlara 12 taksit</span>
+          </div>
+          <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
+            <Gift className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-[11px] leading-tight text-muted-foreground">500₺ üzeri ücretsiz kargo</span>
+          </div>
+        </div>
       </div>
 
 

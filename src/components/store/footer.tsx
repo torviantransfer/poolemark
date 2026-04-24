@@ -261,8 +261,7 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
             tone="light"
             size="md"
             subtitle="Antalya'dan Tüm Türkiye'ye"
-            logoSrc="/seffaflogohero.png"
-            className="gap-0.5 [&>span:last-child]:text-left"
+            className="gap-0.5 justify-center [&>span:last-child]:text-center"
           />
           <p className="text-xs text-white/65 mt-1 max-w-xs mx-auto">
             Antalya&apos;dan tüm Türkiye&apos;ye ev gereçleri ve dekorasyon. 10.000+ mutlu müşteri.
@@ -317,9 +316,9 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
             </a>
           </p>
           <p>{address}</p>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+          <div className="mt-3 grid grid-cols-8 gap-1">
             {paymentLogos.map((logo) => (
-              <div key={logo.src} className="h-7 w-12 rounded bg-white px-0.5 flex items-center justify-center">
+              <div key={logo.src} className="h-6 rounded bg-white px-0.5 flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={logo.src}
@@ -336,13 +335,6 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
           </p>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm font-semibold text-white text-center">Bültene Katıl</p>
-          <p className="text-xs text-white/50 text-center mt-1 mb-3">
-            Kampanyaları ilk öğrenen sen ol.
-          </p>
-          <NewsletterForm />
-        </div>
       </div>
 
       {/* Bottom Bar - Desktop */}
