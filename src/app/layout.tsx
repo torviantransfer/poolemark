@@ -77,6 +77,13 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  icons: {
+    icon: [
+      { url: "/seffaflogohero.png", type: "image/png" },
+    ],
+    apple: "/seffaflogohero.png",
+    shortcut: "/seffaflogohero.png",
+  },
   verification: {
     // Add your Google Search Console verification code here
     // google: "your-verification-code",
