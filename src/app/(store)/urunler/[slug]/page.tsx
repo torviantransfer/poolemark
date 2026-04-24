@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import sanitizeHtml from "sanitize-html";
 import {
   getFeaturedProducts,
   getProductBySlug,
@@ -273,7 +274,7 @@ export default async function ProductPage({ params }: Props) {
 
           {/* Tabs: Description, Reviews */}
           <ProductTabs
-            description={product.description}
+            description={sanitizeHtml(product.description || "")}
             reviews={reviews}
             productId={product.id}
           />

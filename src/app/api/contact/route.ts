@@ -14,6 +14,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Input length limits
+    if (typeof name !== "string" || name.length > 200 ||
+        typeof email !== "string" || email.length > 254 ||
+        typeof subject !== "string" || subject.length > 300 ||
+        typeof message !== "string" || message.length > 5000 ||
+        (phone && (typeof phone !== "string" || phone.length > 30))) {
+      return NextResponse.json(
+        { error: "Girilen veriler geçersiz uzunlukta." },
+        { status: 400 }
+      );
+    }
+
+    // Basic email format check
+    const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: "Geçersiz e-posta adresi." },
+        { status: 400 }
+      );
+    }
+
     const supabase = await createClient();
     const { error } = await supabase.from("contact_messages").insert({
       name,

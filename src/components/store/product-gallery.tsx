@@ -16,11 +16,6 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightbox, setLightbox] = useState(false);
 
-  // Varyant değiştiğinde ilk resme dön
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [forcedImageUrl]);
-
   // Varyant seçildiğinde o varyantın görselini öne al
   const displayImages = forcedImageUrl
     ? [
@@ -28,6 +23,23 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
         ...images.filter((img) => img.url !== forcedImageUrl),
       ]
     : images;
+
+  // Varyant değiştiğinde ilk resme dön
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [forcedImageUrl]);
+
+  // Klavye erişilebilirliği: Escape ile kapat, arrow key ile geç
+  useEffect(() => {
+    if (!lightbox) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setLightbox(false);
+      if (e.key === "ArrowLeft") setActiveIndex((i) => (i === 0 ? displayImages.length - 1 : i - 1));
+      if (e.key === "ArrowRight") setActiveIndex((i) => (i === displayImages.length - 1 ? 0 : i + 1));
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [lightbox, displayImages.length]);
 
   if (images.length === 0) {
     return (
@@ -149,6 +161,9 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setLightbox(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Resim görüntüleyici"
         >
           <button
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"

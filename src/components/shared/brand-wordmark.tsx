@@ -65,7 +65,7 @@ export function BrandWordmark({
             tone === "light" ? "text-white" : "text-foreground"
           )}
         >
-          POOLE<span style={{ color: "#1f9f4d" }}>MARK</span>
+          POOLE<span className="text-primary">MARK</span>
         </span>
         {subtitle ? (
           <span

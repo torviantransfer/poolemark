@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import sanitizeHtml from "sanitize-html";
 import { getBlogPostBySlug } from "@/services/blog";
 import { formatDate } from "@/lib/helpers";
 import { ChevronRight, ArrowLeft } from "lucide-react";
@@ -114,8 +115,17 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Content */}
           <div
-            className="prose prose-lg prose-green max-w-none text-foreground/90 prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            className="prose prose-sm sm:prose-base lg:prose-lg prose-green max-w-none text-foreground/90 prose-a:text-primary prose-a:no-underline hover:prose-a:underline break-words"
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content, {
+              allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "iframe", "figure", "figcaption"]),
+              allowedAttributes: {
+                ...sanitizeHtml.defaults.allowedAttributes,
+                img: ["src", "alt", "width", "height", "loading", "class"],
+                iframe: ["src", "width", "height", "frameborder", "allowfullscreen", "class"],
+                "*": ["class", "id"],
+              },
+              allowedIframeHostnames: ["www.youtube.com", "player.vimeo.com"],
+            }) }}
           />
 
           {/* Back to Blog */}

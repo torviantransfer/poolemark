@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import sanitizeHtml from "sanitize-html";
 import {
   ChevronRight,
   FileText,
@@ -232,7 +233,14 @@ export default async function StaticPage({ params }: PageProps) {
                   prose-strong:text-foreground prose-strong:font-semibold
                   prose-em:text-muted-foreground/80
                 "
-                dangerouslySetInnerHTML={{ __html: page.content || "" }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(page.content || "", {
+                  allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "figure", "figcaption"]),
+                  allowedAttributes: {
+                    ...sanitizeHtml.defaults.allowedAttributes,
+                    img: ["src", "alt", "width", "height", "loading", "class"],
+                    "*": ["class", "id"],
+                  },
+                }) }}
               />
             </div>
 
