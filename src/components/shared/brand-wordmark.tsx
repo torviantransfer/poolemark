@@ -65,14 +65,15 @@ export function BrandWordmark({
             tone === "light" ? "text-white" : "text-foreground"
           )}
         >
-          POOLE<span className="text-primary">MARK</span>
+          POOLE
+          <span className={tone === "light" ? "text-emerald-300" : "text-primary"}>MARK</span>
         </span>
         {subtitle ? (
           <span
             className={cn(
               "mt-0.5 md:mt-1 font-medium uppercase whitespace-nowrap",
               subtitleClasses[size],
-              tone === "light" ? "text-white/55" : "text-muted-foreground"
+              tone === "light" ? "text-white/75" : "text-muted-foreground"
             )}
           >
             {subtitle}
