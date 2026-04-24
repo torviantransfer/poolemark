@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import {
   CheckCircle2,
@@ -23,6 +24,20 @@ type ShippingAddressSummary = {
   address_line?: string;
 };
 
+function toSafeNumber(value: unknown): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function createAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createSupabaseClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 export default async function PaymentResultPage({
   searchParams,
 }: {
@@ -30,6 +45,9 @@ export default async function PaymentResultPage({
 }) {
   const params = await searchParams;
   const orderId = params.order;
+  const isValidOrderId =
+    typeof orderId === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId);
   const status = params.status || "success";
   const isSuccess = status === "success";
 
@@ -46,24 +64,52 @@ export default async function PaymentResultPage({
   let orderItems: OrderItemSummary[] = [];
   let isLoggedIn = false;
 
-  if (orderId) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    isLoggedIn = !!user;
-    const { data } = await supabase
-      .from("orders")
-      .select("id, order_number, subtotal, shipping_cost, discount_amount, total, shipping_address_json, created_at")
-      .eq("id", orderId)
-      .single();
-    order = data;
+  if (isValidOrderId) {
+    try {
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      isLoggedIn = !!user;
+      const { data } = await supabase
+        .from("orders")
+        .select("id, order_number, subtotal, shipping_cost, discount_amount, total, shipping_address_json, created_at")
+        .eq("id", orderId)
+        .maybeSingle();
+      order = data;
 
-    if (order) {
-      const { data: items } = await supabase
-        .from("order_items")
-        .select("product_name, quantity, unit_price, total_price")
-        .eq("order_id", order.id)
-        .order("created_at", { ascending: true });
-      orderItems = items || [];
+      if (order) {
+        const { data: items } = await supabase
+          .from("order_items")
+          .select("product_name, quantity, unit_price, total_price")
+          .eq("order_id", order.id)
+          .order("created_at", { ascending: true });
+        orderItems = items || [];
+      }
+
+      // Guest checkout result page fallback:
+      // if anon/RLS blocks read, use server-side service role to load only this order.
+      if (!order && isSuccess) {
+        const admin = createAdminClient();
+        if (admin) {
+          const { data: adminOrder } = await admin
+            .from("orders")
+            .select("id, order_number, subtotal, shipping_cost, discount_amount, total, shipping_address_json, created_at")
+            .eq("id", orderId)
+            .maybeSingle();
+
+          order = adminOrder || null;
+
+          if (order) {
+            const { data: adminItems } = await admin
+              .from("order_items")
+              .select("product_name, quantity, unit_price, total_price")
+              .eq("order_id", order.id)
+              .order("created_at", { ascending: true });
+            orderItems = adminItems || [];
+          }
+        }
+      }
+    } catch {
+      // Render graceful success/fail UI even if order lookup fails.
     }
   }
 
@@ -77,6 +123,10 @@ export default async function PaymentResultPage({
 
   const visibleItems = orderItems.slice(0, 3);
   const hiddenItemCount = Math.max(0, orderItems.length - visibleItems.length);
+  const subtotal = toSafeNumber(order?.subtotal);
+  const shippingCost = toSafeNumber(order?.shipping_cost);
+  const discountAmount = toSafeNumber(order?.discount_amount);
+  const total = toSafeNumber(order?.total);
 
   return (
     <section className="py-16 md:py-24">
@@ -100,12 +150,14 @@ export default async function PaymentResultPage({
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-4 border-b">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Sipariş Numarası</p>
-                    <p className="font-bold text-lg text-foreground mt-1">{order.order_number}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{new Date(order.created_at).toLocaleString("tr-TR")}</p>
+                    <p className="font-bold text-lg text-foreground mt-1">{order.order_number || "-"}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {order.created_at ? new Date(order.created_at).toLocaleString("tr-TR") : "-"}
+                    </p>
                   </div>
                   <div className="text-left sm:text-right">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Toplam</p>
-                    <p className="text-xl font-bold text-primary mt-1">{formatPrice(order.total)}</p>
+                    <p className="text-xl font-bold text-primary mt-1">{formatPrice(total)}</p>
                   </div>
                 </div>
 
@@ -115,9 +167,9 @@ export default async function PaymentResultPage({
                     {visibleItems.map((item, index) => (
                       <li key={`${item.product_name}-${index}`} className="flex items-start justify-between gap-3 text-sm">
                         <p className="text-foreground/90">
-                          {item.product_name} <span className="text-muted-foreground">x {item.quantity}</span>
+                          {item.product_name || "Ürün"} <span className="text-muted-foreground">x {toSafeNumber(item.quantity)}</span>
                         </p>
-                        <p className="font-medium text-foreground whitespace-nowrap">{formatPrice(item.total_price)}</p>
+                        <p className="font-medium text-foreground whitespace-nowrap">{formatPrice(toSafeNumber(item.total_price))}</p>
                       </li>
                     ))}
                   </ul>
@@ -135,21 +187,21 @@ export default async function PaymentResultPage({
                 <div className="mt-4 pt-4 border-t space-y-2 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Ara Toplam</span>
-                    <span className="text-foreground">{formatPrice(order.subtotal)}</span>
+                    <span className="text-foreground">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Kargo</span>
-                    <span className="text-foreground">{formatPrice(order.shipping_cost)}</span>
+                    <span className="text-foreground">{formatPrice(shippingCost)}</span>
                   </div>
-                  {order.discount_amount > 0 && (
+                  {discountAmount > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">İndirim</span>
-                      <span className="text-green-700">-{formatPrice(order.discount_amount)}</span>
+                      <span className="text-green-700">-{formatPrice(discountAmount)}</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between border-t pt-2 mt-2">
                     <span className="font-semibold text-foreground">Genel Toplam</span>
-                    <span className="font-bold text-foreground">{formatPrice(order.total)}</span>
+                    <span className="font-bold text-foreground">{formatPrice(total)}</span>
                   </div>
                 </div>
               </div>

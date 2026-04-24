@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/helpers";
 import { ChevronRight, BookOpen } from "lucide-react";
 import type { Metadata } from "next";
+import { BreadcrumbJsonLd } from "@/components/shared/json-ld";
 
 export const metadata: Metadata = {
-  title: "Duvar Paneli ve Folyo Uygulama Rehberleri | Poolemark Blog",
+  title: "Blog: Duvar Paneli ve Folyo Uygulama Rehberleri",
   description:
     "PVC duvar paneli nasıl uygulanır? Yapışkanlı folyo iz bırakır mı? Metrekare hesaplama, ürün karşılaştırma ve adım adım uygulama rehberleri.",
   alternates: {
@@ -19,6 +20,8 @@ interface Props {
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }
 
+export const revalidate = 3600; // 1 hour
+
 export default async function BlogPage({ searchParams }: Props) {
   const sp = await searchParams;
   const page = parseInt(sp.sayfa || "1", 10);
@@ -27,6 +30,12 @@ export default async function BlogPage({ searchParams }: Props) {
 
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Anasayfa", href: "/" },
+          { name: "Blog", href: "/blog" },
+        ]}
+      />
       {/* Hero */}
       <section className="bg-gradient-to-b from-primary/5 via-primary/3 to-white border-b border-border/30">
         <div className="container mx-auto px-4 pt-10 pb-12 md:pt-14 md:pb-16">

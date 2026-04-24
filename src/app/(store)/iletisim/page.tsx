@@ -16,13 +16,13 @@ import type { Metadata } from "next";
 const BASE_URL = "https://poolemark.com";
 
 export const metadata: Metadata = {
-  title: "İletişim | Poolemark",
+  title: "İletişim",
   description:
     "Poolemark ile iletişime geçin. Telefon, e-posta veya iletişim formu aracılığıyla sorularınızı iletin.",
   alternates: { canonical: `${BASE_URL}/iletisim` },
   openGraph: {
     type: "website",
-    title: "İletişim | Poolemark",
+    title: "İletişim",
     description:
       "Poolemark ile iletişime geçin. Telefon, e-posta veya iletişim formu aracılığıyla sorularınızı iletin.",
     url: `${BASE_URL}/iletisim`,
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "İletişim | Poolemark",
+    title: "İletişim",
     description:
       "Poolemark ile iletişime geçin. Telefon, e-posta veya iletişim formu aracılığıyla sorularınızı iletin.",
     images: [`${BASE_URL}/og-image.png`],

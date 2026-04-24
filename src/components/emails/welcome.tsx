@@ -44,7 +44,7 @@ export function WelcomeEmail({ firstName }: WelcomeEmailProps) {
         </Section>
 
         <Section style={{ textAlign: "center", marginTop: "28px" }}>
-          <Link href={`${baseUrl}/urunler`} style={styles.button}>
+          <Link href={`${baseUrl}/products`} style={styles.button}>
             Ürünleri Keşfedin →
           </Link>
         </Section>

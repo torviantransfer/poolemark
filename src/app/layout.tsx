@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "tr_TR",
     siteName: "Poolemark",
-    title: "PVC Duvar Paneli ve Mermer Folyo | Poolemark",
+    title: "PVC Duvar Paneli ve Mermer Folyo",
     description: "Duvar paneli, 3D tuğla panel ve mermer folyo çözümleri. Kırmadan dökmeden pratik ev yenileme, Türkiye geneline hızlı kargo.",
     url: "https://poolemark.com",
     images: [
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "PVC Duvar Paneli ve Mermer Folyo | Poolemark",
+    title: "PVC Duvar Paneli ve Mermer Folyo",
     description: "Duvar paneli, 3D tuğla panel ve mermer folyo çözümleri. Kırmadan dökmeden pratik ev yenileme.",
     images: ["/og-image.png"],
   },

@@ -5,8 +5,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayTRToken, normalizePayTRUserIp } from "@/lib/paytr";
 
 function buildOrderNumberFromIdempotencyKey(key: string): string {
-  const digest = crypto.createHash("sha256").update(key).digest("hex").slice(0, 16).toUpperCase();
-  return `PM-${digest}`;
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, "0");
+  const hash = crypto.createHash("sha256").update(key).digest("hex");
+  const numericPart = (Number.parseInt(hash.slice(0, 12), 16) % 100000000).toString().padStart(8, "0");
+  return `PM-${year}${month}${numericPart}`;
 }
 
 function isUniqueViolation(error: { code?: string } | null | undefined): boolean {

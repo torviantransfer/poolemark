@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { getProducts } from "@/services/products";
 import { getCategories } from "@/services/categories";
 import { ProductCard } from "@/components/store/product-card";
+import { NotFoundTracker } from "@/components/store/not-found-tracker";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sayfa Bulunamadı (404) | Poolemark",
+  title: "Sayfa Bulunamadı (404)",
   description: "Aradığınız sayfa bulunamadı. Ürünlerimize göz atabilirsiniz.",
 };
 
@@ -21,6 +22,7 @@ export default async function NotFound() {
 
   return (
     <div className="min-h-screen bg-background">
+      <NotFoundTracker />
       {/* Hero Bölümü */}
       <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
         <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-orange-50">

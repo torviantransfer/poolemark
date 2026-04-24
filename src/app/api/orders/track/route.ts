@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,12 +13,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     let query = supabase
       .from("orders")
       .select(
-        "id, order_number, status, payment_status, subtotal, shipping_cost, discount_amount, total, cargo_company, cargo_tracking_number, cargo_tracking_url, created_at, updated_at, shipping_address_json, items:order_items(id, product_name, quantity, unit_price)"
+        "id, order_number, status, payment_status, subtotal, shipping_cost, discount_amount, total, cargo_company, cargo_tracking_number, cargo_tracking_url, created_at, updated_at, shipping_address_json, guest_email, user_id, items:order_items(id, product_name, quantity, unit_price)"
       )
       .eq("order_number", orderNumber.trim().toUpperCase())
       .maybeSingle();
@@ -37,20 +37,13 @@ export async function POST(request: NextRequest) {
     let verified = false;
 
     if (email) {
-      // Check guest_email or look up user email
-      const { data: fullOrder } = await supabase
-        .from("orders")
-        .select("guest_email, user_id")
-        .eq("id", order.id)
-        .single();
-
-      if (fullOrder?.guest_email) {
-        verified = fullOrder.guest_email.toLowerCase() === email.trim().toLowerCase();
-      } else if (fullOrder?.user_id) {
+      if (order.guest_email) {
+        verified = order.guest_email.toLowerCase() === email.trim().toLowerCase();
+      } else if (order.user_id) {
         const { data: profile } = await supabase
           .from("users")
           .select("email")
-          .eq("id", fullOrder.user_id)
+          .eq("id", order.user_id)
           .single();
         verified = profile?.email?.toLowerCase() === email.trim().toLowerCase();
       }

@@ -19,6 +19,7 @@ import {
   Mail,
 } from "lucide-react";
 import type { Metadata } from "next";
+import { BreadcrumbJsonLd } from "@/components/shared/json-ld";
 
 const PAGE_META: Record<
   string,
@@ -115,6 +116,8 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const revalidate = 86400; // 24 hours
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -130,7 +133,7 @@ export async function generateMetadata({
   if (!page) return { title: "Sayfa Bulunamadı" };
 
   return {
-    title: `${page.title} | Poolemark`,
+    title: page.title,
     description: page.meta_description || undefined,
     alternates: { canonical: `https://poolemark.com/pages/${slug}` },
   };
@@ -168,6 +171,13 @@ export default async function StaticPage({ params }: PageProps) {
 
   return (
     <div className="bg-white">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Anasayfa", href: "/" },
+          { name: page.title, href: `/pages/${slug}` },
+        ]}
+      />
+      {slug === "sss" && <FaqJsonLdFromHtml html={page.content || ""} />}
       {/* Hero Header */}
       <section className={`bg-gradient-to-b ${meta.bgGradient} border-b border-border/30`}>
         <div className="container mx-auto px-4 pt-10 pb-12 md:pt-14 md:pb-16">
@@ -312,4 +322,41 @@ export default async function StaticPage({ params }: PageProps) {
   );
 }
 
+function FaqJsonLdFromHtml({ html }: { html: string }) {
+  // Match <h3>question</h3> followed by everything up to the next <h2>/<h3> or end.
+  const regex = /<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h[23][^>]*>|$)/gi;
+  const stripTags = (s: string) =>
+    sanitizeHtml(s, { allowedTags: [], allowedAttributes: {} })
+      .replace(/\s+/g, " ")
+      .trim();
 
+  const items: { q: string; a: string }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(html)) !== null) {
+    const q = stripTags(m[1]);
+    const a = stripTags(m[2]);
+    if (q && a) items.push({ q, a });
+  }
+
+  if (items.length === 0) return null;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((it) => ({
+      "@type": "Question",
+      name: it.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: it.a,
+      },
+    })),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}

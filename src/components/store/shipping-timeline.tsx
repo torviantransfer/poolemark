@@ -85,7 +85,7 @@ export function ShippingTimeline() {
       : null;
 
     setShipping({
-      statusText: isSameDay ? "Aynı Gün Kargo Fırsatı!" : "Sipariş Hazırlanıyor",
+      statusText: "Bugün sipariş verin",
       badgeText,
       badgeAmber,
       isSameDay,
@@ -146,21 +146,21 @@ export function ShippingTimeline() {
                 <div className={`w-9 h-9 rounded-full border-2 bg-white flex items-center justify-center shadow-sm ${isGreen ? "border-green-500" : "border-amber-400"}`}>
                   <Package className={`w-4 h-4 ${isGreen ? "text-green-600" : "text-amber-500"}`} />
                 </div>
-                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Sipariş</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Sipariş Alındı</p>
                 <p className={`text-[11px] font-bold ${isGreen ? "text-green-700" : "text-amber-700"}`}>Bugün</p>
               </div>
               <div className="relative z-10 flex flex-col items-center gap-1.5 flex-1">
                 <div className="w-9 h-9 rounded-full border-2 border-border bg-white flex items-center justify-center shadow-sm">
                   <Truck className="w-4 h-4 text-muted-foreground" />
                 </div>
-                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Kargoda</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Kargoya Veriliş</p>
                 <p className="text-[11px] font-bold text-foreground">{cargoDateText}</p>
               </div>
               <div className="relative z-10 flex flex-col items-center gap-1.5 flex-1">
                 <div className="w-9 h-9 rounded-full border-2 border-border bg-white flex items-center justify-center shadow-sm">
                   <Home className="w-4 h-4 text-muted-foreground" />
                 </div>
-                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Teslimat</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Tahmini Teslimat</p>
                 <p className="text-[11px] font-bold text-foreground">{deliveryDateText}</p>
               </div>
             </div>

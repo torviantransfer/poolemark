@@ -195,6 +195,44 @@ export function ProductJsonLd({
   );
 }
 
+interface ItemListProduct {
+  name: string;
+  slug: string;
+  image?: string | null;
+  price?: number | null;
+}
+
+export function ItemListJsonLd({
+  name,
+  items,
+}: {
+  name: string;
+  items: ItemListProduct[];
+}) {
+  if (!items.length) return null;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${BASE_URL}/products/${item.slug}`,
+      name: item.name,
+      ...(item.image ? { image: item.image } : {}),
+    })),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}
+
 interface BlogPostJsonLdProps {
   title: string;
   description: string;

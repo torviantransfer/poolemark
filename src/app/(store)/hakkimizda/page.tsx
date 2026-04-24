@@ -24,13 +24,13 @@ import type { Metadata } from "next";
 const BASE_URL = "https://poolemark.com";
 
 export const metadata: Metadata = {
-  title: "Hakkımızda | Poolemark",
+  title: "Hakkımızda",
   description:
     "Poolemark, 2018'den bu yana PVC duvar paneli ve dekorasyon ürünleri alanında hizmet sunan Türk markasıdır. Antalya merkezli, Türkiye geneline hızlı kargo.",
   alternates: { canonical: `${BASE_URL}/hakkimizda` },
   openGraph: {
     type: "website",
-    title: "Hakkımızda | Poolemark",
+    title: "Hakkımızda",
     description: "PVC duvar paneli ve dekorasyon ürünleri. 2018'den bu yana kaliteli ve uygun fiyatlı ev yenileme çözümleri.",
     url: `${BASE_URL}/hakkimizda`,
     siteName: "Poolemark",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hakkımızda | Poolemark",
+    title: "Hakkımızda",
     description: "PVC duvar paneli ve dekorasyon ürünleri. 2018'den bu yana kaliteli ve uygun fiyatlı ev yenileme çözümleri.",
     images: [`${BASE_URL}/og-image.png`],
   },

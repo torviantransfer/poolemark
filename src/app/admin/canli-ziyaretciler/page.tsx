@@ -12,6 +12,11 @@ type PresenceEntry = {
   joinedAt?: string;
   city?: string;
   country?: string;
+  source?: string;
+  medium?: string;
+  campaign?: string;
+  referrerHost?: string;
+  lastAction?: string;
 };
 
 export default function AdminLiveVisitorsPage() {
@@ -31,11 +36,21 @@ export default function AdminLiveVisitorsPage() {
           userId?: string | null;
           role?: string;
           joinedAt?: string;
+          source?: string;
+          medium?: string;
+          campaign?: string;
+          referrerHost?: string;
+          lastAction?: string;
           metas?: Array<{
             path?: string;
             userId?: string | null;
             role?: string;
             joinedAt?: string;
+            source?: string;
+            medium?: string;
+            campaign?: string;
+            referrerHost?: string;
+            lastAction?: string;
           }>;
         }>;
 
@@ -50,6 +65,11 @@ export default function AdminLiveVisitorsPage() {
           joinedAt: latestMeta?.joinedAt ?? latestItem.joinedAt,
           city: (latestMeta as { city?: string } | undefined)?.city ?? (latestItem as { city?: string }).city,
           country: (latestMeta as { country?: string } | undefined)?.country ?? (latestItem as { country?: string }).country,
+          source: latestMeta?.source ?? latestItem.source,
+          medium: latestMeta?.medium ?? latestItem.medium,
+          campaign: latestMeta?.campaign ?? latestItem.campaign,
+          referrerHost: latestMeta?.referrerHost ?? latestItem.referrerHost,
+          lastAction: latestMeta?.lastAction ?? latestItem.lastAction,
         } satisfies PresenceEntry;
       });
 
@@ -79,6 +99,13 @@ export default function AdminLiveVisitorsPage() {
 
   const memberCount = entries.filter((e) => Boolean(e.userId)).length;
   const guestCount = Math.max(entries.length - memberCount, 0);
+  const sourceStats = useMemo(() => {
+    return entries.reduce<Record<string, number>>((acc, item) => {
+      const key = item.source || "direct";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+  }, [entries]);
 
   return (
     <div className="p-4 md:p-6 space-y-6">
@@ -113,21 +140,40 @@ export default function AdminLiveVisitorsPage() {
       </div>
 
       <div className="bg-white border rounded-2xl p-4 md:p-5">
+        <h2 className="font-semibold mb-3">Kaynak Bazlı Dağılım</h2>
+        <div className="space-y-2">
+          {Object.keys(sourceStats).length === 0 && (
+            <p className="text-sm text-muted-foreground">Henüz aktif ziyaretçi yok.</p>
+          )}
+          {Object.entries(sourceStats)
+            .sort((a, b) => b[1] - a[1])
+            .map(([source, count]) => (
+              <div key={source} className="flex items-center justify-between rounded-lg border px-3 py-2">
+                <span className="text-sm text-foreground truncate pr-3">{source}</span>
+                <span className="text-xs font-semibold text-primary">{count}</span>
+              </div>
+            ))}
+        </div>
+      </div>
+
+      <div className="bg-white border rounded-2xl p-4 md:p-5">
         <h2 className="font-semibold mb-3">Ziyaretçi Listesi</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-muted-foreground text-xs">
                 <th className="text-left py-2 pr-4 font-medium">Tür</th>
+                <th className="text-left py-2 pr-4 font-medium">Kaynak</th>
                 <th className="text-left py-2 pr-4 font-medium">Şehir</th>
                 <th className="text-left py-2 pr-4 font-medium">Sayfa</th>
+                <th className="text-left py-2 pr-4 font-medium">Son Aksiyon</th>
                 <th className="text-left py-2 font-medium">Katılma</th>
               </tr>
             </thead>
             <tbody>
               {entries.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-4 text-center text-muted-foreground">
+                  <td colSpan={6} className="py-4 text-center text-muted-foreground">
                     Henüz aktif ziyaretçi yok.
                   </td>
                 </tr>
@@ -138,6 +184,12 @@ export default function AdminLiveVisitorsPage() {
                     <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${entry.userId ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                       {entry.userId ? "Üye" : "Misafir"}
                     </span>
+                  </td>
+                  <td className="py-2 pr-4">
+                    <div className="text-xs text-foreground">
+                      <div className="font-medium">{entry.source || "direct"}</div>
+                      <div className="text-muted-foreground">{entry.medium || "none"}</div>
+                    </div>
                   </td>
                   <td className="py-2 pr-4">
                     {entry.city ? (
@@ -152,6 +204,9 @@ export default function AdminLiveVisitorsPage() {
                   </td>
                   <td className="py-2 pr-4">
                     <span className="text-xs text-foreground truncate max-w-[200px] block">{entry.path || "—"}</span>
+                  </td>
+                  <td className="py-2 pr-4">
+                    <span className="text-xs text-foreground truncate max-w-[220px] block">{entry.lastAction || "—"}</span>
                   </td>
                   <td className="py-2 text-xs text-muted-foreground">
                     {entry.joinedAt ? new Date(entry.joinedAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : "—"}

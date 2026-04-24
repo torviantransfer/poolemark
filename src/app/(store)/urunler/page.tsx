@@ -6,9 +6,10 @@ import { ProductSort } from "@/components/store/product-sort";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, SlidersHorizontal } from "lucide-react";
 import type { Metadata } from "next";
+import { BreadcrumbJsonLd, ItemListJsonLd } from "@/components/shared/json-ld";
 
 export const metadata: Metadata = {
-  title: "PVC Duvar Paneli ve Yapışkanlı Folyo Ürünleri | Poolemark",
+  title: "PVC Duvar Paneli ve Yapışkanlı Folyo Ürünleri",
   description:
     "Yapışkanlı PVC duvar paneli, 3D tuğla panel, mermer desenli folyo ve mutfak tezgah arası kaplama ürünleri. Kırmadan dökmeden ev yenileme çözümleri. 500₺ üzeri ücretsiz kargo.",
   alternates: {
@@ -19,6 +20,8 @@ export const metadata: Metadata = {
 interface Props {
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }
+
+export const revalidate = 600; // 10 minutes
 
 export default async function ProductsPage({ searchParams }: Props) {
   const sp = await searchParams;
@@ -33,6 +36,21 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Anasayfa", href: "/" },
+          { name: "Ürünler", href: "/products" },
+        ]}
+      />
+      <ItemListJsonLd
+        name="Tüm Ürünler"
+        items={products.map((p) => ({
+          name: p.name,
+          slug: p.slug,
+          image: p.images?.find((i) => i.is_primary)?.url ?? p.images?.[0]?.url ?? null,
+          price: p.price,
+        }))}
+      />
       {/* Header */}
       <section className="bg-secondary/40 border-b">
         <div className="container mx-auto px-4 py-8 md:py-10">

@@ -100,7 +100,7 @@ export default async function HomePage({
             src={desktopHeroImage}
             alt="Mermer desenli PVC duvar kaplama"
             fill
-            sizes="100vw"
+            sizes="(min-width: 768px) 100vw, 0px"
             className="hidden md:block object-cover"
             priority
             fetchPriority="high"
@@ -109,10 +109,8 @@ export default async function HomePage({
             src={activeBanner?.image_url || "/hero-banner.jpg"}
             alt={activeBanner?.title || "PVC Duvar Paneli ve Mermer Folyo - Poolemark"}
             fill
-            sizes="100vw"
+            sizes="(max-width: 767px) 100vw, 0px"
             className="md:hidden object-cover"
-            priority
-            fetchPriority="high"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />

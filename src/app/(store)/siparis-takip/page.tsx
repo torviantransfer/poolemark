@@ -125,9 +125,17 @@ function SiparisTakipInner() {
     }
   }
 
+  const normalizedStatus = result?.status === "processing" ? "preparing" : result?.status;
+
   const currentStepIndex = result
-    ? STATUS_ORDER.indexOf(result.status)
+    ? STATUS_ORDER.indexOf(normalizedStatus || "")
     : -1;
+
+  // Payment is approved => show progress at least up to "Hazırlanıyor".
+  const displayStepIndex =
+    result?.paymentStatus === "paid" && currentStepIndex < 2
+      ? 2
+      : currentStepIndex;
 
   const isCancelled =
     result?.status === "cancelled" || result?.status === "refunded";
@@ -135,8 +143,8 @@ function SiparisTakipInner() {
   const etaLabel = (() => {
     if (!result) return "Güncelleme bekleniyor";
     if (result.status === "delivered") return "Teslim edildi";
-    if (result.status === "shipped") return "1-3 iş günü";
-    if (result.status === "preparing") return "Kargoya hazırlanıyor";
+    if (normalizedStatus === "shipped") return "1-3 iş günü";
+    if (normalizedStatus === "preparing") return "Kargoya hazırlanıyor";
     if (result.status === "confirmed") return "24 saat içinde hazırlanır";
     if (result.status === "pending") return "Ödeme onayı bekleniyor";
     return "Güncelleme bekleniyor";
@@ -274,18 +282,18 @@ function SiparisTakipInner() {
                   {/* Background bar */}
                   <div className="absolute top-5 left-[10%] right-[10%] h-0.5 bg-gray-200" />
                   {/* Active bar */}
-                  {currentStepIndex > 0 && (
+                  {displayStepIndex > 0 && (
                     <div
                       className="absolute top-5 left-[10%] h-0.5 bg-primary transition-all duration-700"
                       style={{
-                        width: `${(currentStepIndex / (STATUS_STEPS.length - 1)) * 80}%`,
+                        width: `${(displayStepIndex / (STATUS_STEPS.length - 1)) * 80}%`,
                       }}
                     />
                   )}
                   {STATUS_STEPS.map((step, i) => {
                     const Icon = step.icon;
-                    const done = i <= currentStepIndex;
-                    const active = i === currentStepIndex;
+                    const done = i <= displayStepIndex;
+                    const active = i === displayStepIndex;
                     return (
                       <div key={step.key} className="flex flex-col items-center">
                         <div

@@ -6,7 +6,16 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/", "/hesabim/", "/checkout", "/sepet"],
+        disallow: [
+          "/admin/",
+          "/api/",
+          "/hesabim/",
+          "/checkout",
+          "/sepet",
+          "/odeme-sonucu",
+          "/siparis-takip",
+          "/arama",
+        ],
       },
     ],
     sitemap: "https://poolemark.com/sitemap.xml",

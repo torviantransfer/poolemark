@@ -8,18 +8,21 @@ import { ProductSort } from "@/components/store/product-sort";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, SlidersHorizontal } from "lucide-react";
 import type { Metadata } from "next";
+import { BreadcrumbJsonLd, ItemListJsonLd } from "@/components/shared/json-ld";
 
 interface Props {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }
 
+export const revalidate = 600; // 10 minutes
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategoryBySlug(slug);
   if (!category) return {};
   return {
-    title: category.meta_title || `${category.name} | Poolemark`,
+    title: category.meta_title || category.name,
     description:
       category.meta_description ||
       `${category.name} kategorisindeki ürünleri keşfedin. Uygun fiyat ve hızlı kargo ile Poolemark'ta.`,
@@ -46,6 +49,22 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Anasayfa", href: "/" },
+          { name: "Ürünler", href: "/products" },
+          { name: category.name, href: `/kategori/${slug}` },
+        ]}
+      />
+      <ItemListJsonLd
+        name={category.name}
+        items={products.map((p) => ({
+          name: p.name,
+          slug: p.slug,
+          image: p.images?.find((i) => i.is_primary)?.url ?? p.images?.[0]?.url ?? null,
+          price: p.price,
+        }))}
+      />
       {/* Category Header */}
       <section className="bg-secondary/40 border-b">
         <div className="container mx-auto px-4 py-8 md:py-12">

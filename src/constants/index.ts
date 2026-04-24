@@ -109,6 +109,7 @@ export const ADMIN_NAV_LINKS = [
   { label: "Mesajlar", href: "/admin/mesajlar", icon: "MessageSquare" },
   { label: "Yorumlar", href: "/admin/yorumlar", icon: "Star" },
   { label: "Canlı Ziyaretçi", href: "/admin/canli-ziyaretciler", icon: "Activity" },
+  { label: "404 Logları", href: "/admin/bulunamayan-sayfalar", icon: "FileText" },
   { label: "Raporlar", href: "/admin/raporlar", icon: "BarChart3" },
   { label: "Ayarlar", href: "/admin/ayarlar", icon: "Settings" },
 ] as const;

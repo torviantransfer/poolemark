@@ -6,7 +6,7 @@ import { getBlogPostBySlug } from "@/services/blog";
 import { formatDate } from "@/lib/helpers";
 import { ChevronRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BlogPostJsonLd } from "@/components/shared/json-ld";
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
 import type { Metadata } from "next";
 
 const BASE_URL = "https://poolemark.com";
@@ -15,13 +15,14 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+export const revalidate = 3600; // 1 hour
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
   if (!post) return {};
-  const title = post.meta_title || `${post.title} | Poolemark Blog`;
+  const title = post.meta_title || post.title;
   const description = post.meta_description || post.excerpt || "";
-  const image = post.cover_image_url || `${BASE_URL}/og-image.png`;
   return {
     title,
     description,
@@ -33,7 +34,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `${BASE_URL}/blog/${slug}`,
       siteName: "Poolemark",
       locale: "tr_TR",
-      images: [{ url: image, width: 1200, height: 630, alt: post.title }],
       publishedTime: post.published_at || undefined,
       modifiedTime: post.updated_at || undefined,
     },
@@ -41,7 +41,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title,
       description,
-      images: [image],
     },
   };
 }
@@ -54,6 +53,13 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <article className="py-8 md:py-12">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Anasayfa", href: "/" },
+          { name: "Blog", href: "/blog" },
+          { name: post.title, href: `/blog/${slug}` },
+        ]}
+      />
       {post.published_at && (
         <BlogPostJsonLd
           title={post.title}

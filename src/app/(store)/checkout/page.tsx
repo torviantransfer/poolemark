@@ -232,6 +232,8 @@ function CheckoutContent() {
 
   // PayTR iFrame view
   if (paytrToken) {
+    const paytrUrl = `https://www.paytr.com/odeme/guvenli/${paytrToken}`;
+
     return (
       <>
           <Script
@@ -239,7 +241,7 @@ function CheckoutContent() {
             strategy="afterInteractive"
             onLoad={() => {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (window as any).iFrameResize({}, "#paytriframe");
+              (window as any).iFrameResize({ checkOrigin: false }, "#paytriframe");
             }}
           />
         <section className="bg-secondary/40 border-b">
@@ -258,11 +260,11 @@ function CheckoutContent() {
                 <span className="text-sm font-medium">256-bit SSL ile Güvenli Ödeme</span>
               </div>
               <iframe
-                src={`https://www.paytr.com/odeme/guvenli/${paytrToken}`}
-                  className="w-full min-h-[600px] border-0 block"
+                src={paytrUrl}
+                  className="w-full min-h-[78vh] md:min-h-[600px] border-0 block"
                 id="paytriframe"
                 frameBorder="0"
-                  scrolling="no"
+                  scrolling="auto"
               />
             </div>
           </div>

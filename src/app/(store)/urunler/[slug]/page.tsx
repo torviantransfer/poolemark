@@ -30,20 +30,18 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+export const revalidate = 600; // 10 minutes
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
 
-  const title = product.meta_title || `${product.name} | Poolemark`;
+  const title = product.meta_title || product.name;
   const description =
     product.meta_description ||
     product.short_description ||
     `${product.name} - Poolemark'ta uygun fiyatla satın alın.`;
-  const primaryImage =
-    product.images?.find((i) => i.is_primary)?.url ||
-    product.images?.[0]?.url ||
-    "/og-image.png";
 
   return {
     title,
@@ -51,25 +49,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: {
       canonical: `/products/${slug}`,
     },
-    openGraph: {
-      title,
-      description,
-      url: `https://poolemark.com/products/${slug}`,
-      type: "website",
-      images: [
-        {
-          url: primaryImage,
-          width: 800,
-          height: 800,
-          alt: product.name,
-        },
-      ],
-    },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [primaryImage],
     },
   };
 }
