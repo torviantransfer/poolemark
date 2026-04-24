@@ -15,6 +15,8 @@ interface ProductGalleryProps {
 export function ProductGallery({ images, productName, forcedImageUrl }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightbox, setLightbox] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
 
   // Varyant seçildiğinde o varyantın görselini öne al
   const displayImages = forcedImageUrl
@@ -58,6 +60,36 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
     setActiveIndex((i) => (i === activeImages.length - 1 ? 0 : i + 1));
   }
 
+  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    const touch = e.touches[0];
+    setTouchStartX(touch.clientX);
+    setTouchStartY(touch.clientY);
+  }
+
+  function handleTouchEnd(e: React.TouchEvent<HTMLDivElement>) {
+    if (touchStartX === null || touchStartY === null || activeImages.length <= 1) {
+      return;
+    }
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+
+    setTouchStartX(null);
+    setTouchStartY(null);
+
+    // Yatay kaydırma dikey kaydırmadan baskınsa görsel değiştir.
+    if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY)) {
+      return;
+    }
+
+    if (deltaX > 0) {
+      prev();
+    } else {
+      next();
+    }
+  }
+
   return (
     <>
       <div className="space-y-3">
@@ -65,6 +97,8 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
         <div
           className="relative aspect-square rounded-2xl overflow-hidden bg-secondary/30 group cursor-zoom-in"
           onClick={() => setLightbox(true)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           <Image
             src={activeImages[activeIndex]?.url || activeImages[0]?.url}
@@ -193,6 +227,8 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
           <div
             className="relative w-full max-w-3xl aspect-square"
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
             <Image
               src={activeImages[activeIndex]?.url || activeImages[0]?.url}
