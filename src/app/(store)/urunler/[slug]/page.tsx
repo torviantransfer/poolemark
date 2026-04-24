@@ -269,31 +269,6 @@ export default async function ProductPage({ params }: Props) {
                 )}
               </div>
 
-              <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="rounded-xl border border-border/60 bg-secondary/30 px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <RotateCcw className="h-4 w-4 text-primary shrink-0" />
-                    <p className="text-xs font-semibold text-foreground">14 Gün Kolay İade</p>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-1">Koşullara uygun ürünlerde hızlı iade süreci.</p>
-                </div>
-                <div className="rounded-xl border border-border/60 bg-secondary/30 px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-primary shrink-0" />
-                    <p className="text-xs font-semibold text-foreground">Güvenli Ödeme</p>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-1">3D Secure ve 256-bit SSL altyapısı.</p>
-                </div>
-                <div className="rounded-xl border border-border/60 bg-secondary/30 px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <PackageCheck className="h-4 w-4 text-primary shrink-0" />
-                    <p className="text-xs font-semibold text-foreground">Hızlı Teslimat</p>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-1">Aynı gün kargo ve canlı sipariş takibi.</p>
-                </div>
-              </div>
-
-
           </ProductDetailClient>
 
           {/* Tabs: Description, Reviews */}
