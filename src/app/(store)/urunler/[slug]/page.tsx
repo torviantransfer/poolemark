@@ -223,6 +223,12 @@ export default async function ProductPage({ params }: Props) {
                   <span className="text-[11px] font-medium text-muted-foreground leading-none">
                     KDV Dahil
                   </span>
+                  {product.stock_quantity > (product.low_stock_threshold || 5) && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-700 leading-none">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      Stokta var
+                    </span>
+                  )}
                   <span
                     className={`text-[11px] font-semibold leading-none ${
                       product.price >= FREE_SHIPPING_THRESHOLD
@@ -255,12 +261,7 @@ export default async function ProductPage({ params }: Props) {
                       <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
                       ⚡ Son {product.stock_quantity} adet kaldı!
                     </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
-                      <span className="w-2 h-2 rounded-full bg-green-500" />
-                      Stokta var
-                    </span>
-                  )
+                  ) : null
                 ) : (
                   <span className="inline-flex items-center gap-1.5 text-sm font-medium text-destructive">
                     <span className="w-2 h-2 rounded-full bg-destructive" />
