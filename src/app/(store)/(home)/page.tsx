@@ -75,6 +75,7 @@ export default async function HomePage({
   const products = (productsRes.data || []) as Product[];
   const blogPosts = blogRes.data || [];
   const activeBanner = banners[0];
+  const desktopHeroImage = "/mermer-desenli-pvc-kaplama-hero.jpg";
   const reviews = (reviewsRes.data || []) as Review[];
   const reviewCount = reviews.length;
   const reviewAvg = reviewCount > 0
@@ -96,11 +97,20 @@ export default async function HomePage({
       <section className="relative min-h-[70vh] sm:min-h-[85vh] md:min-h-[90vh] flex items-center -mt-16 md:-mt-[68px]">
         <div className="absolute inset-0 z-0">
           <Image
+            src={desktopHeroImage}
+            alt="Mermer desenli PVC duvar kaplama"
+            fill
+            sizes="100vw"
+            className="hidden md:block object-cover"
+            priority
+            fetchPriority="high"
+          />
+          <Image
             src={activeBanner?.image_url || "/hero-banner.jpg"}
             alt={activeBanner?.title || "PVC Duvar Paneli ve Mermer Folyo - Poolemark"}
             fill
             sizes="100vw"
-            className="object-cover"
+            className="md:hidden object-cover"
             priority
             fetchPriority="high"
           />
@@ -303,6 +313,16 @@ export default async function HomePage({
       <section className="py-16 md:py-24 bg-secondary/30">
         <div className="container mx-auto px-4">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-foreground via-foreground/80 to-primary/40 p-8 md:p-14 lg:p-20">
+            <div className="absolute inset-0 hidden md:block">
+              <Image
+                src="/siyah-mermer-desenli-pvc-kaplama.webp"
+                alt="Siyah mermer desenli PVC kaplama"
+                fill
+                sizes="100vw"
+                className="object-cover opacity-35"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/60 to-primary/35" />
             <div className="absolute top-0 right-0 w-1/2 h-full opacity-10">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--primary)_0%,_transparent_70%)]" />
             </div>

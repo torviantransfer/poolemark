@@ -29,6 +29,7 @@ import { formatPrice } from "@/lib/helpers";
 import { CITY_LIST, TURKEY_CITIES } from "@/constants/turkey";
 import Script from "next/script";
 import type { Address } from "@/types";
+import { InstallmentModal } from "@/components/store/installment-modal";
 
 interface GuestAddress {
   first_name: string;
@@ -282,20 +283,6 @@ function CheckoutContent() {
             <span className="text-foreground font-medium">Ödeme</span>
           </nav>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Siparişi Tamamla</h1>
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-3xl">
-            <div className="flex items-center gap-2 rounded-lg border bg-white/80 px-3 py-2">
-              <Shield className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-xs font-medium text-foreground/90">256-bit SSL & 3D Secure</span>
-            </div>
-            <div className="flex items-center gap-2 rounded-lg border bg-white/80 px-3 py-2">
-              <CreditCard className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-xs font-medium text-foreground/90">Tüm kartlarla güvenli ödeme</span>
-            </div>
-            <div className="flex items-center gap-2 rounded-lg border bg-white/80 px-3 py-2">
-              <Truck className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-xs font-medium text-foreground/90">Hızlı gönderim & canlı takip</span>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -590,6 +577,10 @@ function CheckoutContent() {
                   </div>
                 </div>
 
+                <div className="mt-3">
+                  <InstallmentModal price={total} />
+                </div>
+
                 <Button
                   size="lg"
                   className="w-full mt-6 gap-2"
@@ -620,6 +611,20 @@ function CheckoutContent() {
                     alt="Güvenli ödeme yöntemleri"
                     className="w-full h-auto object-contain"
                   />
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
+                      <Shield className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-[11px] leading-tight text-muted-foreground">256-bit SSL & 3D Secure</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
+                      <CreditCard className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-[11px] leading-tight text-muted-foreground">Tüm kartlarla güvenli ödeme</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
+                      <Truck className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-[11px] leading-tight text-muted-foreground">Hızlı gönderim & canlı takip</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

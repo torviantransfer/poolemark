@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import type { Product } from "@/types";
 import { SITE_CONFIG } from "@/constants";
+import { formatPrice } from "@/lib/helpers";
 import { StockNotifyForm } from "@/components/store/stock-notify-form";
 
 interface ProductActionsProps {
@@ -237,6 +238,7 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
           {isOutOfStock ? "Stok Yok" : "Sepete Ekle"}
         </Button>
       </div>
+
       {/* ── Stoğa girince haber ver (sadece tükendiğinde) ── */}
       {isOutOfStock && (
         <StockNotifyForm

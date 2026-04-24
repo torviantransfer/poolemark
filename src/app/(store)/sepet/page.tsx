@@ -22,6 +22,17 @@ import {
 import { formatPrice } from "@/lib/helpers";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InstallmentModal } from "@/components/store/installment-modal";
+
+function extractCoverageM2(productName: string): number | null {
+  // Matches: "1.1 m²", "0,18 m2", "~1.32 m²" etc.
+  const match = productName.match(/~?(\d+(?:[.,]\d+)?)\s*m(?:²|2)/i);
+  if (!match) return null;
+
+  const parsed = Number(match[1].replace(",", "."));
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return parsed;
+}
 
 export default function CartPage() {
   const { items, loading, mounted, itemCount, subtotal, updateQuantity, removeItem } =
@@ -254,6 +265,25 @@ export default function CartPage() {
                           )}
                         </div>
                       </div>
+
+                      {(() => {
+                        const coveragePerPack = extractCoverageM2(item.name);
+                        if (!coveragePerPack) return null;
+
+                        const totalCoverage = coveragePerPack * item.quantity;
+                        const recommendedCoverage = totalCoverage * 1.1;
+
+                        return (
+                          <div className="mt-3 pt-2 border-t border-border/50">
+                            <p className="text-[11px] text-muted-foreground">
+                              Toplam kaplama alanı: <span className="font-semibold text-foreground">{totalCoverage.toFixed(2)} m²</span>
+                            </p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              %10 fire ile önerilen: <span className="font-medium text-foreground">{recommendedCoverage.toFixed(2)} m²</span>
+                            </p>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 ))}
@@ -406,6 +436,10 @@ export default function CartPage() {
                         <span className="text-xs text-muted-foreground">KDV (%20) dahil</span>
                         <span className="text-xs text-muted-foreground">{formatPrice(kdv)}</span>
                       </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <InstallmentModal price={total} />
                     </div>
                   </div>
 

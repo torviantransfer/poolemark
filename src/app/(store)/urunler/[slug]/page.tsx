@@ -11,6 +11,7 @@ import { ProductCard } from "@/components/store/product-card";
 import { ProductDetailClient } from "@/components/store/product-detail-client";
 import { ProductTabs } from "@/components/store/product-tabs";
 import { InstallmentModal } from "@/components/store/installment-modal";
+import { CoverageCalculator } from "@/components/store/coverage-calculator";
 import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
 import { RecentProductTracker } from "@/components/store/recent-product-tracker";
 import { RecentProducts } from "@/components/store/recent-products";
@@ -97,6 +98,18 @@ export default async function ProductPage({ params }: Props) {
   const discount = product.compare_at_price
     ? calculateDiscountPercentage(product.price, product.compare_at_price)
     : 0;
+  const productInstallmentMaxQty = Math.min(product.stock_quantity, 10);
+  const productInstallmentMinQty = productInstallmentMaxQty >= 3 ? 3 : Math.max(1, productInstallmentMaxQty);
+
+  // Parse m² per pack from product name first, then description as fallback
+  // Matches: "1.1 m²", "1,32 m2", "~1.32 m²" etc.
+  const sqmRegex = /~?(\d+(?:[.,]\d+)?)\s*m[²2]/i;
+  const sqmFromName = product.name.match(sqmRegex);
+  const sqmFromDesc = !sqmFromName && product.description
+    ? product.description.replace(/<[^>]+>/g, " ").match(sqmRegex)
+    : null;
+  const sqmRaw = sqmFromName?.[1] ?? sqmFromDesc?.[1] ?? null;
+  const sqmPerPack = sqmRaw ? parseFloat(sqmRaw.replace(",", ".")) : null;
 
   const images =
     product.images?.sort((a, b) => {
@@ -239,10 +252,21 @@ export default async function ProductPage({ params }: Props) {
                     {FREE_SHIPPING_THRESHOLD}₺ üzeri ücretsiz kargo
                   </span>
                 </div>
-                {/* Installment hint */}
-                <div className="mt-3">
-                  <InstallmentModal price={product.price} />
-                </div>
+                {/* Installment + Calculator hints — side by side */}
+                {product.stock_quantity > 0 && (
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <InstallmentModal
+                      price={product.price}
+                      quantity={productInstallmentMinQty}
+                      unitPrice={product.price}
+                      minQuantity={productInstallmentMinQty}
+                      maxQuantity={Math.max(productInstallmentMinQty, productInstallmentMaxQty)}
+                    />
+                    {sqmPerPack !== null && (
+                      <CoverageCalculator sqmPerPack={sqmPerPack} />
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Short Description */}
@@ -269,6 +293,8 @@ export default async function ProductPage({ params }: Props) {
                   </span>
                 )}
               </div>
+
+
 
           </ProductDetailClient>
 

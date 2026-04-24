@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { Star, ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDate } from "@/lib/helpers";
@@ -482,40 +483,63 @@ export function ProductTabs({
 
         {activeTab === "sss" && (
           <div className="space-y-2.5">
-            {[
-              {
-                q: "Siparişimi üye olmadan verebilir miyim?",
-                a: "Evet, üye olmadan misafir olarak sipariş verebilirsiniz. Sipariş onayı ve kargo takip bilgileri girdiğiniz e-posta adresine iletilir.",
-              },
-              {
-                q: "Siparişimi nasıl takip edebilirim?",
-                a: "Sipariş takip sayfasından sipariş numaranız ve e-posta adresinizi girerek kargo durumunuzu anlık olarak takip edebilirsiniz. Ayrıca siparişiniz kargoya verildiğinde size SMS ve e-posta bildirimi gönderilir.",
-              },
-              {
-                q: "Siparişim ne zaman kargoya verilir?",
-                a: "Hafta içi 14:00 ve Cumartesi 11:00 öncesi verilen siparişler aynı gün, sonrasında verilen siparişler ise ilk iş günü kargoya verilir. Pazar günleri kargolama yapılmamaktadır.",
-              },
-              {
-                q: "Teslimat süresi ne kadar?",
-                a: "Kargoya verildikten sonra ortalama 1-2 iş günü içinde elinize ulaşır. Yoğun dönemlerde bu süre 3 iş gününe kadar uzayabilir.",
-              },
-              {
-                q: "Hangi ödeme yöntemlerini kabul ediyorsunuz?",
-                a: "Visa, Mastercard, Troy gibi tüm kredi ve banka kartlarıyla güvenli ödeme yapabilirsiniz. Bankanıza göre 3, 6, 9 ve 12 taksit seçenekleri mevcuttur.",
-              },
-              {
-                q: "Ürünü iade etmek istiyorum, ne yapmalıyım?",
-                a: "Teslim tarihinden itibaren 14 gün içinde, ürün kullanılmamış ve orijinal ambalajında olması koşuluyla ücretsiz iade yapabilirsiniz. İletişim sayfamızdan veya e-posta ile talebinizi iletmeniz yeterlidir.",
-              },
-              {
-                q: "Ürün hasarlı/yanlış geldiyse ne yapmalıyım?",
-                a: "Böyle bir durumda lütfen ürünü teslim aldıktan sonraki 48 saat içinde fotoğraflı olarak bize bildirin. En kısa sürede yeni ürün gönderimi veya tam iade işlemi başlatılır.",
-              },
-              {
-                q: "500₺ ücretsiz kargo kampanyası nasıl işliyor?",
-                a: "Sepetinizdeki ürünlerin toplam tutarı 500₺ ve üzeri olduğunda kargo ücretsizdir. 500₺ altı siparişlerde kargo ücreti seçtiğiniz kargo firmasına göre değişiklik gösterir; güncel ücretleri ödeme sayfasında görüntüleyebilirsiniz.",
-              },
-            ].map((item, i) => (
+            {(
+              [
+                {
+                  q: "Siparişimi üye olmadan verebilir miyim?",
+                  a: "Evet, üye olmadan misafir olarak sipariş verebilirsiniz. Sipariş onayı ve kargo takip bilgileri girdiğiniz e-posta adresine iletilir.",
+                },
+                {
+                  q: "Siparişimi nasıl takip edebilirim?",
+                  a: (
+                    <>
+                      <Link href="/siparis-takip" className="text-primary underline underline-offset-2 font-medium hover:text-primary/80">Sipariş takip sayfasından</Link> sipariş numaranız ve e-posta adresinizi girerek kargo durumunuzu anlık olarak takip edebilirsiniz. Ayrıca siparişiniz kargoya verildiğinde size SMS ve e-posta bildirimi gönderilir.
+                    </>
+                  ),
+                },
+                {
+                  q: "Siparişim ne zaman kargoya verilir?",
+                  a: "Hafta içi 14:00 ve Cumartesi 11:00 öncesi verilen siparişler aynı gün, sonrasında verilen siparişler ise ilk iş günü kargoya verilir. Pazar günleri kargolama yapılmamaktadır.",
+                },
+                {
+                  q: "Teslimat süresi ne kadar?",
+                  a: "Kargoya verildikten sonra ortalama 1-2 iş günü içinde elinize ulaşır. Yoğun dönemlerde bu süre 3 iş gününe kadar uzayabilir.",
+                },
+                {
+                  q: "Hangi ödeme yöntemlerini kabul ediyorsunuz?",
+                  a: "Visa, Mastercard, Troy gibi tüm kredi ve banka kartlarıyla güvenli ödeme yapabilirsiniz. Bankanıza göre 3, 6, 9 ve 12 taksit seçenekleri mevcuttur.",
+                },
+                {
+                  q: "Ürünü iade etmek istiyorum, ne yapmalıyım?",
+                  a: (
+                    <>
+                      Teslim tarihinden itibaren 14 gün içinde, ürün kullanılmamış ve orijinal ambalajında olması koşuluyla ücretsiz iade yapabilirsiniz.{" "}
+                      <Link href="/iletisim" className="text-primary underline underline-offset-2 font-medium hover:text-primary/80">İletişim sayfamızdan</Link> veya{" "}
+                      <a href="mailto:info@poolemark.com" className="text-primary underline underline-offset-2 font-medium hover:text-primary/80">e-posta</a> ile talebinizi iletmeniz yeterlidir.
+                    </>
+                  ),
+                },
+                {
+                  q: "Ürün hasarlı/yanlış geldiyse ne yapmalıyım?",
+                  a: (
+                    <>
+                      Böyle bir durumda lütfen ürünü teslim aldıktan sonraki 48 saat içinde fotoğraflı olarak bize bildirin.{" "}
+                      <Link href="/iletisim" className="text-primary underline underline-offset-2 font-medium hover:text-primary/80">İletişim sayfasından</Link> veya{" "}
+                      <a href="https://wa.me/908508401327" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 font-medium hover:text-primary/80">WhatsApp</a> üzerinden ulaşabilirsiniz. En kısa sürede yeni ürün gönderimi veya tam iade işlemi başlatılır.
+                    </>
+                  ),
+                },
+                {
+                  q: "500₺ ücretsiz kargo kampanyası nasıl işliyor?",
+                  a: (
+                    <>
+                      Sepetinizdeki ürünlerin toplam tutarı 500₺ ve üzeri olduğunda kargo ücretsizdir. 500₺ altı siparişlerde kargo ücreti seçtiğiniz kargo firmasına göre değişiklik gösterir; güncel ücretleri{" "}
+                      <Link href="/checkout" className="text-primary underline underline-offset-2 font-medium hover:text-primary/80">ödeme sayfasında</Link> görüntüleyebilirsiniz.
+                    </>
+                  ),
+                },
+              ] as { q: string; a: React.ReactNode }[]
+            ).map((item, i) => (
               <details key={i} className="group rounded-xl border border-border/60 overflow-hidden">
                 <summary className="cursor-pointer list-none flex items-center justify-between px-4 py-3.5 text-sm font-medium hover:bg-secondary/40 transition-colors">
                   {item.q}

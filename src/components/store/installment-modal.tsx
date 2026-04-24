@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,10 @@ import { CreditCard, CheckCircle2 } from "lucide-react";
 
 interface InstallmentModalProps {
   price: number;
+  quantity?: number;
+  unitPrice?: number;
+  minQuantity?: number;
+  maxQuantity?: number;
 }
 
 const INSTALLMENTS = [1, 3, 6, 9, 12];
@@ -57,8 +61,34 @@ const OTHER_BANKS = [
   "Kuveyt Türk",
 ];
 
-export function InstallmentModal({ price }: InstallmentModalProps) {
+export function InstallmentModal({
+  price,
+  quantity,
+  unitPrice,
+  minQuantity = 1,
+  maxQuantity = 10,
+}: InstallmentModalProps) {
   const [open, setOpen] = useState(false);
+  const hasQuantitySelector = typeof unitPrice === "number";
+
+  const safeMinQuantity = Math.max(1, minQuantity);
+  const safeMaxQuantity = Math.max(safeMinQuantity, maxQuantity);
+  const initialQty = Math.min(
+    safeMaxQuantity,
+    Math.max(safeMinQuantity, quantity ?? safeMinQuantity)
+  );
+
+  const [modalQuantity, setModalQuantity] = useState(initialQty);
+
+  useEffect(() => {
+    setModalQuantity(initialQty);
+  }, [initialQty]);
+
+  const calculatedTotal = hasQuantitySelector ? (unitPrice as number) * modalQuantity : price;
+
+  const previewMonthly = useMemo(() => {
+    return Math.ceil(calculatedTotal / 12);
+  }, [calculatedTotal]);
 
   return (
     <>
@@ -91,6 +121,42 @@ export function InstallmentModal({ price }: InstallmentModalProps) {
           </DialogHeader>
 
           <div className="px-4 sm:px-6 pb-6 pt-4 space-y-6">
+            <div className="rounded-xl border bg-secondary/30 p-3">
+              <p className="text-xs text-muted-foreground">Hesaplanan ödeme tutarı</p>
+              <p className="text-base font-semibold text-foreground mt-0.5">{formatPrice(calculatedTotal)}</p>
+
+              {hasQuantitySelector && (
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <div className="flex items-center border border-border rounded-lg overflow-hidden bg-white h-9">
+                    <button
+                      type="button"
+                      onClick={() => setModalQuantity((q) => Math.max(safeMinQuantity, q - 1))}
+                      disabled={modalQuantity <= safeMinQuantity}
+                      className="h-full w-9 inline-flex items-center justify-center text-sm hover:bg-muted disabled:opacity-30"
+                    >
+                      -
+                    </button>
+                    <span className="w-10 text-center text-sm font-semibold tabular-nums">{modalQuantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => setModalQuantity((q) => Math.min(safeMaxQuantity, q + 1))}
+                      disabled={modalQuantity >= safeMaxQuantity}
+                      className="h-full w-9 inline-flex items-center justify-center text-sm hover:bg-muted disabled:opacity-30"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">Adet</span>
+                </div>
+              )}
+
+              {hasQuantitySelector && typeof unitPrice === "number" && modalQuantity > 0 && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  {modalQuantity} adet x {formatPrice(unitPrice)}
+                </p>
+              )}
+            </div>
+
             {/* Peşin fiyatına taksit */}
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -113,7 +179,7 @@ export function InstallmentModal({ price }: InstallmentModalProps) {
                             {n === 1 ? "Peşin" : `${n} Taksit`}
                           </div>
                           <div className="text-xs font-bold tabular-nums text-foreground mt-0.5">
-                            {formatPrice(Math.ceil(price / n))}
+                            {formatPrice(Math.ceil(calculatedTotal / n))}
                           </div>
                         </div>
                       ))}
@@ -145,7 +211,7 @@ export function InstallmentModal({ price }: InstallmentModalProps) {
                         {INSTALLMENTS.map((n) => (
                           <td key={n} className="px-3 py-3 text-right">
                             <span className="font-semibold text-xs tabular-nums">
-                              {formatPrice(Math.ceil(price / n))}
+                              {formatPrice(Math.ceil(calculatedTotal / n))}
                             </span>
                             {n > 1 && (
                               <span className="block text-[10px] text-green-600 font-medium">
@@ -160,7 +226,7 @@ export function InstallmentModal({ price }: InstallmentModalProps) {
                 </table>
               </div>
               <p className="text-[11px] text-muted-foreground mt-2">
-                * Toplam tutar peşin fiyatıyla aynıdır: {formatPrice(price)}
+                * Toplam tutar peşin fiyatıyla aynıdır: {formatPrice(calculatedTotal)}
               </p>
             </div>
 
@@ -179,7 +245,7 @@ export function InstallmentModal({ price }: InstallmentModalProps) {
                   </thead>
                   <tbody>
                     {INSTALLMENTS.map((n, i) => {
-                      const total = n === 1 ? price : Math.round(price * 1.03);
+                      const total = n === 1 ? calculatedTotal : Math.round(calculatedTotal * 1.03);
                       const monthly = Math.ceil(total / n);
                       return (
                         <tr key={n} className={i % 2 === 0 ? "bg-white" : "bg-secondary/20"}>
