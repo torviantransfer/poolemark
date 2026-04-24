@@ -75,6 +75,12 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [notes, setNotes] = useState("");
+  const [idempotencyKey] = useState(() => {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID();
+    }
+    return `fallback-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  });
 
   const selectedShipping = shippingCompanies.find((s) => s.id === selectedShippingId) || null;
   const shipping = selectedShipping
@@ -168,6 +174,7 @@ function CheckoutContent() {
               shippingCompanyId: selectedShippingId,
               couponCode: couponCode || undefined,
               notes: notes || null,
+              idempotencyKey,
             }
           : {
               addressId: selectedAddressId,
@@ -175,6 +182,7 @@ function CheckoutContent() {
               shippingCompanyId: selectedShippingId,
               couponCode: couponCode || undefined,
               notes: notes || null,
+              idempotencyKey,
             };
 
         const res = await fetch("/api/payment", {

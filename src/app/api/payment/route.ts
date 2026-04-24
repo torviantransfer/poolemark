@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayTRToken, normalizePayTRUserIp } from "@/lib/paytr";
-import { generateOrderNumber } from "@/lib/helpers";
+
+function buildOrderNumberFromIdempotencyKey(key: string): string {
+  const digest = crypto.createHash("sha256").update(key).digest("hex").slice(0, 16).toUpperCase();
+  return `PM-${digest}`;
+}
+
+function isUniqueViolation(error: { code?: string } | null | undefined): boolean {
+  return error?.code === "23505";
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +22,12 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const { addressId, guestAddress, items, shippingCompanyId, couponCode, notes } = body;
+    const { addressId, guestAddress, items, shippingCompanyId, couponCode, notes, idempotencyKey } = body;
+
+    const normalizedIdempotencyKey = typeof idempotencyKey === "string" ? idempotencyKey.trim() : "";
+    if (!normalizedIdempotencyKey) {
+      return NextResponse.json({ error: "İşlem anahtarı eksik. Lütfen sayfayı yenileyip tekrar deneyin." }, { status: 400 });
+    }
 
     if (!items?.length) {
       return NextResponse.json({ error: "Ürünler gerekli" }, { status: 400 });
@@ -207,7 +221,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Teslimat adresi gerekli" }, { status: 400 });
     }
 
-    const orderNumber = generateOrderNumber();
+    const orderNumber = buildOrderNumberFromIdempotencyKey(normalizedIdempotencyKey);
 
     // Create order
     const { data: order, error } = await adminClient
@@ -229,6 +243,46 @@ export async function POST(request: NextRequest) {
       })
       .select("id")
       .single();
+
+    if (isUniqueViolation(error)) {
+      const { data: existingOrder } = await adminClient
+        .from("orders")
+        .select("id, order_number, total")
+        .eq("order_number", orderNumber)
+        .single();
+
+      if (existingOrder) {
+        const userIp = normalizePayTRUserIp(
+          request.headers.get("x-forwarded-for") ||
+          request.headers.get("x-real-ip") ||
+          request.headers.get("x-vercel-forwarded-for") ||
+          request.headers.get("cf-connecting-ip")
+        );
+
+        const token = await createPayTRToken({
+          orderId: existingOrder.id,
+          orderNumber: existingOrder.order_number,
+          userEmail,
+          userIp,
+          userName,
+          userPhone,
+          userAddress: `${shippingAddressJson.address_line}, ${shippingAddressJson.neighborhood || ""} ${shippingAddressJson.district}/${shippingAddressJson.city}`,
+          items: validatedItems.map((item) => ({
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          totalAmount: Number(existingOrder.total ?? total),
+        });
+
+        return NextResponse.json({
+          success: true,
+          token,
+          orderId: existingOrder.id,
+          orderNumber: existingOrder.order_number,
+        });
+      }
+    }
 
     if (error || !order) {
       console.error("Order insert error:", error);
