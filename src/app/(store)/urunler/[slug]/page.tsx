@@ -97,8 +97,6 @@ export default async function ProductPage({ params }: Props) {
     ? calculateDiscountPercentage(product.price, product.compare_at_price)
     : 0;
 
-  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - product.price);
-
   const images =
     product.images?.sort((a, b) => {
       if (a.is_primary) return -1;
@@ -231,9 +229,7 @@ export default async function ProductPage({ params }: Props) {
                         : "text-amber-700"
                     }`}
                   >
-                    {product.price >= FREE_SHIPPING_THRESHOLD
-                      ? `${FREE_SHIPPING_THRESHOLD}₺ üzeri ücretsiz kargo`
-                      : `${FREE_SHIPPING_THRESHOLD}₺ üzeri ücretsiz kargo · ${formatPrice(remainingForFreeShipping)} kaldı`}
+                    {FREE_SHIPPING_THRESHOLD}₺ üzeri ücretsiz kargo
                   </span>
                 </div>
                 {/* Installment hint */}

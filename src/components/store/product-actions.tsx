@@ -290,18 +290,12 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
         </div>
       </div>
 
-      {/* ── Ödeme Logoları ─────────────────────────────────── */}
-      <div className="flex flex-col gap-1">
+      {/* ── Ödeme Logosu ───────────────────────────────────── */}
+      <div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/payment-methods/kart-odeme.svg"
-          alt="Kart ile güvenli ödeme"
-          className="w-full h-auto object-contain"
-        />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/payment-methods/footer-bilgi.png"
-          alt="Güvenli ödeme yöntemleri"
+          src="/payment-methods/kart-odeme-guvenli.png"
+          alt="Kart ve güvenli ödeme yöntemleri"
           className="w-full h-auto object-contain"
         />
       </div>

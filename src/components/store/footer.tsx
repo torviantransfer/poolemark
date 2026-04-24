@@ -24,6 +24,56 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
   const instagramUrl = settings?.instagram_url || SITE_CONFIG.socialMedia.instagram;
   const facebookUrl = settings?.facebook_url || SITE_CONFIG.socialMedia.facebook;
   const twitterUrl = settings?.twitter_url || SITE_CONFIG.socialMedia.twitter;
+  const paymentLogos = [
+    {
+      src: "/payment-methods/axess.png",
+      alt: "Axess",
+      imgClassName: "",
+      imgSizeClassName: "max-h-[70%] max-w-[88%]",
+    },
+    {
+      src: "/payment-methods/mastercard.png",
+      alt: "Mastercard",
+      imgClassName: "",
+      imgSizeClassName: "max-h-[70%] max-w-[88%]",
+    },
+    {
+      src: "/payment-methods/visa.png",
+      alt: "Visa",
+      imgClassName: "",
+      imgSizeClassName: "max-h-[70%] max-w-[88%]",
+    },
+    {
+      src: "/payment-methods/troy.png",
+      alt: "Troy",
+      imgClassName: "",
+      imgSizeClassName: "max-h-[70%] max-w-[88%]",
+    },
+    {
+      src: "/payment-methods/bonus-card.png",
+      alt: "Bonus Card",
+      imgClassName: "contrast-125 saturate-125 brightness-95",
+      imgSizeClassName: "max-h-[92%] max-w-[98%]",
+    },
+    {
+      src: "/payment-methods/paraf.png",
+      alt: "Paraf",
+      imgClassName: "",
+      imgSizeClassName: "max-h-[70%] max-w-[88%]",
+    },
+    {
+      src: "/payment-methods/maximum.png",
+      alt: "Maximum",
+      imgClassName: "",
+      imgSizeClassName: "max-h-[70%] max-w-[88%]",
+    },
+    {
+      src: "/payment-methods/cardfinans.png",
+      alt: "CardFinans",
+      imgClassName: "contrast-125 saturate-125 brightness-95",
+      imgSizeClassName: "max-h-[92%] max-w-[98%]",
+    },
+  ];
 
   return (
     <footer className="bg-[#0F172A] text-white relative" style={{ zIndex: 1 }}>
@@ -39,7 +89,7 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
                 subtitle="Antalya'dan Tüm Türkiye'ye"
                 logoSrc="/seffaflogohero.png"
               />
-              <p className="text-sm text-white/50 mt-3 leading-relaxed max-w-sm">
+              <p className="text-sm text-white/70 mt-3 leading-relaxed max-w-sm">
                 2018&apos;den bu yana Antalya&apos;dan tüm Türkiye&apos;ye ev gereçleri, dekorasyon ve yaşam ürünleri sunuyoruz. Kaliteli ürünler, hızlı kargo ve müşteri memnuniyeti odaklı hizmet anlayışımızla 10.000&apos;den fazla mutlu müşteriye ulaştık.
               </p>
               <div className="flex items-center gap-3 mt-6">
@@ -100,7 +150,7 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-white/50 hover:text-primary transition-colors"
+                      className="text-sm text-white/70 hover:text-green-400 transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -145,7 +195,7 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-white/50 hover:text-primary transition-colors"
+                      className="text-sm text-white/70 hover:text-green-400 transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -166,7 +216,7 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
                   </div>
                     <a
                       href={`tel:${phoneRaw}`}
-                      className="text-sm text-white/50 hover:text-primary transition-colors pt-1"
+                      className="text-sm text-white/70 hover:text-green-400 transition-colors pt-1"
                     >
                       {phone}
                     </a>
@@ -177,7 +227,7 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
                   </div>
                     <a
                       href={`mailto:${email}`}
-                      className="text-sm text-white/50 hover:text-primary transition-colors pt-1"
+                      className="text-sm text-white/70 hover:text-green-400 transition-colors pt-1"
                     >
                       {email}
                     </a>
@@ -186,7 +236,7 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 shrink-0">
                     <MapPin className="h-4 w-4 text-primary" />
                   </div>
-                    <span className="text-sm text-white/50 pt-1">
+                    <span className="text-sm text-white/70 pt-1">
                       {address}
                     </span>
                 </li>
@@ -194,7 +244,7 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/15 shrink-0">
                     <Clock className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="text-sm text-white/50 pt-1">
+                  <span className="text-sm text-white/70 pt-1">
                     {SITE_CONFIG.workingHours}
                   </span>
                 </li>
@@ -214,69 +264,73 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
             logoSrc="/seffaflogohero.png"
             className="gap-0.5 [&>span:last-child]:text-left"
           />
-          <p className="text-xs text-white/40 mt-1 max-w-xs mx-auto">
+          <p className="text-xs text-white/65 mt-1 max-w-xs mx-auto">
             Antalya&apos;dan tüm Türkiye&apos;ye ev gereçleri ve dekorasyon. 10.000+ mutlu müşteri.
           </p>
         </div>
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-white/50">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-white/70">
           <Link
             href="/pages/kvkk-aydinlatma-metni"
-            className="hover:text-primary transition-colors"
+            className="hover:text-green-400 transition-colors"
           >
             KVKK
           </Link>
           <Link
             href="/pages/gizlilik-politikasi"
-            className="hover:text-primary transition-colors"
+            className="hover:text-green-400 transition-colors"
           >
             Gizlilik
           </Link>
           <Link
             href="/pages/cerez-politikasi"
-            className="hover:text-primary transition-colors"
+            className="hover:text-green-400 transition-colors"
           >
             Çerezler
           </Link>
           <Link
             href="/pages/iade-degisim"
-            className="hover:text-primary transition-colors"
+            className="hover:text-green-400 transition-colors"
           >
             İade
           </Link>
           <Link
             href="/pages/kargo-teslimat"
-            className="hover:text-primary transition-colors"
+            className="hover:text-green-400 transition-colors"
           >
             Kargo
           </Link>
         </div>
-        <div className="text-center space-y-1 text-xs text-white/40">
+        <div className="text-center space-y-1 text-xs text-white/65">
           <p>
             <a
               href={`tel:${phoneRaw}`}
-              className="hover:text-primary"
+              className="hover:text-green-400"
             >
               {phone}
             </a>
             {" · "}
             <a
               href={`mailto:${email}`}
-              className="hover:text-primary"
+              className="hover:text-green-400"
             >
               {email}
             </a>
           </p>
           <p>{address}</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/payment-methods/footer-bilgi.png"
-            alt="Güvenli ödeme yöntemleri"
-            width={665}
-            height={42}
-            loading="lazy"
-            decoding="async"
-            className="h-7 w-auto object-contain opacity-70 mx-auto mt-3"
-          />
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+            {paymentLogos.map((logo) => (
+              <div key={logo.src} className="h-7 w-12 rounded bg-white px-0.5 flex items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logo.src}
+                  alt={logo.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className={`object-contain ${logo.imgSizeClassName} ${logo.imgClassName}`}
+                />
+              </div>
+            ))}
+          </div>
           <p className="pt-2">
             &copy; {new Date().getFullYear()} {SITE_CONFIG.companyName}
           </p>
@@ -294,23 +348,27 @@ export function Footer({ settings }: { settings?: FooterSettings }) {
       {/* Bottom Bar - Desktop */}
       <Separator className="hidden lg:block bg-white/10" />
       <div className="hidden lg:block container mx-auto px-4 py-5">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/40">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/60">
           <p>
             &copy; {new Date().getFullYear()} {SITE_CONFIG.companyName}. Tüm
             hakları saklıdır.
           </p>
           {/* Ödeme Logoları */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/payment-methods/footer-bilgi.png"
-            alt="Güvenli ödeme yöntemleri"
-            width={665}
-            height={48}
-            loading="lazy"
-            decoding="async"
-            className="h-8 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
-          />
-          <div className="flex items-center gap-1 text-white/30">
+          <div className="flex items-center gap-2 md:gap-3">
+            {paymentLogos.map((logo) => (
+              <div key={logo.src} className="h-8 w-14 rounded bg-white px-0.5 flex items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logo.src}
+                  alt={logo.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className={`object-contain ${logo.imgSizeClassName} ${logo.imgClassName}`}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-1 text-white/50">
             <span>{SITE_CONFIG.taxOffice}</span>
             <span>·</span>
             <span>VKN: {SITE_CONFIG.taxNumber}</span>

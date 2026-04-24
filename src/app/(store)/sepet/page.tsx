@@ -445,7 +445,7 @@ export default function CartPage() {
                   <div className="pt-4 border-t">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src="/payment-methods/kart-odeme.svg"
+                      src="/payment-methods/kart-odeme-guvenli.png"
                       alt="Güvenli ödeme yöntemleri"
                       className="w-full h-auto object-contain"
                     />

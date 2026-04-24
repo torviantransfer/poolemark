@@ -233,7 +233,7 @@ export default async function HomePage({
                 key={item.step}
                 className="relative p-6 md:p-8 rounded-2xl bg-white border border-border/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center"
               >
-                <span className="absolute top-4 right-4 text-5xl font-black text-primary/10">
+                <span className="absolute top-4 right-4 text-5xl font-black text-primary/10" aria-hidden="true">
                   {item.step}
                 </span>
                 <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mx-auto mb-5">
@@ -320,7 +320,7 @@ export default async function HomePage({
               <p className="text-white/60 text-lg mb-4">
                 Yapışkanlı PVC paneller ve folyolar söküldüğünde iz bırakmaz. Kiralık evinizi istediğiniz gibi yenileyin, taşınırken orijinal haline geri döndürün.
               </p>
-              <ul className="space-y-2 text-white/50 text-sm mb-8">
+              <ul className="space-y-2 text-white/75 text-sm mb-8">
                 <li className="flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-primary shrink-0" /> Fayans üstüne direkt uygulanır</li>
                 <li className="flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-primary shrink-0" /> Suya ve ısıya dayanıklı PVC malzeme</li>
                 <li className="flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-primary shrink-0" /> Söküldüğünde yüzeyde iz bırakmaz</li>
@@ -378,7 +378,7 @@ export default async function HomePage({
                       />
                     ))}
                     {review.is_verified_purchase && (
-                      <span className="ml-auto text-[10px] font-medium text-primary bg-primary/8 px-2 py-0.5 rounded-full">
+                      <span className="ml-auto text-[11px] font-semibold text-green-800 bg-green-100 px-2 py-0.5 rounded-full">
                         Doğrulanmış
                       </span>
                     )}
