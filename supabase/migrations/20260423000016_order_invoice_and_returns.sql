@@ -19,6 +19,7 @@ create table if not exists public.order_return_requests (
   unique(order_id)
 );
 
+drop trigger if exists set_updated_at_order_return_requests on public.order_return_requests;
 create trigger set_updated_at_order_return_requests
   before update on public.order_return_requests
   for each row
@@ -27,13 +28,15 @@ create trigger set_updated_at_order_return_requests
 alter table public.order_return_requests enable row level security;
 
 -- Customer can view own return requests
-create policy if not exists "Users can view own return requests"
+drop policy if exists "Users can view own return requests" on public.order_return_requests;
+create policy "Users can view own return requests"
   on public.order_return_requests
   for select
   using (user_id = auth.uid());
 
 -- Customer can create return request only for own order
-create policy if not exists "Users can create own return requests"
+drop policy if exists "Users can create own return requests" on public.order_return_requests;
+create policy "Users can create own return requests"
   on public.order_return_requests
   for insert
   with check (
@@ -46,7 +49,8 @@ create policy if not exists "Users can create own return requests"
   );
 
 -- Admin full access
-create policy if not exists "Admin can manage return requests"
+drop policy if exists "Admin can manage return requests" on public.order_return_requests;
+create policy "Admin can manage return requests"
   on public.order_return_requests
   for all
   using (public.is_admin())

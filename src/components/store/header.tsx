@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
@@ -107,9 +108,16 @@ export function Header() {
                     <Link
                       href="/"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="text-xl font-bold text-primary"
+                      className="inline-flex items-center"
                     >
-                      Poolemark
+                      <Image
+                        src="/logo.png"
+                        alt="Poolemark"
+                        width={150}
+                        height={40}
+                        className="h-8 w-auto"
+                        priority
+                      />
                     </Link>
                   </SheetTitle>
                 </SheetHeader>
@@ -215,13 +223,18 @@ export function Header() {
             <Link
               href="/"
               className={cn(
-                "text-xl md:text-2xl font-bold tracking-tight transition-colors",
-                transparent
-                  ? "text-white hover:text-white/90"
-                  : "text-primary hover:text-primary/90"
+                "inline-flex items-center transition-opacity",
+                transparent ? "hover:opacity-90" : "hover:opacity-80"
               )}
             >
-              Poolemark
+              <Image
+                src={transparent ? "/logo.png" : "/buson.png"}
+                alt="Poolemark"
+                width={160}
+                height={42}
+                className="h-8 md:h-9 w-auto"
+                priority
+              />
             </Link>
           </div>
 

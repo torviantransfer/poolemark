@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { ProductCard } from "@/components/store/product-card";
-import { NewsletterForm } from "@/components/store/newsletter-form";
 import { TrustBadges } from "@/components/store/trust-badges";
 import {
   ArrowRight,
@@ -12,7 +11,6 @@ import {
   ShieldCheck,
   Zap,
   ChevronDown,
-  Truck,
   LayoutGrid,
   Paintbrush,
   Droplets,
@@ -153,18 +151,6 @@ export default async function HomePage({
               </Button>
             </div>
 
-            {/* Mini trust indicators */}
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-10 text-white/60 text-sm">
-              <span className="flex items-center gap-1.5">
-                <Truck className="h-4 w-4" /> 500₺ Üzeri Ücretsiz Kargo
-              </span>
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4" /> Güvenli Ödeme
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Scissors className="h-4 w-4" /> Kolay Uygulama
-              </span>
-            </div>
           </div>
         </div>
 
@@ -605,31 +591,6 @@ export default async function HomePage({
                 </div>
               </details>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== NEWSLETTER ===== */}
-      <section className="py-12 md:py-16 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-1/4 w-64 h-64 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-white rounded-full blur-3xl" />
-        </div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-xl mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm mb-6">
-              <Sparkles className="h-7 w-7 text-white" />
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-              Fırsatları Kaçırmayın
-            </h2>
-            <p className="text-white/70 text-lg mb-8 max-w-md mx-auto">
-              Yeni ürünler, uygulama ipuçları ve kampanyalardan ilk siz haberdar olun.
-            </p>
-            <NewsletterForm variant="hero" />
-            <p className="text-xs text-white/40 mt-4">
-              Dilediğiniz zaman abonelikten çıkabilirsiniz. Gizliliğinize saygı duyuyoruz.
-            </p>
           </div>
         </div>
       </section>

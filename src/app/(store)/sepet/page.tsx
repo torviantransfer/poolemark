@@ -35,10 +35,9 @@ export default function CartPage() {
   } | null>(null);
 
   const FREE_SHIPPING_THRESHOLD = 500;
-  const SHIPPING_COST = 39.9;
   const discount = appliedCoupon?.discount || 0;
-  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-  const total = subtotal - discount + shipping;
+  const freeShippingEarned = subtotal >= FREE_SHIPPING_THRESHOLD;
+  const total = subtotal - discount;
   const kdv = total * 20 / 120; // Fiyatlar KDV dahil olduğundan içeriden hesaplanır
 
   async function applyCoupon() {
@@ -265,7 +264,7 @@ export default function CartPage() {
                   <div className="mt-8">
                     <h2 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
                       <Gift className="h-4 w-4 text-primary" />
-                      Bunları da Beğenebilirsiniz
+                      Bunlarda Önerilen Ürünler
                     </h2>
                     <div className="grid grid-cols-2 gap-3">
                       {recommended.map((product) => (
@@ -315,11 +314,13 @@ export default function CartPage() {
                   </h3>
 
                   {/* Free Shipping Progress Bar */}
-                  <div className="bg-white rounded-xl p-3.5">
+                  <div className="bg-white rounded-xl p-3.5 border border-border/40">
                     {subtotal >= FREE_SHIPPING_THRESHOLD ? (
-                      <div className="flex items-center gap-2 text-green-600">
-                        <Truck className="h-4 w-4" />
-                        <span className="text-sm font-medium">🎉 Ücretsiz kargo kazandınız!</span>
+                      <div className="flex items-center gap-2 text-primary">
+                        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary/10">
+                          <Truck className="h-3.5 w-3.5" />
+                        </div>
+                        <span className="text-sm font-semibold">Ücretsiz kargo kazandınız</span>
                       </div>
                     ) : (
                       <>
@@ -379,10 +380,10 @@ export default function CartPage() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Kargo</span>
                       <span className="font-medium">
-                        {shipping === 0 ? (
+                        {freeShippingEarned ? (
                           <span className="text-green-600">Ücretsiz</span>
                         ) : (
-                          formatPrice(shipping)
+                          <span className="text-xs text-muted-foreground">Ödeme adımında hesaplanır</span>
                         )}
                       </span>
                     </div>
@@ -425,36 +426,29 @@ export default function CartPage() {
                   </Link>
 
                   {/* Trust Badges */}
-                  <div className="mt-5 pt-4 border-t space-y-2">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Shield className="h-3.5 w-3.5 text-green-600 shrink-0" />
-                      <span>256-bit SSL ile güvenli ödeme</span>
+                  <div className="mt-5 pt-4 border-t grid grid-cols-3 gap-2">
+                    <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
+                      <Shield className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-[11px] leading-tight text-muted-foreground">256-bit SSL güvenli ödeme</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <CreditCard className="h-3.5 w-3.5 text-blue-600 shrink-0" />
-                      <span>Tüm kartlara 12 taksit imkanı</span>
+                    <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
+                      <CreditCard className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-[11px] leading-tight text-muted-foreground">Tüm kartlara 12 taksit</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Gift className="h-3.5 w-3.5 text-purple-600 shrink-0" />
-                      <span>500₺ üzeri ücretsiz kargo</span>
+                    <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
+                      <Gift className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-[11px] leading-tight text-muted-foreground">500₺ üzeri ücretsiz kargo</span>
                     </div>
                   </div>
 
-                  {/* Ödeme Yöntemleri Logoları */}
+                  {/* Ödeme Logosu */}
                   <div className="pt-4 border-t">
-                    <p className="text-[10px] text-muted-foreground text-center mb-2">Güvenli Ödeme</p>
-                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                      {["visa", "mastercard", "troy"].map((name) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          key={name}
-                          src={`/payment-methods/${name}.png`}
-                          alt={name}
-                          className="h-6 w-auto object-contain grayscale"
-                          onError={(e) => { e.currentTarget.style.display = "none"; }}
-                        />
-                      ))}
-                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/payment-methods/kart-odeme.svg"
+                      alt="Güvenli ödeme yöntemleri"
+                      className="w-full h-auto object-contain"
+                    />
                   </div>
                 </div>
               </div>

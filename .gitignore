@@ -40,3 +40,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# react-email preview wrappers (dev-only)
+/emails
+
+# local notes / agent files
+/.claude
+/.cursor
+/.aider*
+/AGENTS.md
+/CLAUDE.md
+/MASTER-PLAN.md
+/TODO-REMAINING.md
+/memories
+/.copilot

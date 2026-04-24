@@ -107,7 +107,7 @@ export default function RootLayout({
           {children}
           <RootMobileNav />
         </CartProvider>
-        <Toaster position="top-right" richColors duration={2500} closeButton />
+        <Toaster position="top-right" richColors duration={3500} closeButton />
       </body>
     </html>
   );

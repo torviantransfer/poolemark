@@ -97,7 +97,7 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
 
         {/* Thumbnails */}
         {activeImages.length > 1 && (
-          <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex gap-2.5 overflow-x-auto overflow-y-hidden py-2 -my-1 scrollbar-hide">
             {activeImages.slice(0, 5).map((img, idx) => (
               <button
                 key={img.id}

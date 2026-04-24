@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  productionBrowserSourceMaps: false,
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
+  },
   async redirects() {
     return [
       // Ürün URL'leri
@@ -83,4 +91,8 @@ const nextConfig: NextConfig = {
 
 export default withSentryConfig(nextConfig, {
   silent: true,
+  disableLogger: true,
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
 });

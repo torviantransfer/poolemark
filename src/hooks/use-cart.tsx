@@ -78,24 +78,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Load server cart and merge
     supabase
       .from("cart_items")
-      .select("*, product:products!product_id(name, slug, price, compare_at_price, stock_quantity, images:product_images(url, is_primary))")
+      .select("*, product:products!product_id(name, slug, price, compare_at_price, stock_quantity, images:product_images(url, is_primary)), variant:product_variants!variant_id(name, price, stock_quantity, image_url)")
       .eq("user_id", user.id)
       .then(({ data }) => {
         if (data && data.length > 0) {
           const serverItems: CartItem[] = data.map((ci: any) => {
-            const primaryImage = ci.product?.images?.find((i: any) => i.is_primary)?.url || ci.product?.images?.[0]?.url || null;
+            const primaryImage = ci.variant?.image_url || ci.product?.images?.find((i: any) => i.is_primary)?.url || ci.product?.images?.[0]?.url || null;
             return {
               id: ci.id,
               product_id: ci.product_id,
               variant_id: ci.variant_id,
               name: ci.product?.name || "",
               image: primaryImage,
-              price: ci.product?.price || 0,
+              price: ci.variant?.price ?? ci.product?.price ?? 0,
               compare_at_price: ci.product?.compare_at_price || null,
               quantity: ci.quantity,
-              stock_quantity: ci.product?.stock_quantity || 0,
+              stock_quantity: ci.variant?.stock_quantity ?? ci.product?.stock_quantity ?? 0,
               slug: ci.product?.slug || "",
-              variant_name: null,
+              variant_name: ci.variant?.name || null,
             };
           });
 
@@ -129,7 +129,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (existing) {
           const newQty = Math.min(existing.quantity + item.quantity, item.stock_quantity);
           const updated = prev.map((i) =>
-            i.id === existing.id ? { ...i, quantity: newQty } : i
+            i.id === existing.id
+              ? {
+                  ...i,
+                  quantity: newQty,
+                  price: item.price,
+                  stock_quantity: item.stock_quantity,
+                  image: item.image,
+                  variant_name: item.variant_name,
+                }
+              : i
           );
 
           // Sync to server

@@ -21,8 +21,8 @@ const badges = [
   },
   {
     icon: Package,
-    label: "1-2 İş Günü Teslimat",
-    desc: "Hızlı ve güvenli kargo",
+    label: "Hızlı Teslimat",
+    desc: "Bölgeye göre 2-7 iş günü",
   },
 ];
 

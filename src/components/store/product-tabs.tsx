@@ -513,7 +513,7 @@ export function ProductTabs({
               },
               {
                 q: "500₺ ücretsiz kargo kampanyası nasıl işliyor?",
-                a: "Sepetinizdeki ürünlerin toplam tutarı 500₺ ve üzeri olduğunda kargo ücretsizdir. 500₺ altı siparişlerde sabit 49,90₺ kargo ücreti uygulanır.",
+                a: "Sepetinizdeki ürünlerin toplam tutarı 500₺ ve üzeri olduğunda kargo ücretsizdir. 500₺ altı siparişlerde kargo ücreti seçtiğiniz kargo firmasına göre değişiklik gösterir; güncel ücretleri ödeme sayfasında görüntüleyebilirsiniz.",
               },
             ].map((item, i) => (
               <details key={i} className="group rounded-xl border border-border/60 overflow-hidden">
@@ -537,7 +537,7 @@ export function ProductTabs({
               <h3 className="text-base font-semibold mb-3">Kargo Bilgileri</h3>
               <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5">
                 <li>500₺ ve üzeri siparişlerde kargo ücretsizdir.</li>
-                <li>500₺ altı siparişlerde kargo ücreti 49,90₺&apos;dir.</li>
+                <li>Kargo ücretleri seçtiğiniz kargo firmasına göre değişiklik gösterir; güncel ücretleri ödeme sayfasında görebilirsiniz.</li>
                 <li>Hafta içi 14:00, Cumartesi 11:00 öncesi siparişler aynı gün kargolanır.</li>
                 <li>Teslimat süresi ortalama 1-2 iş günüdür.</li>
               </ul>

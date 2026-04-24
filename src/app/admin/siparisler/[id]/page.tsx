@@ -93,9 +93,9 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                         )}
                         <div>
                           <p className="font-medium">{item.product_name}</p>
-                          {item.variant_name && (
+                          {item.variant_info && (
                             <p className="text-xs text-muted-foreground">
-                              {item.variant_name}
+                              {item.variant_info}
                             </p>
                           )}
                         </div>

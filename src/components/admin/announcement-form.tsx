@@ -89,7 +89,7 @@ export function AnnouncementForm({ announcement }: Props) {
             value={form.text}
             onChange={(e) => updateField("text", e.target.value)}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            placeholder="🚚 400₺ üzeri siparişlerde ücretsiz kargo!"
+            placeholder="🚚 500₺ üzeri siparişlerde ücretsiz kargo!"
           />
         </div>
 

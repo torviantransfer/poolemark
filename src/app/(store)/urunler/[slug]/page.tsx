@@ -186,9 +186,12 @@ export default async function ProductPage({ params }: Props) {
                   ))}
                 </div>
                 {rating.count > 0 ? (
-                  <span className="text-sm text-muted-foreground">
+                  <a
+                    href="#degerlendirmeler"
+                    className="text-sm text-muted-foreground hover:text-primary underline-offset-2 hover:underline"
+                  >
                     {rating.average.toFixed(1)} ({rating.count} değerlendirme)
-                  </span>
+                  </a>
                 ) : (
                   <a
                     href="#degerlendirmeler"
@@ -200,7 +203,7 @@ export default async function ProductPage({ params }: Props) {
               </div>
 
               {/* Price */}
-              <div className="mt-5 rounded-2xl bg-secondary/30 border border-border/40 p-4">
+              <div className="mt-5">
                 <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5">
                   <span className="text-2xl md:text-3xl font-bold text-foreground leading-none">
                     {formatPrice(product.price)}
@@ -218,23 +221,23 @@ export default async function ProductPage({ params }: Props) {
                     )}
                 </div>
                 <div className="mt-2 flex items-center flex-wrap gap-2">
-                  <span className="text-[11px] font-medium text-muted-foreground bg-white border border-border/60 rounded-md px-2 py-1 leading-none">
+                  <span className="text-[11px] font-medium text-muted-foreground leading-none">
                     KDV Dahil
                   </span>
                   <span
-                    className={`text-[11px] font-semibold rounded-md px-2 py-1 leading-none border ${
+                    className={`text-[11px] font-semibold leading-none ${
                       product.price >= FREE_SHIPPING_THRESHOLD
-                        ? "bg-green-50 text-green-700 border-green-200"
-                        : "bg-amber-50 text-amber-700 border-amber-200"
+                        ? "text-green-700"
+                        : "text-amber-700"
                     }`}
                   >
                     {product.price >= FREE_SHIPPING_THRESHOLD
-                      ? `${FREE_SHIPPING_THRESHOLD} TL üzeri ücretsiz kargo`
-                      : `${FREE_SHIPPING_THRESHOLD} TL üzeri ücretsiz kargo · ${formatPrice(remainingForFreeShipping)} kaldı`}
+                      ? `${FREE_SHIPPING_THRESHOLD}₺ üzeri ücretsiz kargo`
+                      : `${FREE_SHIPPING_THRESHOLD}₺ üzeri ücretsiz kargo · ${formatPrice(remainingForFreeShipping)} kaldı`}
                   </span>
                 </div>
                 {/* Installment hint */}
-                <div className="mt-3 pt-3 border-t border-border/40">
+                <div className="mt-3">
                   <InstallmentModal price={product.price} />
                 </div>
               </div>

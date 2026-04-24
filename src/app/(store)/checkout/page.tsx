@@ -434,27 +434,30 @@ function CheckoutContent() {
                           key={company.id}
                           onClick={() => setSelectedShippingId(company.id)}
                           title={`${company.name} – ${isFree ? "Ücretsiz" : formatPrice(company.price)}`}
-                          className={`relative flex items-center justify-center p-3 rounded-xl border-2 transition-all ${
+                          className={`relative flex flex-col items-center justify-center gap-1 px-3 py-2.5 rounded-xl border transition-all flex-1 min-w-[110px] sm:flex-none sm:min-w-[120px] ${
                             isSelected
-                              ? "border-primary bg-accent/30"
+                              ? "border-primary bg-primary/5 ring-1 ring-primary"
                               : "border-border bg-white hover:border-primary/40"
                           }`}
                         >
-                          <div className="w-20 h-7 flex items-center justify-center">
+                          <div className="h-6 flex items-center justify-center">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={company.logo_url || `/shipping/${company.code}.png`}
                               alt={company.name}
-                              className="max-h-7 max-w-[80px] w-auto object-contain"
+                              className="max-h-6 max-w-[80px] w-auto object-contain"
                               onError={(e) => {
                                 e.currentTarget.style.display = "none";
                                 const span = document.createElement("span");
-                                span.className = "text-xs font-medium";
+                                span.className = "text-xs font-medium text-foreground";
                                 span.textContent = company.name;
                                 e.currentTarget.parentElement?.appendChild(span);
                               }}
                             />
                           </div>
+                          <span className={`text-[11px] font-semibold ${isFree ? "text-primary" : "text-muted-foreground"}`}>
+                            {isFree ? "Ücretsiz" : formatPrice(company.price)}
+                          </span>
                         </button>
                       );
                     })}

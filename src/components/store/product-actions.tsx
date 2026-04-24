@@ -59,8 +59,13 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
   const maxQty = Math.min(currentStock, 10);
   const isOutOfStock = disabled || currentStock <= 0;
 
+  const selectedImage =
+    activeVariant?.image_url ||
+    product.images?.find((i) => i.is_primary)?.url ||
+    product.images?.[0]?.url ||
+    "";
+
   function handleAddToCart() {
-    const image = product.images?.find((i) => i.is_primary)?.url || product.images?.[0]?.url || "";
     addItem({
       product_id: product.id,
       variant_id: activeVariant?.id ?? null,
@@ -68,7 +73,7 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
       slug: product.slug,
       price: currentPrice,
       compare_at_price: product.compare_at_price ?? null,
-      image,
+      image: selectedImage,
       stock_quantity: currentStock,
       quantity,
       variant_name: activeVariant?.name ?? null,
@@ -82,7 +87,6 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
   }
 
   function handleBuyNow() {
-    const image = product.images?.find((i) => i.is_primary)?.url || product.images?.[0]?.url || "";
     addItem({
       product_id: product.id,
       variant_id: activeVariant?.id ?? null,
@@ -90,7 +94,7 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
       slug: product.slug,
       price: currentPrice,
       compare_at_price: product.compare_at_price ?? null,
-      image,
+      image: selectedImage,
       stock_quantity: currentStock,
       quantity,
       variant_name: activeVariant?.name ?? null,
