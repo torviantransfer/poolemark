@@ -17,9 +17,10 @@ export async function getAdminStats() {
     { count: pendingReviews },
   ] = await Promise.all([
     supabase.from("users").select("*", { count: "exact", head: true }).eq("role", "customer"),
-    supabase.from("orders").select("*", { count: "exact", head: true }).gte("created_at", todayISO),
+    // Yarım bırakılan ödemeleri (payment_status=pending) istatistiklere dahil etme.
+    supabase.from("orders").select("*", { count: "exact", head: true }).gte("created_at", todayISO).neq("payment_status", "pending"),
     supabase.from("orders").select("total").gte("created_at", todayISO).eq("payment_status", "paid"),
-    supabase.from("orders").select("id").eq("status", "pending"),
+    supabase.from("orders").select("id").eq("status", "pending").neq("payment_status", "pending"),
     supabase.from("products").select("*", { count: "exact", head: true }).eq("is_active", true).lt("stock_quantity", 5),
     supabase.from("contact_messages").select("*", { count: "exact", head: true }).eq("is_read", false),
     supabase.from("reviews").select("*", { count: "exact", head: true }).eq("is_approved", false),

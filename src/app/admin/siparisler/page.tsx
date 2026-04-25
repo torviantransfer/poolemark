@@ -9,6 +9,7 @@ import {
 } from "@/constants";
 import { ShoppingCart, Eye } from "lucide-react";
 import { AdminSearchForm } from "@/components/admin/search-form";
+import { WhatsAppReminderButton } from "@/components/admin/whatsapp-reminder-button";
 
 interface Props {
   searchParams: Promise<{ page?: string; search?: string; status?: string }>;
@@ -25,17 +26,32 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   const supabase = await createClient();
   let query = supabase
     .from("orders")
-    .select("*, user:users!user_id(first_name, last_name, email), return_requests:order_return_requests(status, created_at)", {
-      count: "exact",
-    })
+    .select(
+      "*, user:users!user_id(first_name, last_name, email), return_requests:order_return_requests(status, created_at), items:order_items(product_name, variant_info, quantity)",
+      { count: "exact" }
+    )
     .order("created_at", { ascending: false })
     .range(from, from + limit - 1);
 
   if (search) query = query.ilike("order_number", `%${search}%`);
-  if (status !== "all") query = query.eq("status", status);
+
+  // "abandoned" = ödeme yarıda bırakılmış (PayTR'a gidildi ama kart girilmedi / iframe kapatıldı).
+  // Diğer tüm sekmelerde bu kayıtları gizle, sadece "Yarım Bırakılan" sekmesinde göster.
+  if (status === "abandoned") {
+    query = query.eq("payment_status", "pending");
+  } else {
+    query = query.neq("payment_status", "pending");
+    if (status !== "all") query = query.eq("status", status);
+  }
 
   const { data: orders, count } = await query;
   const totalPages = Math.ceil((count || 0) / limit);
+
+  // Yarım kalan ödeme sayısı (admin'in dikkatini çekmek için sekmede göstereceğiz).
+  const { count: abandonedCount } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("payment_status", "pending");
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
@@ -43,6 +59,17 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         <h1 className="text-2xl font-bold text-foreground">Siparişler</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           {count || 0} sipariş bulundu
+          {status !== "abandoned" && (abandonedCount || 0) > 0 && (
+            <>
+              {" "}·{" "}
+              <Link
+                href="/admin/siparisler?status=abandoned"
+                className="text-amber-600 hover:underline"
+              >
+                {abandonedCount} yarım bırakılmış ödeme
+              </Link>
+            </>
+          )}
         </p>
       </div>
 
@@ -52,12 +79,15 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
           <div className="flex gap-2 flex-wrap">
             {[
               { value: "all", label: "Tümü" },
-              { value: "pending", label: "Bekliyor" },
               { value: "confirmed", label: "Onaylı" },
               { value: "preparing", label: "Hazırlanıyor" },
               { value: "shipped", label: "Kargoda" },
               { value: "delivered", label: "Teslim" },
               { value: "cancelled", label: "İptal" },
+              {
+                value: "abandoned",
+                label: `Yarım Bırakılan${(abandonedCount || 0) > 0 ? ` (${abandonedCount})` : ""}`,
+              },
             ].map((s) => (
               <Link
                 key={s.value}
@@ -152,12 +182,34 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                       {formatDateTime(order.created_at)}
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <Link
-                        href={`/admin/siparisler/${order.id}`}
-                        className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors inline-flex"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Link>
+                      <div className="inline-flex items-center gap-1.5 justify-end">
+                        {status === "abandoned" && (
+                          <WhatsAppReminderButton
+                            orderId={order.id}
+                            orderNumber={order.order_number}
+                            customerName={
+                              order.user
+                                ? `${order.user.first_name} ${order.user.last_name}`.trim()
+                                : (order.shipping_address_json as any)?.first_name || ""
+                            }
+                            phone={
+                              (order.shipping_address_json as any)?.phone ||
+                              order.user?.phone ||
+                              null
+                            }
+                            items={(order as any).items || []}
+                            total={Number(order.total ?? 0)}
+                            alreadyRemindedAt={(order as any).reminded_at ?? null}
+                            variant="icon"
+                          />
+                        )}
+                        <Link
+                          href={`/admin/siparisler/${order.id}`}
+                          className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors inline-flex"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                   );

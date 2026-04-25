@@ -142,6 +142,7 @@ function SiparisTakipInner() {
 
   const etaLabel = (() => {
     if (!result) return "Güncelleme bekleniyor";
+    if (result.paymentStatus === "refunded") return "İade tamamlandı";
     if (result.status === "delivered") return "Teslim edildi";
     if (normalizedStatus === "shipped") return "1-3 iş günü";
     if (normalizedStatus === "preparing") return "Kargoya hazırlanıyor";
@@ -195,7 +196,7 @@ function SiparisTakipInner() {
                 <Label htmlFor="orderNumber" className="mb-1.5 block">Sipariş Numarası</Label>
                 <Input
                   id="orderNumber"
-                  placeholder="Örn: PM-26040001"
+                  placeholder="Örn: PM26-A7K9XB"
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
                   required
@@ -256,7 +257,15 @@ function SiparisTakipInner() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div className="rounded-lg border bg-secondary/20 px-3 py-2">
                   <p className="text-[11px] text-muted-foreground">Ödeme Durumu</p>
-                  <p className="text-sm font-semibold text-foreground mt-0.5">{result.paymentStatus === "paid" ? "Ödeme Onaylandı" : "Ödeme Bekleniyor"}</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
+                    {result.paymentStatus === "paid"
+                      ? "Ödeme Onaylandı"
+                      : result.paymentStatus === "refunded"
+                        ? "İade Edildi"
+                        : result.paymentStatus === "failed"
+                          ? "Ödeme Başarısız"
+                          : "Ödeme Bekleniyor"}
+                  </p>
                 </div>
                 <div className="rounded-lg border bg-secondary/20 px-3 py-2">
                   <p className="text-[11px] text-muted-foreground">Tahmini Teslim</p>

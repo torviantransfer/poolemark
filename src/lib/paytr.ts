@@ -30,8 +30,14 @@ export function getPossibleOrderNumbersFromMerchantOid(merchantOid: string): str
   const normalized = merchantOid.trim().toUpperCase();
   const candidates = new Set<string>([normalized]);
 
+  // Eski format: PM-YYMM######## → PayTR'a PMYYMM######## gelir
   if (normalized.startsWith("PM") && !normalized.startsWith("PM-")) {
     candidates.add(`PM-${normalized.slice(2)}`);
+  }
+
+  // Yeni format: PMYY-XXXXXX → PayTR'a PMYYXXXXXX gelir (10 karakter, ilk 4'ü PMYY)
+  if (/^PM\d{2}[A-Z0-9]{6}$/.test(normalized)) {
+    candidates.add(`${normalized.slice(0, 4)}-${normalized.slice(4)}`);
   }
 
   return Array.from(candidates);

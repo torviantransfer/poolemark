@@ -4,7 +4,18 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
+import { useCart } from "@/hooks/use-cart";
 import { isReturningVisitor, trackSiteLeave } from "@/lib/site-events";
+
+// Sayfa path'inden funnel aşaması türet — admin paneli "Sıcak Kişiler" hesabında kullanır.
+function deriveFunnelStage(path: string | null | undefined): "browsing" | "product" | "cart" | "checkout" | "payment" | "thankyou" {
+  const p = path || "/";
+  if (p.startsWith("/odeme-sonucu")) return "thankyou";
+  if (p.startsWith("/checkout")) return "checkout";
+  if (p.startsWith("/sepet")) return "cart";
+  if (p.startsWith("/products/")) return "product";
+  return "browsing";
+}
 
 function getSessionId() {
   const key = "poolemark_presence_session_id";
@@ -107,6 +118,7 @@ function detectAttribution(): Attribution {
 export function PresenceTracker() {
   const pathname = usePathname();
   const { user } = useUser();
+  const { itemCount, subtotal } = useCart();
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
   const geoRef = useRef<{ city: string; country: string; region: string } | null>(null);
@@ -115,12 +127,18 @@ export function PresenceTracker() {
   const pathnameRef = useRef(pathname);
   const userIdRef = useRef<string | null>(user?.id || null);
   const lastActionRef = useRef<string>("");
+  const cartCountRef = useRef<number>(itemCount);
+  const cartValueRef = useRef<number>(subtotal);
+  // Gerçek "siteye geliş zamanı" — her track'te değişmesin diye sabit tut.
+  const firstSeenAtRef = useRef<string>(new Date().toISOString());
 
   // Keep refs in sync so async callbacks always read the latest values.
   useEffect(() => {
     pathnameRef.current = pathname;
     userIdRef.current = user?.id || null;
-  }, [pathname, user?.id]);
+    cartCountRef.current = itemCount;
+    cartValueRef.current = subtotal;
+  }, [pathname, user?.id, itemCount, subtotal]);
 
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_ENABLE_PRESENCE !== "true") return;
@@ -134,7 +152,7 @@ export function PresenceTracker() {
       role: "store-visitor",
       path: pathnameRef.current,
       userId: userIdRef.current,
-      joinedAt: new Date().toISOString(),
+      joinedAt: firstSeenAtRef.current,
       isReturning: isReturningVisitor(),
       city: geoRef.current?.city ?? "",
       country: geoRef.current?.country ?? "",
@@ -143,6 +161,9 @@ export function PresenceTracker() {
       campaign: attributionRef.current?.campaign ?? "",
       referrerHost: attributionRef.current?.referrerHost ?? "",
       lastAction: action || lastActionRef.current || `Sayfa: ${pathnameRef.current}`,
+      cartCount: cartCountRef.current,
+      cartValue: cartValueRef.current,
+      stage: deriveFunnelStage(pathnameRef.current),
     });
 
     const setupChannel = () => {
@@ -218,15 +239,29 @@ export function PresenceTracker() {
     };
 
     // Click tracker — captures any <a>/<button> click on the document.
+    // İkon-only butonlarda textContent boş geliyor; aria-label/title/data-track fallback'leri
+    // sayesinde "Tiklama: Buton" gibi anlamsız etiketler yerine gerçek anlamlı isimler ç​ı​kar.
     const onClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
       if (!target) return;
       const clickable = target.closest("a,button") as HTMLAnchorElement | HTMLButtonElement | null;
       if (!clickable) return;
-      const text = (clickable.textContent || "").replace(/\s+/g, " ").trim().slice(0, 60);
+
+      const dataTrack = clickable.getAttribute("data-track") || "";
+      const ariaLabel = clickable.getAttribute("aria-label") || "";
+      const title = clickable.getAttribute("title") || "";
+      const text = (clickable.textContent || "").replace(/\s+/g, " ").trim();
       const href = clickable instanceof HTMLAnchorElement ? clickable.getAttribute("href") || "" : "";
-      const label = text || href || (clickable.tagName === "A" ? "Link" : "Buton");
-      lastActionRef.current = `Tiklama: ${label}`;
+
+      // Öncelik sırası: data-track > aria-label > title > inner text > href.
+      let label = (dataTrack || ariaLabel || title || text || href).slice(0, 60);
+      if (!label) {
+        // Hiç anlamlı bilgi yoksa bu tıklamayı admin paneline bildirme — gürültü yapar.
+        return;
+      }
+      lastActionRef.current =
+        clickable.tagName === "A" ? `Link: ${label}` : `Tıklama: ${label}`;
+
       const channel = channelRef.current;
       if (channel && statusRef.current === "SUBSCRIBED") {
         channel.track(buildPayload());
@@ -291,7 +326,7 @@ export function PresenceTracker() {
     };
   }, []);
 
-  // On pathname / user change, push an updated presence (if connected).
+  // On pathname / user / cart change, push an updated presence (if connected).
   useEffect(() => {
     lastActionRef.current = `Sayfa: ${pathname}`;
     const channel = channelRef.current;
@@ -300,7 +335,7 @@ export function PresenceTracker() {
         role: "store-visitor",
         path: pathname,
         userId: user?.id || null,
-        joinedAt: new Date().toISOString(),
+        joinedAt: firstSeenAtRef.current,
         isReturning: isReturningVisitor(),
         city: geoRef.current?.city ?? "",
         country: geoRef.current?.country ?? "",
@@ -309,9 +344,12 @@ export function PresenceTracker() {
         campaign: attributionRef.current?.campaign ?? "",
         referrerHost: attributionRef.current?.referrerHost ?? "",
         lastAction: `Sayfa: ${pathname}`,
+        cartCount: itemCount,
+        cartValue: subtotal,
+        stage: deriveFunnelStage(pathname),
       });
     }
-  }, [pathname, user?.id]);
+  }, [pathname, user?.id, itemCount, subtotal]);
 
   return null;
 }

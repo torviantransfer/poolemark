@@ -7,10 +7,18 @@ import { createPayTRToken, normalizePayTRUserIp } from "@/lib/paytr";
 function buildOrderNumberFromIdempotencyKey(key: string): string {
   const now = new Date();
   const year = now.getFullYear().toString().slice(-2);
-  const month = (now.getMonth() + 1).toString().padStart(2, "0");
+  // Hash'i base36'ya çevirip ilk 6 hanesini kullan → 36^6 ≈ 2 milyar kombinasyon.
+  // Karışmasın diye 0/O ve 1/I/L harflerini at.
   const hash = crypto.createHash("sha256").update(key).digest("hex");
-  const numericPart = (Number.parseInt(hash.slice(0, 12), 16) % 100000000).toString().padStart(8, "0");
-  return `PM-${year}${month}${numericPart}`;
+  const bigPart = BigInt("0x" + hash.slice(0, 16));
+  let raw = bigPart.toString(36).toUpperCase();
+  raw = raw.replace(/[01OIL]/g, "");
+  // 6 karaktere sıkıştır; eksikse hash sonundan tamamla.
+  if (raw.length < 6) {
+    raw = (raw + hash.toUpperCase().replace(/[^A-Z2-9]/g, "")).slice(0, 6);
+  }
+  const code = raw.slice(0, 6);
+  return `PM${year}-${code}`;
 }
 
 function isUniqueViolation(error: { code?: string } | null | undefined): boolean {

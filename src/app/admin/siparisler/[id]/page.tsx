@@ -10,6 +10,7 @@ import {
 } from "@/constants";
 import { ArrowLeft, MapPin, Phone, Mail, Package, FileText } from "lucide-react";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
+import { WhatsAppReminderButton } from "@/components/admin/whatsapp-reminder-button";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -61,6 +62,25 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             {formatDateTime(order.created_at)}
           </p>
         </div>
+        {order.payment_status === "pending" && (
+          <WhatsAppReminderButton
+            orderId={order.id}
+            orderNumber={order.order_number}
+            customerName={
+              order.user
+                ? `${order.user.first_name} ${order.user.last_name}`.trim()
+                : (shippingAddr as any)?.first_name || ""
+            }
+            phone={(shippingAddr as any)?.phone || order.user?.phone || null}
+            items={(order.items || []).map((it: any) => ({
+              product_name: it.product_name,
+              variant_info: it.variant_info,
+              quantity: it.quantity,
+            }))}
+            total={Number(order.total ?? 0)}
+            alreadyRemindedAt={orderExt.reminded_at ?? null}
+          />
+        )}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">

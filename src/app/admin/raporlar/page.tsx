@@ -22,7 +22,8 @@ export default async function AdminReportsPage() {
     supabase.from("orders").select("total, payment_status").gte("created_at", lastMonthStart).lte("created_at", lastMonthEnd).eq("payment_status", "paid"),
     supabase.from("products").select("*", { count: "exact", head: true }).eq("is_active", true),
     supabase.from("users").select("*", { count: "exact", head: true }).eq("role", "customer"),
-    supabase.from("orders").select("*", { count: "exact", head: true }),
+    // Toplam sipariş sayısı: yarım bırakılan ödemeleri (payment_status=pending) hariç tut.
+    supabase.from("orders").select("*", { count: "exact", head: true }).neq("payment_status", "pending"),
     supabase.from("orders").select("total, payment_status").eq("payment_status", "paid"),
   ]);
 
