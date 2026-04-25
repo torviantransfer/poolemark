@@ -128,6 +128,42 @@ function CheckoutContent() {
     }
   }, [user, authLoading]);
 
+  // Checkout sayfasına girer girmez (sepet doluysa) huniye InitiateCheckout düş.
+  // Tek seferlik: aynı session içinde aynı sepetle tekrar tekrar göndermez.
+  useEffect(() => {
+    if (cartLoading) return;
+    if (items.length === 0) return;
+    if (typeof window === "undefined") return;
+    const FIRED_KEY = "pm_checkout_fired";
+    try {
+      if (sessionStorage.getItem(FIRED_KEY)) return;
+      sessionStorage.setItem(FIRED_KEY, "1");
+    } catch {
+      // ignore
+    }
+    const value = items.reduce((s, i) => s + i.price * i.quantity, 0);
+    const num = items.reduce((s, i) => s + i.quantity, 0);
+    trackEvent(
+      "InitiateCheckout",
+      {
+        content_ids: items.map((i) => i.variant_id ?? i.product_id),
+        contents: items.map((i) => ({
+          id: i.variant_id ?? i.product_id,
+          quantity: i.quantity,
+          item_price: i.price,
+        })),
+        num_items: num,
+        value,
+        currency: "TRY",
+      },
+      { userEmail: user?.email ?? null }
+    );
+    trackSiteEvent("initiate_checkout", {
+      userId: user?.id ?? null,
+      metadata: { num_items: num, value, trigger: "page_view" },
+    });
+  }, [cartLoading, items, user?.email, user?.id]);
+
   async function loadShippingCompanies() {
     const supabase = createClient();
     const { data } = await supabase
