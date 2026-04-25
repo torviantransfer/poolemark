@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/meta-pixel";
+import { trackSiteEvent } from "@/lib/site-events";
 
 interface ProductCardProps {
   product: Product;
@@ -61,6 +62,9 @@ export function ProductCard({ product, className, priority = false }: ProductCar
       contents: [{ id: product.id, quantity: 1, item_price: product.price }],
       value: product.price,
       currency: "TRY",
+    });
+    trackSiteEvent("add_to_cart", {
+      metadata: { product_id: product.id, value: product.price },
     });
     setAdded(true);
     toast.success("Sepete eklendi", {

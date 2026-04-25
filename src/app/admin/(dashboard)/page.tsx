@@ -3,6 +3,7 @@ import {
   getAdminStats,
   getRecentOrders,
   getLowStockProducts,
+  getTodayFunnelStats,
 } from "@/services/admin";
 import { formatPrice, formatDateTime } from "@/lib/helpers";
 import {
@@ -21,10 +22,14 @@ import {
   Star,
   ArrowRight,
   Package,
+  Eye,
+  ShoppingBag,
+  CreditCard,
+  CheckCircle2,
 } from "lucide-react";
 
 export default async function AdminDashboard() {
-  const [stats, recentOrders, lowStock] = await Promise.all([
+  const [stats, recentOrders, lowStock, funnel] = await Promise.all([
     getAdminStats().catch(() => ({
       totalCustomers: 0,
       todayOrders: 0,
@@ -36,7 +41,18 @@ export default async function AdminDashboard() {
     })),
     getRecentOrders(10).catch(() => []),
     getLowStockProducts(5).catch(() => []),
+    getTodayFunnelStats().catch(() => ({
+      visitors: 0,
+      pageViews: 0,
+      addToCart: 0,
+      initiateCheckout: 0,
+      purchase: 0,
+    })),
   ]);
+
+  const cartRate = funnel.visitors > 0 ? (funnel.addToCart / funnel.visitors) * 100 : 0;
+  const checkoutRate = funnel.addToCart > 0 ? (funnel.initiateCheckout / funnel.addToCart) * 100 : 0;
+  const purchaseRate = funnel.visitors > 0 ? (funnel.purchase / funnel.visitors) * 100 : 0;
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
@@ -74,6 +90,48 @@ export default async function AdminDashboard() {
           value={stats.pendingOrders.toString()}
           color="text-amber-600 bg-amber-50"
         />
+      </div>
+
+      {/* Funnel Stats */}
+      <div className="bg-white rounded-2xl border shadow-sm p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Bugünkü Dönüşüm Hunisi</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Tekil ziyaretçi bazında (toplam {funnel.pageViews} sayfa görüntüleme)
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <FunnelCard
+            icon={<Eye className="h-4 w-4" />}
+            label="Ziyaretçi"
+            value={funnel.visitors}
+            sub="100%"
+            color="text-sky-600 bg-sky-50"
+          />
+          <FunnelCard
+            icon={<ShoppingBag className="h-4 w-4" />}
+            label="Sepete Ekleyen"
+            value={funnel.addToCart}
+            sub={`${cartRate.toFixed(1)}% ziyaretçinin`}
+            color="text-indigo-600 bg-indigo-50"
+          />
+          <FunnelCard
+            icon={<CreditCard className="h-4 w-4" />}
+            label="Ödemeye Geçen"
+            value={funnel.initiateCheckout}
+            sub={`${checkoutRate.toFixed(1)}% sepetten`}
+            color="text-fuchsia-600 bg-fuchsia-50"
+          />
+          <FunnelCard
+            icon={<CheckCircle2 className="h-4 w-4" />}
+            label="Satın Alan"
+            value={funnel.purchase}
+            sub={`${purchaseRate.toFixed(1)}% dönüşüm`}
+            color="text-emerald-600 bg-emerald-50"
+          />
+        </div>
       </div>
 
       {/* Alert Cards */}
@@ -282,6 +340,33 @@ function StatCard({
       </div>
       <p className="text-2xl font-bold text-foreground mt-3">{value}</p>
       <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+function FunnelCard({
+  icon,
+  label,
+  value,
+  sub,
+  color,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  sub: string;
+  color: string;
+}) {
+  return (
+    <div className="rounded-xl border p-4">
+      <div className="flex items-center gap-2">
+        <div className={`inline-flex items-center justify-center w-8 h-8 rounded-lg ${color}`}>
+          {icon}
+        </div>
+        <span className="text-xs text-muted-foreground">{label}</span>
+      </div>
+      <p className="text-2xl font-bold text-foreground mt-2">{value}</p>
+      <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>
     </div>
   );
 }

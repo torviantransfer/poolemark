@@ -31,6 +31,7 @@ import Script from "next/script";
 import type { Address } from "@/types";
 import { InstallmentModal } from "@/components/store/installment-modal";
 import { trackEvent } from "@/lib/meta-pixel";
+import { trackSiteEvent } from "@/lib/site-events";
 
 interface GuestAddress {
   first_name: string;
@@ -176,6 +177,13 @@ function CheckoutContent() {
         userPhone: guestAddress?.phone ?? null,
       }
     );
+    trackSiteEvent("initiate_checkout", {
+      userId: user?.id ?? null,
+      metadata: {
+        num_items: items.reduce((sum, i) => sum + i.quantity, 0),
+        value: items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+      },
+    });
 
     startTransition(async () => {
       try {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { trackEvent } from "@/lib/meta-pixel";
+import { trackSiteEvent } from "@/lib/site-events";
 
 interface PurchaseTrackerProps {
   orderId: string;
@@ -57,6 +58,13 @@ export function PurchaseTracker({
         userPhone: userPhone ?? null,
       }
     );
+    trackSiteEvent("purchase", {
+      metadata: {
+        order_id: orderId,
+        order_number: orderNumber,
+        value: total,
+      },
+    });
 
     if (typeof window !== "undefined") {
       sessionStorage.setItem(storageKey, "1");
