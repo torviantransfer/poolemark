@@ -8,7 +8,7 @@ import {
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_COLORS,
 } from "@/constants";
-import { ArrowLeft, MapPin, Phone, Mail, Package } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, Package, FileText } from "lucide-react";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
 
 interface Props {
@@ -30,6 +30,10 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   const orderExt = order as any;
 
   const shippingAddr = order.shipping_address_json;
+  const billingAddr = (order as any).billing_address_json as
+    | (Record<string, string> & { invoice_type?: string; company_name?: string; tax_office?: string; tax_id?: string })
+    | null;
+  const isCorporateInvoice = billingAddr?.invoice_type === "corporate";
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
@@ -239,6 +243,21 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                     {shippingAddr.phone}
                   </p>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Billing / Invoice */}
+          {isCorporateInvoice && billingAddr && (
+            <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
+              <h2 className="text-base font-semibold flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Kurumsal Fatura Bilgileri
+              </h2>
+              <div className="text-sm space-y-1 text-foreground/80">
+                <p className="font-medium">{billingAddr.company_name}</p>
+                <p>Vergi Dairesi: {billingAddr.tax_office}</p>
+                <p>Vergi/TC No: {billingAddr.tax_id}</p>
               </div>
             </div>
           )}

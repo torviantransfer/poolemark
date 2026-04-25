@@ -209,5 +209,44 @@ export function PresenceTracker() {
     return () => document.removeEventListener("click", onClick);
   }, [pathname, user?.id]);
 
+  // Heartbeat: re-track every 25s and on visibility/online events so that
+  // Realtime presence does not drop the visitor due to idle/tab throttling.
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ENABLE_PRESENCE !== "true") return;
+
+    const reTrack = () => {
+      const channel = channelRef.current;
+      if (!channel) return;
+      channel.track({
+        role: "store-visitor",
+        path: pathname,
+        userId: user?.id || null,
+        joinedAt: new Date().toISOString(),
+        city: geoRef.current?.city ?? "",
+        country: geoRef.current?.country ?? "",
+        source: attributionRef.current?.source ?? "direct",
+        medium: attributionRef.current?.medium ?? "none",
+        campaign: attributionRef.current?.campaign ?? "",
+        referrerHost: attributionRef.current?.referrerHost ?? "",
+        lastAction: `Sayfa: ${pathname}`,
+      });
+    };
+
+    const interval = window.setInterval(reTrack, 25000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") reTrack();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", reTrack);
+    window.addEventListener("online", reTrack);
+
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", reTrack);
+      window.removeEventListener("online", reTrack);
+    };
+  }, [pathname, user?.id]);
+
   return null;
 }

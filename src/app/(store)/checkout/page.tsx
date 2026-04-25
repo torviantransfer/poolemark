@@ -78,6 +78,10 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [notes, setNotes] = useState("");
+  const [invoiceType, setInvoiceType] = useState<"individual" | "corporate">("individual");
+  const [companyName, setCompanyName] = useState("");
+  const [taxOffice, setTaxOffice] = useState("");
+  const [taxId, setTaxId] = useState("");
   const [idempotencyKey] = useState(() => {
     if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
       return crypto.randomUUID();
@@ -109,6 +113,10 @@ function CheckoutContent() {
     !!guestAddress.address_line;
 
   const canCheckout = (isGuest ? isGuestFormValid : !!selectedAddressId) && !!selectedShippingId;
+
+  const isInvoiceValid =
+    invoiceType === "individual" ||
+    (!!companyName.trim() && !!taxOffice.trim() && !!taxId.trim());
 
   useEffect(() => {
     loadShippingCompanies();
@@ -157,6 +165,10 @@ function CheckoutContent() {
   async function handlePlaceOrder() {
     if (items.length === 0) return;
     if (!canCheckout) return;
+    if (!isInvoiceValid) {
+      toast.error("Kurumsal fatura için firma adı, vergi dairesi ve vergi numarasını giriniz.");
+      return;
+    }
 
     // Fire InitiateCheckout right before kicking off the payment request.
     trackEvent(
@@ -205,6 +217,12 @@ function CheckoutContent() {
               couponCode: couponCode || undefined,
               notes: notes || null,
               idempotencyKey,
+              invoice: {
+                type: invoiceType,
+                companyName: companyName.trim(),
+                taxOffice: taxOffice.trim(),
+                taxId: taxId.trim(),
+              },
             }
           : {
               addressId: selectedAddressId,
@@ -213,6 +231,12 @@ function CheckoutContent() {
               couponCode: couponCode || undefined,
               notes: notes || null,
               idempotencyKey,
+              invoice: {
+                type: invoiceType,
+                companyName: companyName.trim(),
+                taxOffice: taxOffice.trim(),
+                taxId: taxId.trim(),
+              },
             };
 
         const res = await fetch("/api/payment", {
@@ -514,6 +538,75 @@ function CheckoutContent() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">Aktif kargo firması bulunamadı.</p>
+                )}
+              </div>
+
+              {/* Invoice / Fatura Bilgileri */}
+              <div className="bg-white rounded-2xl border p-5 md:p-6">
+                <h2 className="flex items-center gap-2 font-semibold text-base mb-3">
+                  <FileText className="h-5 w-5 text-primary shrink-0" />
+                  Fatura Bilgileri
+                </h2>
+                <div className="flex gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setInvoiceType("individual")}
+                    className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-medium transition ${
+                      invoiceType === "individual"
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-input text-muted-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    Bireysel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInvoiceType("corporate")}
+                    className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-medium transition ${
+                      invoiceType === "corporate"
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-input text-muted-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    Kurumsal
+                  </button>
+                </div>
+                {invoiceType === "corporate" && (
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="company-name">Firma Adı *</Label>
+                      <Input
+                        id="company-name"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="Firma ünvanı"
+                        maxLength={150}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="tax-office">Vergi Dairesi *</Label>
+                        <Input
+                          id="tax-office"
+                          value={taxOffice}
+                          onChange={(e) => setTaxOffice(e.target.value)}
+                          placeholder="Örn: Kadıköy"
+                          maxLength={80}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="tax-id">Vergi / TC No *</Label>
+                        <Input
+                          id="tax-id"
+                          value={taxId}
+                          onChange={(e) => setTaxId(e.target.value.replace(/\D/g, ""))}
+                          placeholder="10 veya 11 hane"
+                          maxLength={11}
+                          inputMode="numeric"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
 

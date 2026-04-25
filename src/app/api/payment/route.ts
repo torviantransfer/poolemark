@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const { addressId, guestAddress, items, shippingCompanyId, couponCode, notes, idempotencyKey } = body;
+    const { addressId, guestAddress, items, shippingCompanyId, couponCode, notes, idempotencyKey, invoice } = body;
 
     const normalizedIdempotencyKey = typeof idempotencyKey === "string" ? idempotencyKey.trim() : "";
     if (!normalizedIdempotencyKey) {
@@ -221,11 +221,87 @@ export async function POST(request: NextRequest) {
       userName = `${first_name} ${last_name}`;
       userPhone = phone;
       userId = null;
+
+      // === AUTO-REGISTER GUEST AS CUSTOMER ===
+      // Find existing public.users row by email; if none, create an auth user.
+      try {
+        const normalizedEmail = email.trim().toLowerCase();
+        const { data: existingProfile } = await adminClient
+          .from("users")
+          .select("id")
+          .eq("email", normalizedEmail)
+          .maybeSingle();
+
+        if (existingProfile?.id) {
+          userId = existingProfile.id;
+        } else {
+          const randomPassword = crypto.randomBytes(24).toString("base64url");
+          const { data: createdUser } = await adminClient.auth.admin.createUser({
+            email: normalizedEmail,
+            password: randomPassword,
+            email_confirm: true,
+            user_metadata: {
+              first_name,
+              last_name,
+              phone,
+            },
+          });
+          if (createdUser?.user?.id) {
+            userId = createdUser.user.id;
+            // Trigger inserts public.users row; ensure phone is saved
+            await adminClient
+              .from("users")
+              .update({ first_name, last_name, phone })
+              .eq("id", userId);
+          }
+        }
+
+        // Save the guest address as a permanent address for future logins
+        if (userId) {
+          await adminClient.from("addresses").insert({
+            user_id: userId,
+            title: "Teslimat Adresi",
+            first_name,
+            last_name,
+            phone,
+            city,
+            district,
+            neighborhood: neighborhood || "",
+            postal_code: postal_code || "",
+            address_line,
+            is_default: true,
+          });
+        }
+      } catch {
+        // Auto-register is best-effort; fall back to true guest checkout.
+        userId = null;
+      }
     } else {
       return NextResponse.json({ error: "Teslimat adresi gerekli" }, { status: 400 });
     }
 
     const orderNumber = buildOrderNumberFromIdempotencyKey(normalizedIdempotencyKey);
+
+    // Build billing address (kurumsal / bireysel fatura bilgileri)
+    const invoiceType = invoice?.type === "corporate" ? "corporate" : "individual";
+    const billingAddressJson: Record<string, string> = {
+      ...shippingAddressJson,
+      invoice_type: invoiceType,
+    };
+    if (invoiceType === "corporate") {
+      const companyName = (invoice?.companyName || "").toString().trim();
+      const taxOffice = (invoice?.taxOffice || "").toString().trim();
+      const taxId = (invoice?.taxId || "").toString().trim();
+      if (!companyName || !taxOffice || !taxId) {
+        return NextResponse.json(
+          { error: "Kurumsal fatura için firma adı, vergi dairesi ve vergi numarası zorunludur." },
+          { status: 400 }
+        );
+      }
+      billingAddressJson.company_name = companyName;
+      billingAddressJson.tax_office = taxOffice;
+      billingAddressJson.tax_id = taxId;
+    }
 
     // Create order
     const { data: order, error } = await adminClient
@@ -243,6 +319,7 @@ export async function POST(request: NextRequest) {
         discount_amount: discount || 0,
         total,
         shipping_address_json: shippingAddressJson,
+        billing_address_json: billingAddressJson,
         notes: notes || null,
       })
       .select("id")

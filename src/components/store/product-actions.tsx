@@ -129,6 +129,17 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
       quantity,
       variant_name: activeVariant?.name ?? null,
     });
+    trackEvent("AddToCart", {
+      content_ids: [activeVariant?.id ?? product.id],
+      content_name: product.name,
+      content_type: "product",
+      contents: [{ id: activeVariant?.id ?? product.id, quantity, item_price: currentPrice }],
+      value: currentPrice * quantity,
+      currency: "TRY",
+    });
+    trackSiteEvent("add_to_cart", {
+      metadata: { product_id: product.id, value: currentPrice * quantity, source: "buy_now" },
+    });
     router.push("/checkout");
   }
 
