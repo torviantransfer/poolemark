@@ -173,6 +173,42 @@ export async function getTodayTrafficSources() {
     .sort((a, b) => b.visitors - a.visitors);
 }
 
+/**
+ * Bugün en çok terk edilen sayfalar (site_leave eventlerinden).
+ * Aynı session_id aynı path'ten birden fazla kez ayrılmışsa tek sayılır.
+ */
+export async function getTodayExitPages(limit = 5) {
+  const supabase = createAdminClient();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayISO = today.toISOString();
+
+  const { data } = await supabase
+    .from("site_events")
+    .select("session_id, path, created_at")
+    .eq("event_type", "site_leave")
+    .gte("created_at", todayISO);
+
+  if (!data) return [] as { path: string; exits: number }[];
+
+  const seen = new Set<string>();
+  const counts = new Map<string, number>();
+  for (const row of data) {
+    const path = (row.path as string) || "(bilinmiyor)";
+    const sid = (row.session_id as string) || "";
+    const dedupKey = `${sid}::${path}`;
+    if (seen.has(dedupKey)) continue;
+    seen.add(dedupKey);
+    counts.set(path, (counts.get(path) || 0) + 1);
+  }
+
+  return Array.from(counts.entries())
+    .map(([path, exits]) => ({ path, exits }))
+    .sort((a, b) => b.exits - a.exits)
+    .slice(0, limit);
+}
+
+export async function getRecentOrders(limit = 10) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")

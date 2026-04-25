@@ -5,6 +5,7 @@ import {
   getLowStockProducts,
   getTodayFunnelStats,
   getTodayTrafficSources,
+  getTodayExitPages,
 } from "@/services/admin";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,7 @@ import {
   CheckCircle2,
   Sparkles,
   Repeat,
+  LogOut,
 } from "lucide-react";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -71,6 +73,8 @@ export default async function AdminDashboard() {
 
   const trafficSources = await getTodayTrafficSources().catch(() => [] as { source: string; visitors: number }[]);
   const totalSourceVisitors = trafficSources.reduce((s, x) => s + x.visitors, 0);
+  const exitPages = await getTodayExitPages(5).catch(() => [] as { path: string; exits: number }[]);
+  const totalExits = exitPages.reduce((s, x) => s + x.exits, 0);
 
   const cartRate = funnel.visitors > 0 ? (funnel.addToCart / funnel.visitors) * 100 : 0;
   const checkoutRate = funnel.addToCart > 0 ? (funnel.initiateCheckout / funnel.addToCart) * 100 : 0;
@@ -203,6 +207,44 @@ export default async function AdminDashboard() {
                   <div className="h-2 bg-secondary rounded-full overflow-hidden">
                     <div
                       className="h-full bg-primary rounded-full transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* En Çok Terk Edilen Sayfalar */}
+      <div className="bg-white rounded-2xl border shadow-sm p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <LogOut className="h-4 w-4 text-rose-600" />
+          <div>
+            <h2 className="text-base font-semibold text-foreground">En Çok Terk Edilen Sayfalar</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Bugün ziyaretçilerin siteden ayrıldığı son sayfa
+            </p>
+          </div>
+        </div>
+        {exitPages.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Henüz veri yok.</p>
+        ) : (
+          <div className="space-y-2">
+            {exitPages.map(({ path, exits }) => {
+              const pct = totalExits > 0 ? (exits / totalExits) * 100 : 0;
+              return (
+                <div key={path} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-foreground truncate pr-3">{path}</span>
+                    <span className="tabular-nums text-muted-foreground">
+                      {exits} <span className="text-xs">çıkış</span>
+                    </span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-rose-500 rounded-full transition-all"
                       style={{ width: `${pct}%` }}
                     />
                   </div>

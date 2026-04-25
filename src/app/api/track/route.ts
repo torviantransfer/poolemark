@@ -8,6 +8,7 @@ const ALLOWED = new Set([
   "add_to_cart",
   "initiate_checkout",
   "purchase",
+  "site_leave",
 ]);
 
 export async function POST(request: NextRequest) {

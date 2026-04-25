@@ -85,7 +85,8 @@ export type SiteEventType =
   | "page_view"
   | "add_to_cart"
   | "initiate_checkout"
-  | "purchase";
+  | "purchase"
+  | "site_leave";
 
 export function trackSiteEvent(
   event_type: SiteEventType,
@@ -120,5 +121,51 @@ export function trackSiteEvent(
     }).catch(() => {});
   } catch {
     // Silent fail
+  }
+}
+
+/**
+ * Tarayıcı kapanırken/sayfa terk edilirken çalışacak şekilde tasarlandı.
+ * `navigator.sendBeacon` kullanır → tarayıcı sayfayı boşaltsa bile istek gönderilir.
+ */
+export function trackSiteLeave(extra: { lastPath?: string; lastAction?: string; userId?: string | null } = {}): void {
+  if (typeof window === "undefined") return;
+  try {
+    const session_id = getSessionId();
+    const { source, medium } = detectSource();
+    const payload = {
+      event_type: "site_leave" as const,
+      session_id,
+      user_id: extra.userId ?? null,
+      path: extra.lastPath ?? window.location.pathname,
+      metadata: {
+        source,
+        medium,
+        last_action: extra.lastAction ?? "",
+        is_returning: (() => {
+          try {
+            const stored = window.localStorage.getItem(FIRST_VISIT_KEY);
+            const today = new Date().toISOString().slice(0, 10);
+            return !!stored && stored < today;
+          } catch {
+            return false;
+          }
+        })(),
+      },
+    };
+    const body = JSON.stringify(payload);
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: "application/json" });
+      navigator.sendBeacon("/api/track", blob);
+      return;
+    }
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+      body,
+    }).catch(() => {});
+  } catch {
+    // silent
   }
 }

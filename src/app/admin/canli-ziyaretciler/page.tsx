@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Eye, Users, UserCheck, MapPin, Sparkles, Repeat } from "lucide-react";
+import { Eye, Users, UserCheck, MapPin, Sparkles, Repeat, LogOut } from "lucide-react";
 
 type PresenceEntry = {
   key: string;
@@ -20,8 +20,21 @@ type PresenceEntry = {
   lastAction?: string;
 };
 
+type LeftEntry = {
+  key: string;
+  leftAt: number;
+  path?: string;
+  city?: string;
+  country?: string;
+  source?: string;
+  lastAction?: string;
+  isReturning?: boolean;
+  userId?: string | null;
+};
+
 export default function AdminLiveVisitorsPage() {
   const [entries, setEntries] = useState<PresenceEntry[]>([]);
+  const [leftEntries, setLeftEntries] = useState<LeftEntry[]>([]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -85,7 +98,26 @@ export default function AdminLiveVisitorsPage() {
 
     channel.on("presence", { event: "sync" }, readPresence);
     channel.on("presence", { event: "join" }, readPresence);
-    channel.on("presence", { event: "leave" }, readPresence);
+    channel.on("presence", {
+      event: "leave",
+    }, ({ key, leftPresences }: { key: string; leftPresences: Array<Record<string, unknown>> }) => {
+      readPresence();
+      const meta = (leftPresences && leftPresences[leftPresences.length - 1]) || {};
+      // Admin gözlemcileri "Son Ayrılanlar"a düşmesin.
+      if ((meta.role as string) === "admin-live-visitors") return;
+      const left: LeftEntry = {
+        key,
+        leftAt: Date.now(),
+        path: meta.path as string | undefined,
+        city: meta.city as string | undefined,
+        country: meta.country as string | undefined,
+        source: (meta.source as string | undefined) ?? "direct",
+        lastAction: meta.lastAction as string | undefined,
+        isReturning: (meta.isReturning as boolean | undefined) ?? false,
+        userId: (meta.userId as string | null | undefined) ?? null,
+      };
+      setLeftEntries((prev) => [left, ...prev].slice(0, 20));
+    });
 
     channel.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
@@ -238,6 +270,74 @@ export default function AdminLiveVisitorsPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Son Ayrılanlar */}
+      <div className="bg-white border rounded-2xl p-4 md:p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <LogOut className="h-4 w-4 text-rose-600" />
+          <h2 className="font-semibold">Son Ayrılanlar</h2>
+          <span className="text-xs text-muted-foreground">(son 20)</span>
+        </div>
+        {leftEntries.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Henüz ayrılan ziyaretçi yok.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-muted-foreground text-xs">
+                  <th className="text-left py-2 pr-4 font-medium">Tür</th>
+                  <th className="text-left py-2 pr-4 font-medium">Kaynak</th>
+                  <th className="text-left py-2 pr-4 font-medium">Şehir</th>
+                  <th className="text-left py-2 pr-4 font-medium">Çıkış Sayfası</th>
+                  <th className="text-left py-2 pr-4 font-medium">Son Aksiyon</th>
+                  <th className="text-left py-2 font-medium">Ne Zaman</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leftEntries.map((entry) => {
+                  const ago = Math.max(1, Math.round((Date.now() - entry.leftAt) / 1000));
+                  const agoLabel = ago < 60 ? `${ago} sn önce` : `${Math.round(ago / 60)} dk önce`;
+                  return (
+                    <tr key={`${entry.key}-${entry.leftAt}`} className="border-b last:border-0 hover:bg-rose-50/30">
+                      <td className="py-2 pr-4">
+                        <div className="flex flex-col gap-1">
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full w-fit ${entry.userId ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                            {entry.userId ? "Üye" : "Misafir"}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full w-fit ${entry.isReturning ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
+                            {entry.isReturning ? "Geri Dönen" : "Yeni"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-2 pr-4">
+                        <span className="text-xs text-foreground">{entry.source || "direct"}</span>
+                      </td>
+                      <td className="py-2 pr-4">
+                        {entry.city ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-foreground">
+                            <MapPin className="h-3 w-3 text-muted-foreground" />
+                            {entry.city}
+                            {entry.country && entry.country !== "Turkey" ? ` (${entry.country})` : ""}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-4">
+                        <span className="text-xs text-foreground truncate max-w-[200px] block">{entry.path || "—"}</span>
+                      </td>
+                      <td className="py-2 pr-4">
+                        <span className="text-xs text-foreground truncate max-w-[220px] block">{entry.lastAction || "—"}</span>
+                      </td>
+                      <td className="py-2 text-xs text-muted-foreground">{agoLabel}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

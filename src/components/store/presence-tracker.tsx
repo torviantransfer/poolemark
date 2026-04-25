@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
-import { isReturningVisitor } from "@/lib/site-events";
+import { isReturningVisitor, trackSiteLeave } from "@/lib/site-events";
 
 function getSessionId() {
   const key = "poolemark_presence_session_id";
@@ -244,6 +244,20 @@ export function PresenceTracker() {
     window.addEventListener("focus", reTrack);
     window.addEventListener("online", reTrack);
 
+    // Site terk: pagehide (iOS dahil) sayfa boşaltılırken sendBeacon ile log atar.
+    let leaveSent = false;
+    const onLeave = () => {
+      if (leaveSent) return;
+      leaveSent = true;
+      trackSiteLeave({
+        lastPath: pathnameRef.current,
+        lastAction: lastActionRef.current,
+        userId: userIdRef.current,
+      });
+    };
+    window.addEventListener("pagehide", onLeave);
+    window.addEventListener("beforeunload", onLeave);
+
     // Trigger initial trackPath so /checkout etc. is reflected immediately.
     trackPath();
 
@@ -261,6 +275,8 @@ export function PresenceTracker() {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", reTrack);
       window.removeEventListener("online", reTrack);
+      window.removeEventListener("pagehide", onLeave);
+      window.removeEventListener("beforeunload", onLeave);
       delete w.pmPresenceUpdate;
       const ch = channelRef.current;
       if (ch) {
