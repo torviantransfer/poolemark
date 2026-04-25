@@ -31,6 +31,7 @@ const nextConfig: NextConfig = {
       },
       // Eski kısa URL'lerden /pages/ yapısına redirect
       { source: "/kvkk", destination: "/pages/kvkk-aydinlatma-metni", permanent: true },
+      { source: "/kvkk-aydinlatma-metni", destination: "/pages/kvkk-aydinlatma-metni", permanent: true },
       { source: "/pages/kvkk", destination: "/pages/kvkk-aydinlatma-metni", permanent: true },
       { source: "/gizlilik-politikasi", destination: "/pages/gizlilik-politikasi", permanent: true },
       { source: "/cerez-politikasi", destination: "/pages/cerez-politikasi", permanent: true },

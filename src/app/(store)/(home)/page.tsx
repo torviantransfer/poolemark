@@ -111,9 +111,10 @@ export default async function HomePage({
             fill
             sizes="(max-width: 767px) 100vw, 0px"
             className="md:hidden object-cover"
+            priority
+            fetchPriority="high"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
         </div>
 
         <div className="relative z-10 container mx-auto px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">

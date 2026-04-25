@@ -111,6 +111,13 @@ export function PresenceTracker() {
   const attributionRef = useRef<Attribution | null>(null);
 
   useEffect(() => {
+    // Realtime presence tracking is opt-in via env flag to avoid
+    // unnecessary WebSocket connections (and console errors when
+    // Realtime is disabled on the Supabase project).
+    if (process.env.NEXT_PUBLIC_ENABLE_PRESENCE !== "true") {
+      return;
+    }
+
     const supabase = createClient();
     const key = getSessionId();
     const channel = supabase.channel("online-visitors", {
