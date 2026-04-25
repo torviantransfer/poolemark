@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProductGallery } from "@/components/store/product-gallery";
 import { ProductActions } from "@/components/store/product-actions";
 import { ShippingTimeline } from "@/components/store/shipping-timeline";
+import { trackEvent } from "@/lib/meta-pixel";
 import type { Product, ProductImage } from "@/types";
 
 interface ProductDetailClientProps {
@@ -15,6 +16,17 @@ interface ProductDetailClientProps {
 
 export function ProductDetailClient({ product, images, disabled, children }: ProductDetailClientProps) {
   const [variantImageUrl, setVariantImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    trackEvent("ViewContent", {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: "product",
+      contents: [{ id: product.id, quantity: 1, item_price: product.price }],
+      value: product.price,
+      currency: "TRY",
+    });
+  }, [product.id, product.name, product.price]);
 
   return (
     <div className="grid md:grid-cols-2 gap-6 md:gap-10 lg:gap-16 min-w-0">

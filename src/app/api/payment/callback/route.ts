@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPossibleOrderNumbersFromMerchantOid, verifyPayTRCallback } from "@/lib/paytr";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { sendServerCapiEvent } from "@/lib/meta-capi-server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
       if (recipientEmail) {
         const { data: items } = await supabase
           .from("order_items")
-          .select("product_name, quantity, unit_price")
+          .select("product_id, product_name, quantity, unit_price")
           .eq("order_id", order.id);
 
         await sendOrderConfirmationEmail(recipientEmail, {
@@ -114,6 +115,38 @@ export async function POST(request: NextRequest) {
           shippingCost: order.shipping_cost,
           discount: order.discount_amount,
           total: order.total,
+        });
+
+        // Server-side Meta Purchase event (deduped with browser via event id).
+        const capiContents = (items || [])
+          .filter((i) => i.product_id)
+          .map((i) => ({
+            id: String(i.product_id),
+            quantity: Number(i.quantity ?? 0),
+            item_price: Number(i.unit_price ?? 0),
+          }));
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+        await sendServerCapiEvent({
+          event: "Purchase",
+          eventId: `purchase_${order.id}`,
+          eventSourceUrl: `${siteUrl}/odeme-sonucu?status=success&order=${order.id}`,
+          customData: {
+            order_id: order.order_number,
+            value: Number(order.total ?? 0),
+            currency: "TRY",
+            content_ids: capiContents.map((c) => c.id),
+            content_type: "product",
+            contents: capiContents,
+            num_items: capiContents.reduce((s, c) => s + c.quantity, 0),
+          },
+          user: {
+            email: recipientEmail,
+            ip:
+              request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+              request.headers.get("x-real-ip") ||
+              null,
+            userAgent: request.headers.get("user-agent"),
+          },
         });
       }
     } else {

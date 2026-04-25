@@ -10,6 +10,7 @@ import type { Product } from "@/types";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/meta-pixel";
 
 interface ProductCardProps {
   product: Product;
@@ -52,6 +53,14 @@ export function ProductCard({ product, className, priority = false }: ProductCar
       stock_quantity: product.stock_quantity,
       slug: product.slug,
       variant_name: null,
+    });
+    trackEvent("AddToCart", {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: "product",
+      contents: [{ id: product.id, quantity: 1, item_price: product.price }],
+      value: product.price,
+      currency: "TRY",
     });
     setAdded(true);
     toast.success("Sepete eklendi", {

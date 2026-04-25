@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight, Search, SearchX } from "lucide-react";
 import type { Metadata } from "next";
 import { SearchForm } from "@/components/store/search-form";
+import { SearchTracker } from "@/components/store/search-tracker";
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | undefined }>;
@@ -31,6 +32,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <>
+      <SearchTracker query={query} />
       <section className="bg-secondary/40 border-b">
         <div className="container mx-auto px-4 py-8 md:py-10">
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/meta-pixel";
 import {
   Eye,
   EyeOff,
@@ -117,10 +118,20 @@ export default function KayitPage() {
 
     if (data.session) {
       // E-posta onayı kapalıysa direkt oturum açılır
+      trackEvent(
+        "CompleteRegistration",
+        { status: true, currency: "TRY", value: 0 },
+        { userEmail: form.email, userPhone: form.phone }
+      );
       toast.success("Kayıt başarılı! Hoş geldiniz.");
       router.push("/hesabim");
     } else {
       // E-posta onayı gerekiyor
+      trackEvent(
+        "CompleteRegistration",
+        { status: "pending_confirmation", currency: "TRY", value: 0 },
+        { userEmail: form.email, userPhone: form.phone }
+      );
       toast.success("Kayıt başarılı! Lütfen e-posta adresinize gönderilen onay bağlantısına tıklayın.", { duration: 6000 });
       router.push("/giris");
     }

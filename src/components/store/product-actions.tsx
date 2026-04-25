@@ -14,6 +14,7 @@ import type { Product } from "@/types";
 import { SITE_CONFIG } from "@/constants";
 import { formatPrice } from "@/lib/helpers";
 import { StockNotifyForm } from "@/components/store/stock-notify-form";
+import { trackEvent } from "@/lib/meta-pixel";
 
 interface ProductActionsProps {
   product: Product;
@@ -79,6 +80,24 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
       quantity,
       variant_name: activeVariant?.name ?? null,
     });
+    trackEvent(
+      "AddToCart",
+      {
+        content_ids: [activeVariant?.id ?? product.id],
+        content_name: product.name,
+        content_type: "product",
+        contents: [
+          {
+            id: activeVariant?.id ?? product.id,
+            quantity,
+            item_price: currentPrice,
+          },
+        ],
+        value: currentPrice * quantity,
+        currency: "TRY",
+      },
+      { userEmail: user?.email ?? null }
+    );
     toast.success("Ürün sepete eklendi", {
       action: {
         label: "Sepete Git",

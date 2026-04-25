@@ -10,8 +10,10 @@ import {
   Home,
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
+import { PurchaseTracker } from "@/components/store/purchase-tracker";
 
 type OrderItemSummary = {
+  product_id?: string;
   product_name: string;
   quantity: number;
   unit_price: number;
@@ -79,7 +81,7 @@ export default async function PaymentResultPage({
       if (order) {
         const { data: items } = await supabase
           .from("order_items")
-          .select("product_name, quantity, unit_price, total_price")
+          .select("product_id, product_name, quantity, unit_price, total_price")
           .eq("order_id", order.id)
           .order("created_at", { ascending: true });
         orderItems = items || [];
@@ -101,7 +103,7 @@ export default async function PaymentResultPage({
           if (order) {
             const { data: adminItems } = await admin
               .from("order_items")
-              .select("product_name, quantity, unit_price, total_price")
+              .select("product_id, product_name, quantity, unit_price, total_price")
               .eq("order_id", order.id)
               .order("created_at", { ascending: true });
             orderItems = adminItems || [];
@@ -131,6 +133,23 @@ export default async function PaymentResultPage({
   return (
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-4 max-w-3xl text-center">
+        {isSuccess && order ? (
+          <PurchaseTracker
+            orderId={order.id}
+            orderNumber={order.order_number}
+            total={total}
+            contentIds={orderItems
+              .map((i) => i.product_id)
+              .filter((id): id is string => Boolean(id))}
+            contents={orderItems
+              .filter((i) => i.product_id)
+              .map((i) => ({
+                id: i.product_id as string,
+                quantity: toSafeNumber(i.quantity),
+                item_price: toSafeNumber(i.unit_price),
+              }))}
+          />
+        ) : null}
         {isSuccess ? (
           <>
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-6">

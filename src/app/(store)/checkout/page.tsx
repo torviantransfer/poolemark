@@ -30,6 +30,7 @@ import { CITY_LIST, TURKEY_CITIES } from "@/constants/turkey";
 import Script from "next/script";
 import type { Address } from "@/types";
 import { InstallmentModal } from "@/components/store/installment-modal";
+import { trackEvent } from "@/lib/meta-pixel";
 
 interface GuestAddress {
   first_name: string;
@@ -155,6 +156,26 @@ function CheckoutContent() {
   async function handlePlaceOrder() {
     if (items.length === 0) return;
     if (!canCheckout) return;
+
+    // Fire InitiateCheckout right before kicking off the payment request.
+    trackEvent(
+      "InitiateCheckout",
+      {
+        content_ids: items.map((i) => i.variant_id ?? i.product_id),
+        contents: items.map((i) => ({
+          id: i.variant_id ?? i.product_id,
+          quantity: i.quantity,
+          item_price: i.price,
+        })),
+        num_items: items.reduce((sum, i) => sum + i.quantity, 0),
+        value: items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+        currency: "TRY",
+      },
+      {
+        userEmail: user?.email ?? guestAddress?.email ?? null,
+        userPhone: guestAddress?.phone ?? null,
+      }
+    );
 
     startTransition(async () => {
       try {
