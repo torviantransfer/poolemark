@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,9 +21,10 @@ import {
   Gift,
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InstallmentModal } from "@/components/store/installment-modal";
+import CartRecoveryHandler from "@/components/store/cart-recovery-handler";
 import { gaViewCart, gaRemoveFromCart } from "@/lib/ga";
 import { toast } from "sonner";
 
@@ -47,81 +48,6 @@ export default function CartPage() {
     code: string;
     discount: number;
   } | null>(null);
-
-  // === ABANDONED CART RECOVERY ===
-  // When customer clicks the WhatsApp recovery link (?recover=<orderId>),
-  // fetch the items from that abandoned order and restore them to the cart.
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const recoverId = searchParams.get("recover");
-  const recoverHandledRef = useRef(false);
-  useEffect(() => {
-    if (!mounted || loading) return;
-    if (!recoverId || recoverHandledRef.current) return;
-    recoverHandledRef.current = true;
-
-    (async () => {
-      try {
-        const res = await fetch(`/api/cart/recover/${recoverId}`);
-        if (!res.ok) {
-          toast.error("Sepet kurtarılamadı. Ürünler artık mevcut olmayabilir.");
-          return;
-        }
-        const data = await res.json();
-        const recoveredItems = (data.items || []) as Array<{
-          product_id: string;
-          variant_id: string | null;
-          name: string;
-          slug: string;
-          image: string | null;
-          price: number;
-          compare_at_price: number | null;
-          quantity: number;
-          stock_quantity: number;
-          variant_name: string | null;
-        }>;
-
-        if (recoveredItems.length === 0) {
-          toast.error("Sepetinizdeki ürünler artık mevcut değil.");
-          return;
-        }
-
-        let added = 0;
-        for (const it of recoveredItems) {
-          // Skip products already in cart so we don't double the quantity.
-          const exists = items.some(
-            (cartItem) =>
-              cartItem.product_id === it.product_id &&
-              cartItem.variant_id === it.variant_id
-          );
-          if (exists) continue;
-          if (it.stock_quantity <= 0) continue;
-          addItem({
-            product_id: it.product_id,
-            variant_id: it.variant_id,
-            name: it.name,
-            image: it.image,
-            price: it.price,
-            compare_at_price: it.compare_at_price,
-            quantity: Math.min(it.quantity, it.stock_quantity),
-            stock_quantity: it.stock_quantity,
-            slug: it.slug,
-            variant_name: it.variant_name,
-          });
-          added++;
-        }
-
-        if (added > 0) {
-          toast.success("Sepetiniz geri yüklendi. Ödemeye devam edebilirsiniz.");
-        }
-      } catch {
-        toast.error("Sepet kurtarma sırasında bir hata oluştu.");
-      } finally {
-        // Drop the query param so refresh doesn't re-trigger.
-        router.replace("/sepet", { scroll: false });
-      }
-    })();
-  }, [mounted, loading, recoverId, items, addItem, router]);
 
   // GA4 view_cart — sepet sayfası açılınca, ürünler hidrate olunca bir kez.
   useEffect(() => {
@@ -243,6 +169,9 @@ export default function CartPage() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <CartRecoveryHandler />
+      </Suspense>
       <section className="bg-secondary/40 border-b">
         <div className="container mx-auto px-4 py-8 md:py-10">
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
