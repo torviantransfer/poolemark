@@ -579,7 +579,6 @@ function CheckoutContent() {
                         id="company-name"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
-                        placeholder="Firma ünvanı"
                         maxLength={150}
                       />
                     </div>
@@ -590,7 +589,6 @@ function CheckoutContent() {
                           id="tax-office"
                           value={taxOffice}
                           onChange={(e) => setTaxOffice(e.target.value)}
-                          placeholder="Örn: Kadıköy"
                           maxLength={80}
                         />
                       </div>
@@ -600,7 +598,6 @@ function CheckoutContent() {
                           id="tax-id"
                           value={taxId}
                           onChange={(e) => setTaxId(e.target.value.replace(/\D/g, ""))}
-                          placeholder="10 veya 11 hane"
                           maxLength={11}
                           inputMode="numeric"
                         />
