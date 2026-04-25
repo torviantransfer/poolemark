@@ -4,6 +4,7 @@ import {
   getRecentOrders,
   getLowStockProducts,
   getTodayFunnelStats,
+  getTodayTrafficSources,
 } from "@/services/admin";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +30,20 @@ import {
   ShoppingBag,
   CreditCard,
   CheckCircle2,
+  Sparkles,
+  Repeat,
 } from "lucide-react";
+
+const SOURCE_LABELS: Record<string, string> = {
+  direct: "Direkt",
+  google: "Google",
+  facebook: "Facebook",
+  instagram: "Instagram",
+  twitter: "Twitter / X",
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  bing: "Bing",
+};
 
 export default async function AdminDashboard() {
   const [stats, recentOrders, lowStock, funnel] = await Promise.all([
@@ -50,12 +64,18 @@ export default async function AdminDashboard() {
       addToCart: 0,
       initiateCheckout: 0,
       purchase: 0,
+      newVisitors: 0,
+      returningVisitors: 0,
     })),
   ]);
+
+  const trafficSources = await getTodayTrafficSources().catch(() => [] as { source: string; visitors: number }[]);
+  const totalSourceVisitors = trafficSources.reduce((s, x) => s + x.visitors, 0);
 
   const cartRate = funnel.visitors > 0 ? (funnel.addToCart / funnel.visitors) * 100 : 0;
   const checkoutRate = funnel.addToCart > 0 ? (funnel.initiateCheckout / funnel.addToCart) * 100 : 0;
   const purchaseRate = funnel.visitors > 0 ? (funnel.purchase / funnel.visitors) * 100 : 0;
+  const returningRate = funnel.visitors > 0 ? (funnel.returningVisitors / funnel.visitors) * 100 : 0;
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
@@ -135,6 +155,62 @@ export default async function AdminDashboard() {
             color="text-emerald-600 bg-emerald-50"
           />
         </div>
+
+        {/* Yeni vs Geri Dönen */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t">
+          <FunnelCard
+            icon={<Sparkles className="h-4 w-4" />}
+            label="Yeni Ziyaretçi"
+            value={funnel.newVisitors}
+            sub={`${(100 - returningRate).toFixed(1)}% bugünün`}
+            color="text-emerald-600 bg-emerald-50"
+          />
+          <FunnelCard
+            icon={<Repeat className="h-4 w-4" />}
+            label="Geri Dönen"
+            value={funnel.returningVisitors}
+            sub={`${returningRate.toFixed(1)}% bugünün`}
+            color="text-amber-600 bg-amber-50"
+          />
+        </div>
+      </div>
+
+      {/* Trafik Kaynakları */}
+      <div className="bg-white rounded-2xl border shadow-sm p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Bugünkü Trafik Kaynakları</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Tekil ziyaretçinin geldiği kaynak
+            </p>
+          </div>
+        </div>
+        {trafficSources.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Henüz veri yok.</p>
+        ) : (
+          <div className="space-y-2">
+            {trafficSources.map(({ source, visitors }) => {
+              const pct = totalSourceVisitors > 0 ? (visitors / totalSourceVisitors) * 100 : 0;
+              const label = SOURCE_LABELS[source] || source;
+              return (
+                <div key={source} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-foreground capitalize">{label}</span>
+                    <span className="tabular-nums text-muted-foreground">
+                      {visitors} <span className="text-xs">({pct.toFixed(1)}%)</span>
+                    </span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Alert Cards */}

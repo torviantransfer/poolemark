@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
+import { isReturningVisitor } from "@/lib/site-events";
 
 function getSessionId() {
   const key = "poolemark_presence_session_id";
@@ -107,121 +108,184 @@ export function PresenceTracker() {
   const pathname = usePathname();
   const { user } = useUser();
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
+  const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
   const geoRef = useRef<{ city: string; country: string; region: string } | null>(null);
   const attributionRef = useRef<Attribution | null>(null);
+  const statusRef = useRef<string>("CLOSED");
+  const pathnameRef = useRef(pathname);
+  const userIdRef = useRef<string | null>(user?.id || null);
+  const lastActionRef = useRef<string>("");
+
+  // Keep refs in sync so async callbacks always read the latest values.
+  useEffect(() => {
+    pathnameRef.current = pathname;
+    userIdRef.current = user?.id || null;
+  }, [pathname, user?.id]);
 
   useEffect(() => {
-    // Realtime presence tracking is opt-in via env flag to avoid
-    // unnecessary WebSocket connections (and console errors when
-    // Realtime is disabled on the Supabase project).
-    if (process.env.NEXT_PUBLIC_ENABLE_PRESENCE !== "true") {
-      return;
-    }
+    if (process.env.NEXT_PUBLIC_ENABLE_PRESENCE !== "true") return;
 
+    let cancelled = false;
     const supabase = createClient();
+    supabaseRef.current = supabase;
     const key = getSessionId();
-    const channel = supabase.channel("online-visitors", {
-      config: { presence: { key } },
-    });
 
-    channelRef.current = channel;
-
-    channel.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        if (!geoRef.current) {
-          geoRef.current = await getGeoInfo();
-        }
-        if (!attributionRef.current) {
-          attributionRef.current = detectAttribution();
-        }
-        await channel.track({
-          role: "store-visitor",
-          path: pathname,
-          userId: user?.id || null,
-          joinedAt: new Date().toISOString(),
-          city: geoRef.current.city,
-          country: geoRef.current.country,
-          source: attributionRef.current.source,
-          medium: attributionRef.current.medium,
-          campaign: attributionRef.current.campaign,
-          referrerHost: attributionRef.current.referrerHost,
-          lastAction: `Sayfa: ${pathname}`,
-        });
-      }
-    });
-
-    return () => {
-      channel.untrack();
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  useEffect(() => {
-    const channel = channelRef.current;
-    if (!channel) return;
-
-    channel.track({
+    const buildPayload = (action?: string) => ({
       role: "store-visitor",
-      path: pathname,
-      userId: user?.id || null,
+      path: pathnameRef.current,
+      userId: userIdRef.current,
       joinedAt: new Date().toISOString(),
+      isReturning: isReturningVisitor(),
       city: geoRef.current?.city ?? "",
       country: geoRef.current?.country ?? "",
       source: attributionRef.current?.source ?? "direct",
       medium: attributionRef.current?.medium ?? "none",
       campaign: attributionRef.current?.campaign ?? "",
       referrerHost: attributionRef.current?.referrerHost ?? "",
-      lastAction: `Sayfa: ${pathname}`,
+      lastAction: action || lastActionRef.current || `Sayfa: ${pathnameRef.current}`,
     });
-  }, [pathname, user?.id]);
 
-  useEffect(() => {
-    const channel = channelRef.current;
-    if (!channel) return;
+    const setupChannel = () => {
+      if (cancelled) return;
+      // Tear down any previous channel before opening a new one.
+      const prev = channelRef.current;
+      if (prev) {
+        try {
+          prev.unsubscribe();
+          supabase.removeChannel(prev);
+        } catch {
+          // ignore
+        }
+        channelRef.current = null;
+      }
 
-    const onClick = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!target) return;
+      const channel = supabase.channel("online-visitors", {
+        config: { presence: { key } },
+      });
+      channelRef.current = channel;
 
-      const clickable = target.closest("a,button") as HTMLAnchorElement | HTMLButtonElement | null;
-      if (!clickable) return;
-
-      const text = (clickable.textContent || "").replace(/\s+/g, " ").trim().slice(0, 60);
-      const href = clickable instanceof HTMLAnchorElement ? clickable.getAttribute("href") || "" : "";
-      const label = text || href || (clickable.tagName === "A" ? "Link" : "Buton");
-
-      channel.track({
-        role: "store-visitor",
-        path: pathname,
-        userId: user?.id || null,
-        joinedAt: new Date().toISOString(),
-        city: geoRef.current?.city ?? "",
-        country: geoRef.current?.country ?? "",
-        source: attributionRef.current?.source ?? "direct",
-        medium: attributionRef.current?.medium ?? "none",
-        campaign: attributionRef.current?.campaign ?? "",
-        referrerHost: attributionRef.current?.referrerHost ?? "",
-        lastAction: `Tiklama: ${label}`,
+      channel.subscribe(async (status) => {
+        statusRef.current = status;
+        if (status === "SUBSCRIBED") {
+          if (!geoRef.current) {
+            try {
+              geoRef.current = await getGeoInfo();
+            } catch {
+              geoRef.current = { city: "", country: "", region: "" };
+            }
+          }
+          if (!attributionRef.current) {
+            attributionRef.current = detectAttribution();
+          }
+          if (!cancelled) {
+            await channel.track(buildPayload());
+          }
+        } else if (
+          status === "CHANNEL_ERROR" ||
+          status === "TIMED_OUT" ||
+          status === "CLOSED"
+        ) {
+          // Auto-reconnect with backoff (only if document is visible).
+          if (!cancelled && document.visibilityState === "visible") {
+            window.setTimeout(() => setupChannel(), 1500);
+          }
+        }
       });
     };
 
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
-  }, [pathname, user?.id]);
+    setupChannel();
 
-  // Heartbeat: re-track every 25s and on visibility/online events so that
-  // Realtime presence does not drop the visitor due to idle/tab throttling.
-  useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ENABLE_PRESENCE !== "true") return;
+    // Pathname change updates lastAction so subsequent re-tracks reflect it.
+    const trackPath = () => {
+      lastActionRef.current = `Sayfa: ${pathnameRef.current}`;
+      const channel = channelRef.current;
+      if (channel && statusRef.current === "SUBSCRIBED") {
+        channel.track(buildPayload());
+      }
+    };
 
     const reTrack = () => {
       const channel = channelRef.current;
-      if (!channel) return;
+      if (!channel) {
+        setupChannel();
+        return;
+      }
+      if (statusRef.current !== "SUBSCRIBED") {
+        setupChannel();
+        return;
+      }
+      channel.track(buildPayload());
+    };
+
+    // Click tracker — captures any <a>/<button> click on the document.
+    const onClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      const clickable = target.closest("a,button") as HTMLAnchorElement | HTMLButtonElement | null;
+      if (!clickable) return;
+      const text = (clickable.textContent || "").replace(/\s+/g, " ").trim().slice(0, 60);
+      const href = clickable instanceof HTMLAnchorElement ? clickable.getAttribute("href") || "" : "";
+      const label = text || href || (clickable.tagName === "A" ? "Link" : "Buton");
+      lastActionRef.current = `Tiklama: ${label}`;
+      const channel = channelRef.current;
+      if (channel && statusRef.current === "SUBSCRIBED") {
+        channel.track(buildPayload());
+      }
+    };
+    document.addEventListener("click", onClick);
+
+    // Heartbeat: keep presence alive, recover from idle / network disconnects.
+    const interval = window.setInterval(reTrack, 15000);
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") reTrack();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", reTrack);
+    window.addEventListener("online", reTrack);
+
+    // Trigger initial trackPath so /checkout etc. is reflected immediately.
+    trackPath();
+
+    // Expose imperative helper for components that need to push a custom action.
+    const w = window as unknown as { pmPresenceUpdate?: (label: string) => void };
+    w.pmPresenceUpdate = (label: string) => {
+      lastActionRef.current = label.slice(0, 80);
+      reTrack();
+    };
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      document.removeEventListener("click", onClick);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", reTrack);
+      window.removeEventListener("online", reTrack);
+      delete w.pmPresenceUpdate;
+      const ch = channelRef.current;
+      if (ch) {
+        try {
+          ch.untrack();
+          ch.unsubscribe();
+          supabase.removeChannel(ch);
+        } catch {
+          // ignore
+        }
+      }
+    };
+  }, []);
+
+  // On pathname / user change, push an updated presence (if connected).
+  useEffect(() => {
+    lastActionRef.current = `Sayfa: ${pathname}`;
+    const channel = channelRef.current;
+    if (channel && statusRef.current === "SUBSCRIBED") {
       channel.track({
         role: "store-visitor",
         path: pathname,
         userId: user?.id || null,
         joinedAt: new Date().toISOString(),
+        isReturning: isReturningVisitor(),
         city: geoRef.current?.city ?? "",
         country: geoRef.current?.country ?? "",
         source: attributionRef.current?.source ?? "direct",
@@ -230,22 +294,7 @@ export function PresenceTracker() {
         referrerHost: attributionRef.current?.referrerHost ?? "",
         lastAction: `Sayfa: ${pathname}`,
       });
-    };
-
-    const interval = window.setInterval(reTrack, 15000);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") reTrack();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", reTrack);
-    window.addEventListener("online", reTrack);
-
-    return () => {
-      window.clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", reTrack);
-      window.removeEventListener("online", reTrack);
-    };
+    }
   }, [pathname, user?.id]);
 
   return null;

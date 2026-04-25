@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Eye, Users, UserCheck, MapPin } from "lucide-react";
+import { Eye, Users, UserCheck, MapPin, Sparkles, Repeat } from "lucide-react";
 
 type PresenceEntry = {
   key: string;
@@ -10,6 +10,7 @@ type PresenceEntry = {
   userId?: string | null;
   role?: string;
   joinedAt?: string;
+  isReturning?: boolean;
   city?: string;
   country?: string;
   source?: string;
@@ -63,6 +64,10 @@ export default function AdminLiveVisitorsPage() {
           userId: latestMeta?.userId ?? latestItem.userId ?? null,
           role: latestMeta?.role ?? latestItem.role,
           joinedAt: latestMeta?.joinedAt ?? latestItem.joinedAt,
+          isReturning:
+            (latestMeta as { isReturning?: boolean } | undefined)?.isReturning ??
+            (latestItem as { isReturning?: boolean }).isReturning ??
+            false,
           city: (latestMeta as { city?: string } | undefined)?.city ?? (latestItem as { city?: string }).city,
           country: (latestMeta as { country?: string } | undefined)?.country ?? (latestItem as { country?: string }).country,
           source: latestMeta?.source ?? latestItem.source,
@@ -104,6 +109,8 @@ export default function AdminLiveVisitorsPage() {
 
   const memberCount = entries.filter((e) => Boolean(e.userId)).length;
   const guestCount = Math.max(entries.length - memberCount, 0);
+  const returningCount = entries.filter((e) => e.isReturning).length;
+  const newCount = Math.max(entries.length - returningCount, 0);
   const sourceStats = useMemo(() => {
     return entries.reduce<Record<string, number>>((acc, item) => {
       const key = item.source || "direct";
@@ -125,6 +132,11 @@ export default function AdminLiveVisitorsPage() {
         <StatCard icon={Eye} label="Toplam Aktif" value={entries.length} />
         <StatCard icon={UserCheck} label="Üye" value={memberCount} />
         <StatCard icon={Users} label="Misafir" value={guestCount} />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <StatCard icon={Sparkles} label="Yeni Ziyaretçi" value={newCount} />
+        <StatCard icon={Repeat} label="Geri Dönen" value={returningCount} />
       </div>
 
       <div className="bg-white border rounded-2xl p-4 md:p-5">
@@ -186,9 +198,14 @@ export default function AdminLiveVisitorsPage() {
               {entries.map((entry) => (
                 <tr key={entry.key} className="border-b last:border-0 hover:bg-muted/30">
                   <td className="py-2 pr-4">
-                    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${entry.userId ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                      {entry.userId ? "Üye" : "Misafir"}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full w-fit ${entry.userId ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                        {entry.userId ? "Üye" : "Misafir"}
+                      </span>
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full w-fit ${entry.isReturning ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
+                        {entry.isReturning ? "Geri Dönen" : "Yeni"}
+                      </span>
+                    </div>
                   </td>
                   <td className="py-2 pr-4">
                     <div className="text-xs text-foreground">

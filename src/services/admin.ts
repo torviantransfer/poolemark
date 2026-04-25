@@ -79,14 +79,50 @@ export async function getTodayFunnelStats() {
     return new Set(data.map((r) => r.session_id)).size;
   };
 
-  const [visitors, addToCart, initiateCheckout, purchase, totalPageViews] =
-    await Promise.all([
-      uniqueSessionsFor("page_view"),
-      uniqueSessionsFor("add_to_cart"),
-      uniqueSessionsFor("initiate_checkout"),
-      uniqueSessionsFor("purchase"),
-      countFor("page_view"),
-    ]);
+  // Bugünkü tekil ziyaretçileri yeni / geri dönen olarak ayır.
+  // Geri dönen = bugünden önce de page_view fırlatmış session_id.
+  const splitNewVsReturning = async () => {
+    const { data: todayRows } = await supabase
+      .from("site_events")
+      .select("session_id")
+      .eq("event_type", "page_view")
+      .gte("created_at", todayISO);
+    if (!todayRows || todayRows.length === 0) {
+      return { newVisitors: 0, returningVisitors: 0 };
+    }
+    const todaySessionIds = Array.from(
+      new Set(todayRows.map((r) => r.session_id).filter(Boolean))
+    );
+    if (todaySessionIds.length === 0) {
+      return { newVisitors: 0, returningVisitors: 0 };
+    }
+    const { data: priorRows } = await supabase
+      .from("site_events")
+      .select("session_id")
+      .eq("event_type", "page_view")
+      .lt("created_at", todayISO)
+      .in("session_id", todaySessionIds);
+    const returningSet = new Set((priorRows || []).map((r) => r.session_id));
+    const returningVisitors = todaySessionIds.filter((sid) => returningSet.has(sid)).length;
+    const newVisitors = todaySessionIds.length - returningVisitors;
+    return { newVisitors, returningVisitors };
+  };
+
+  const [
+    visitors,
+    addToCart,
+    initiateCheckout,
+    purchase,
+    totalPageViews,
+    { newVisitors, returningVisitors },
+  ] = await Promise.all([
+    uniqueSessionsFor("page_view"),
+    uniqueSessionsFor("add_to_cart"),
+    uniqueSessionsFor("initiate_checkout"),
+    uniqueSessionsFor("purchase"),
+    countFor("page_view"),
+    splitNewVsReturning(),
+  ]);
 
   return {
     visitors,
@@ -94,10 +130,49 @@ export async function getTodayFunnelStats() {
     addToCart,
     initiateCheckout,
     purchase,
+    newVisitors,
+    returningVisitors,
   };
 }
 
-export async function getRecentOrders(limit = 10) {
+/**
+ * Bugünkü tekil ziyaretçileri trafik kaynağına göre gruplar.
+ * Bir session_id için kullanılan ilk metadata.source değeri esas alınır.
+ */
+export async function getTodayTrafficSources() {
+  const supabase = createAdminClient();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayISO = today.toISOString();
+
+  const { data } = await supabase
+    .from("site_events")
+    .select("session_id, metadata, created_at")
+    .eq("event_type", "page_view")
+    .gte("created_at", todayISO)
+    .order("created_at", { ascending: true });
+
+  if (!data) return [] as { source: string; visitors: number }[];
+
+  const sourceForSession = new Map<string, string>();
+  for (const row of data) {
+    const sid = row.session_id as string;
+    if (!sid || sourceForSession.has(sid)) continue;
+    const meta = (row.metadata || {}) as { source?: string };
+    const src = (meta.source || "direct").toLowerCase();
+    sourceForSession.set(sid, src);
+  }
+
+  const counts = new Map<string, number>();
+  for (const src of sourceForSession.values()) {
+    counts.set(src, (counts.get(src) || 0) + 1);
+  }
+
+  return Array.from(counts.entries())
+    .map(([source, visitors]) => ({ source, visitors }))
+    .sort((a, b) => b.visitors - a.visitors);
+}
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")

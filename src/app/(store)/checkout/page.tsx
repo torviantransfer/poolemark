@@ -254,6 +254,9 @@ function CheckoutContent() {
 
         setPaytrToken(data.token);
         clearCart();
+        // Notify presence tracker so admin live-visitors page reflects payment step.
+        const w = window as unknown as { pmPresenceUpdate?: (label: string) => void };
+        w.pmPresenceUpdate?.("PayTR ödeme ekranında");
       } catch {
         toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
       }
