@@ -77,16 +77,16 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
 
       <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[760px]">
             <thead>
               <tr className="border-b text-left text-muted-foreground bg-secondary/30">
-                <th className="px-5 py-3 font-medium">Sipariş No</th>
-                <th className="px-5 py-3 font-medium">Müşteri</th>
-                <th className="px-5 py-3 font-medium">Tutar</th>
-                <th className="px-5 py-3 font-medium">Ödeme</th>
-                <th className="px-5 py-3 font-medium">Durum</th>
-                <th className="px-5 py-3 font-medium">Tarih</th>
-                <th className="px-5 py-3 font-medium text-right">İşlem</th>
+                <th className="px-3 md:px-5 py-3 font-medium">Sipariş No</th>
+                <th className="px-3 md:px-5 py-3 font-medium">Müşteri</th>
+                <th className="px-3 md:px-5 py-3 font-medium">Tutar</th>
+                <th className="px-3 md:px-5 py-3 font-medium">Ödeme</th>
+                <th className="px-3 md:px-5 py-3 font-medium">Durum</th>
+                <th className="px-3 md:px-5 py-3 font-medium">Tarih</th>
+                <th className="px-3 md:px-5 py-3 font-medium text-right">İşlem</th>
               </tr>
             </thead>
             <tbody>

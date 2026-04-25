@@ -61,7 +61,7 @@ export async function POST(
     await createPayTRRefund({
       orderNumber: order.order_number,
       returnAmount: amount,
-      referenceNo: `${order.order_number}-FULL`,
+      referenceNo: `${order.order_number}FULL${Date.now()}`.replace(/[^A-Za-z0-9]/g, ""),
     });
 
     const { error: updateError } = await supabase
