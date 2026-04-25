@@ -5,6 +5,9 @@ import {
   getLowStockProducts,
   getTodayFunnelStats,
 } from "@/services/admin";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import { formatPrice, formatDateTime } from "@/lib/helpers";
 import {
   ORDER_STATUS_LABELS,
