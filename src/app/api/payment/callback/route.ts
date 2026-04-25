@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { getPossibleOrderNumbersFromMerchantOid, verifyPayTRCallback } from "@/lib/paytr";
 import { sendOrderConfirmationEmail } from "@/lib/email";
-import { sendServerCapiEvent } from "@/lib/meta-capi-server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,20 +16,16 @@ export async function POST(request: NextRequest) {
       return new NextResponse("PAYTR notification hash mismatch", { status: 400 });
     }
 
-    const supabase = createAdminClient();
+    const supabase = await createClient();
 
     const possibleOrderNumbers = getPossibleOrderNumbersFromMerchantOid(merchantOid);
 
     // Find order by order_number
-    const { data: order, error: orderLookupError } = await supabase
+    const { data: order } = await supabase
       .from("orders")
       .select("id, user_id, payment_status, order_number, subtotal, shipping_cost, discount_amount, total")
       .in("order_number", possibleOrderNumbers)
       .single();
-
-    if (orderLookupError) {
-      console.error("PayTR callback order lookup error:", orderLookupError);
-    }
 
     if (!order) {
       return new NextResponse("OK"); // PayTR expects "OK"
@@ -99,7 +94,7 @@ export async function POST(request: NextRequest) {
       if (recipientEmail) {
         const { data: items } = await supabase
           .from("order_items")
-          .select("product_id, product_name, quantity, unit_price")
+          .select("product_name, quantity, unit_price")
           .eq("order_id", order.id);
 
         await sendOrderConfirmationEmail(recipientEmail, {
@@ -116,46 +111,18 @@ export async function POST(request: NextRequest) {
           discount: order.discount_amount,
           total: order.total,
         });
-
-        // Server-side Meta Purchase event (deduped with browser via event id).
-        const capiContents = (items || [])
-          .filter((i) => i.product_id)
-          .map((i) => ({
-            id: String(i.product_id),
-            quantity: Number(i.quantity ?? 0),
-            item_price: Number(i.unit_price ?? 0),
-          }));
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
-        await sendServerCapiEvent({
-          event: "Purchase",
-          eventId: `purchase_${order.id}`,
-          eventSourceUrl: `${siteUrl}/odeme-sonucu?status=success&order=${order.id}`,
-          customData: {
-            order_id: order.order_number,
-            value: Number(order.total ?? 0),
-            currency: "TRY",
-            content_ids: capiContents.map((c) => c.id),
-            content_type: "product",
-            contents: capiContents,
-            num_items: capiContents.reduce((s, c) => s + c.quantity, 0),
-          },
-          user: {
-            email: recipientEmail,
-            ip:
-              request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-              request.headers.get("x-real-ip") ||
-              null,
-            userAgent: request.headers.get("user-agent"),
-          },
-        });
       }
     } else {
       // Payment failed
+      const failureCode = formData.get("failed_reason_code") as string | null;
+      const failureReason = formData.get("failed_reason_msg") as string | null;
       await supabase
         .from("orders")
         .update({
           payment_status: "failed",
           status: "cancelled",
+          payment_failure_code: failureCode || null,
+          payment_failure_reason: failureReason || null,
         })
         .eq("id", order.id);
     }

@@ -188,6 +188,57 @@ export default async function AdminOrderDetailPage({ params }: Props) {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Payment (always top, error prominent) */}
+          <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
+            <h2 className="text-base font-semibold">Ödeme</h2>
+            {order.payment_status === "failed" && (order.payment_failure_reason || order.payment_failure_code) && (
+              <div className="flex flex-col gap-1 mb-3 p-3 rounded-lg border border-rose-300 bg-rose-50">
+                <span className="text-xs font-semibold text-rose-700">Ödeme Hatası</span>
+                {order.payment_failure_reason && (
+                  <span className="text-xs text-rose-700">{order.payment_failure_reason}</span>
+                )}
+                {order.payment_failure_code && (
+                  <span className="text-xs text-rose-500">Kod: {order.payment_failure_code}</span>
+                )}
+              </div>
+            )}
+            <div className="text-sm space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Yöntem</span>
+                <span className="font-medium">{order.payment_method || "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Durum</span>
+                <span
+                  className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                    PAYMENT_STATUS_COLORS[order.payment_status] || ""
+                  }`}
+                >
+                  {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
+                </span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-muted-foreground">Fatura No</span>
+                <span className="font-medium text-right break-all">{orderExt.invoice_number || "—"}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-muted-foreground">Fatura</span>
+                {orderExt.invoice_url ? (
+                  <a
+                    href={orderExt.invoice_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Görüntüle
+                  </a>
+                ) : (
+                  <span className="font-medium">—</span>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Status Update */}
           <OrderStatusForm
             orderId={order.id}
@@ -281,46 +332,6 @@ export default async function AdminOrderDetailPage({ params }: Props) {
               </div>
             </div>
           )}
-
-          {/* Payment */}
-          <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
-            <h2 className="text-base font-semibold">Ödeme</h2>
-            <div className="text-sm space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Yöntem</span>
-                <span className="font-medium">{order.payment_method || "—"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Durum</span>
-                <span
-                  className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                    PAYMENT_STATUS_COLORS[order.payment_status] || ""
-                  }`}
-                >
-                  {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
-                </span>
-              </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-muted-foreground">Fatura No</span>
-                <span className="font-medium text-right break-all">{orderExt.invoice_number || "—"}</span>
-              </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-muted-foreground">Fatura</span>
-                {orderExt.invoice_url ? (
-                  <a
-                    href={orderExt.invoice_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-primary hover:underline"
-                  >
-                    Görüntüle
-                  </a>
-                ) : (
-                  <span className="font-medium">—</span>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
