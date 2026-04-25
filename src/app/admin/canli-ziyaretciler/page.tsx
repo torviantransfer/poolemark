@@ -82,7 +82,12 @@ export default function AdminLiveVisitorsPage() {
     channel.on("presence", { event: "join" }, readPresence);
     channel.on("presence", { event: "leave" }, readPresence);
 
-    channel.subscribe();
+    channel.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await channel.track({ role: "admin-live-visitors" });
+        readPresence();
+      }
+    });
 
     return () => {
       supabase.removeChannel(channel);

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function getAdminStats() {
   const supabase = await createClient();
@@ -53,7 +54,8 @@ export async function getAdminStats() {
 }
 
 export async function getTodayFunnelStats() {
-  const supabase = await createClient();
+  // site_events has RLS enabled with no policies — must use service role.
+  const supabase = createAdminClient();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const todayISO = today.toISOString();

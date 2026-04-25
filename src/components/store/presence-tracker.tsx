@@ -232,7 +232,7 @@ export function PresenceTracker() {
       });
     };
 
-    const interval = window.setInterval(reTrack, 25000);
+    const interval = window.setInterval(reTrack, 15000);
     const onVisible = () => {
       if (document.visibilityState === "visible") reTrack();
     };
