@@ -42,7 +42,7 @@ export default async function AdminCustomerDetailPage({ params }: Props) {
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white rounded-2xl border shadow-sm p-5 text-center">
               <p className="text-2xl font-bold text-foreground">{orders?.length || 0}</p>
               <p className="text-xs text-muted-foreground mt-0.5">Sipariş</p>

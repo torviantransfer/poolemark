@@ -66,6 +66,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             <div className="p-5 pb-3">
               <h2 className="text-base font-semibold">Sipariş Kalemleri</h2>
             </div>
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-t text-left text-muted-foreground">
@@ -150,6 +151,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                 </tr>
               </tfoot>
             </table>
+            </div>
           </div>
 
           {order.note && (
