@@ -91,8 +91,40 @@ export default async function HomePage({
     return "Müşteri";
   }
 
+  const mobileHeroSrc = activeBanner?.image_url || "/hero-banner.jpg";
+  // Explicit preload links for LCP image variants (Vercel image optimizer).
+  // Next.js App Router hoists these to <head> automatically.
+  const buildOptimizedSrc = (src: string, w: number) =>
+    `/_next/image?url=${encodeURIComponent(src)}&w=${w}&q=75`;
+  const mobilePreloadSrcSet = [640, 750, 828]
+    .map((w) => `${buildOptimizedSrc(mobileHeroSrc, w)} ${w}w`)
+    .join(", ");
+  const desktopPreloadSrcSet = [1200, 1920, 2048]
+    .map((w) => `${buildOptimizedSrc(desktopHeroImage, w)} ${w}w`)
+    .join(", ");
+
   return (
     <>
+      {/* LCP hero image preload — drops Resource Load Delay drastically. */}
+      <link
+        rel="preload"
+        as="image"
+        // @ts-expect-error - imagesrcset/imagesizes are valid HTML, not in React types
+        imagesrcset={mobilePreloadSrcSet}
+        imagesizes="100vw"
+        fetchPriority="high"
+        media="(max-width: 767px)"
+      />
+      <link
+        rel="preload"
+        as="image"
+        // @ts-expect-error - imagesrcset/imagesizes are valid HTML, not in React types
+        imagesrcset={desktopPreloadSrcSet}
+        imagesizes="100vw"
+        fetchPriority="high"
+        media="(min-width: 768px)"
+      />
+
       {/* ===== HERO SECTION ===== */}
       <section className="relative min-h-[70vh] sm:min-h-[85vh] md:min-h-[90vh] flex items-center -mt-16 md:-mt-[68px]">
         <div className="absolute inset-0 z-0">
@@ -106,7 +138,7 @@ export default async function HomePage({
             fetchPriority="high"
           />
           <Image
-            src={activeBanner?.image_url || "/hero-banner.jpg"}
+            src={mobileHeroSrc}
             alt={activeBanner?.title || "PVC Duvar Paneli ve Mermer Folyo - Poolemark"}
             fill
             sizes="(max-width: 767px) 100vw, 0px"
