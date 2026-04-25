@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2, Mail, Lock, ArrowRight } from "lucide-react";
+import { gaLogin } from "@/lib/ga";
 
 export default function GirisPage() {
   return (
@@ -57,6 +58,7 @@ function GirisForm() {
     }
 
     toast.success("Giriş başarılı!");
+    gaLogin("email");
     router.push(redirect);
     router.refresh();
   }

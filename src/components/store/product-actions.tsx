@@ -16,6 +16,7 @@ import { formatPrice } from "@/lib/helpers";
 import { StockNotifyForm } from "@/components/store/stock-notify-form";
 import { trackEvent } from "@/lib/meta-pixel";
 import { trackSiteEvent } from "@/lib/site-events";
+import { gaAddToCart, gaAddToWishlist } from "@/lib/ga";
 
 interface ProductActionsProps {
   product: Product;
@@ -108,6 +109,15 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
         value: currentPrice * quantity,
       },
     });
+    gaAddToCart({
+      value: currentPrice * quantity,
+      items: [{
+        item_id: activeVariant?.id ?? product.id,
+        item_name: product.name,
+        price: currentPrice,
+        quantity,
+      }],
+    });
     toast.success("Ürün sepete eklendi", {
       action: {
         label: "Sepete Git",
@@ -140,6 +150,15 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
     trackSiteEvent("add_to_cart", {
       metadata: { product_id: product.id, value: currentPrice * quantity, source: "buy_now" },
     });
+    gaAddToCart({
+      value: currentPrice * quantity,
+      items: [{
+        item_id: activeVariant?.id ?? product.id,
+        item_name: product.name,
+        price: currentPrice,
+        quantity,
+      }],
+    });
     router.push("/checkout");
   }
 
@@ -169,6 +188,15 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
         .from("favorites")
         .insert({ user_id: user.id, product_id: product.id });
       setIsFavorite(true);
+      gaAddToWishlist({
+        value: currentPrice,
+        items: [{
+          item_id: activeVariant?.id ?? product.id,
+          item_name: product.name,
+          price: currentPrice,
+          quantity: 1,
+        }],
+      });
       toast.success("Favorilere eklendi");
     }
   }

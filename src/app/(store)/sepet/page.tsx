@@ -23,6 +23,7 @@ import { formatPrice } from "@/lib/helpers";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InstallmentModal } from "@/components/store/installment-modal";
+import { gaViewCart, gaRemoveFromCart } from "@/lib/ga";
 
 function extractCoverageM2(productName: string): number | null {
   // Matches: "1.1 m²", "0,18 m2", "~1.32 m²" etc.
@@ -44,6 +45,38 @@ export default function CartPage() {
     code: string;
     discount: number;
   } | null>(null);
+
+  // GA4 view_cart — sepet sayfası açılınca, ürünler hidrate olunca bir kez.
+  useEffect(() => {
+    if (!mounted || loading) return;
+    if (items.length === 0) return;
+    gaViewCart({
+      value: subtotal,
+      items: items.map((i) => ({
+        item_id: i.variant_id ?? i.product_id,
+        item_name: i.name,
+        price: i.price,
+        quantity: i.quantity,
+      })),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, loading]);
+
+  function handleRemoveItem(id: string) {
+    const item = items.find((i) => i.id === id);
+    if (item) {
+      gaRemoveFromCart({
+        value: item.price * item.quantity,
+        items: [{
+          item_id: item.variant_id ?? item.product_id,
+          item_name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        }],
+      });
+    }
+    removeItem(id);
+  }
 
   const FREE_SHIPPING_THRESHOLD = 500;
   const discount = appliedCoupon?.discount || 0;
@@ -220,7 +253,7 @@ export default function CartPage() {
                           )}
                         </div>
                         <button
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => handleRemoveItem(item.id)}
                           className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-red-50 transition-colors shrink-0"
                         >
                           <Trash2 className="h-4 w-4" />

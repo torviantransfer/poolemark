@@ -12,6 +12,7 @@ import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/meta-pixel";
 import { trackSiteEvent } from "@/lib/site-events";
+import { gaAddToCart } from "@/lib/ga";
 
 interface ProductCardProps {
   product: Product;
@@ -65,6 +66,10 @@ export function ProductCard({ product, className, priority = false }: ProductCar
     });
     trackSiteEvent("add_to_cart", {
       metadata: { product_id: product.id, value: product.price },
+    });
+    gaAddToCart({
+      value: product.price,
+      items: [{ item_id: product.id, item_name: product.name, price: product.price, quantity: 1 }],
     });
     setAdded(true);
     toast.success("Sepete eklendi", {

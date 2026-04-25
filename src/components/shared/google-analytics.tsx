@@ -3,6 +3,8 @@
 import Script from "next/script";
 import { Suspense, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useUser } from "@/hooks/use-user";
+import { gaSetUserId } from "@/lib/ga";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
@@ -43,8 +45,20 @@ export function GoogleAnalytics() {
       <Suspense>
         <PageViewTracker />
       </Suspense>
+      <Suspense>
+        <UserIdSync />
+      </Suspense>
     </>
   );
+}
+
+/** Pushes the Supabase user id to GA so cross-device sessions can be linked. */
+function UserIdSync() {
+  const { user } = useUser();
+  useEffect(() => {
+    gaSetUserId(user?.id ?? null);
+  }, [user?.id]);
+  return null;
 }
 
 /** Fires page_view on every route change (App Router has no automatic tracking). */

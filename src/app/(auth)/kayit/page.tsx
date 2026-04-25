@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/meta-pixel";
+import { gaSignUp } from "@/lib/ga";
 import {
   Eye,
   EyeOff,
@@ -123,6 +124,7 @@ export default function KayitPage() {
         { status: true, currency: "TRY", value: 0 },
         { userEmail: form.email, userPhone: form.phone }
       );
+      gaSignUp("email");
       toast.success("Kayıt başarılı! Hoş geldiniz.");
       router.push("/hesabim");
     } else {
@@ -132,6 +134,7 @@ export default function KayitPage() {
         { status: "pending_confirmation", currency: "TRY", value: 0 },
         { userEmail: form.email, userPhone: form.phone }
       );
+      gaSignUp("email");
       toast.success("Kayıt başarılı! Lütfen e-posta adresinize gönderilen onay bağlantısına tıklayın.", { duration: 6000 });
       router.push("/giris");
     }

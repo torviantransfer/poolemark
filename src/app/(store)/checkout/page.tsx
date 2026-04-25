@@ -32,6 +32,7 @@ import type { Address } from "@/types";
 import { InstallmentModal } from "@/components/store/installment-modal";
 import { trackEvent } from "@/lib/meta-pixel";
 import { trackSiteEvent } from "@/lib/site-events";
+import { gaBeginCheckout } from "@/lib/ga";
 
 interface GuestAddress {
   first_name: string;
@@ -161,6 +162,15 @@ function CheckoutContent() {
     trackSiteEvent("initiate_checkout", {
       userId: user?.id ?? null,
       metadata: { num_items: num, value, trigger: "page_view" },
+    });
+    gaBeginCheckout({
+      value,
+      items: items.map((i) => ({
+        item_id: i.variant_id ?? i.product_id,
+        item_name: i.name,
+        price: i.price,
+        quantity: i.quantity,
+      })),
     });
   }, [cartLoading, items, user?.email, user?.id]);
 

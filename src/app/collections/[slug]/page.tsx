@@ -21,19 +21,19 @@ const collections: Record<
   all: {
     title: "Tüm Ürünler",
     description: "Poolemark'ın tüm ürünlerini keşfedin",
-    metaTitle: "Tüm Ürünler | Poolemark",
+    metaTitle: "Tüm Ürünler",
     metaDescription: "Poolemark'ın kapsamlı ürün koleksiyonu. Ev dekorasyonu, mutfak gereçleri ve daha fazlası.",
   },
   "yeni-urunler": {
     title: "Yeni Ürünler",
     description: "En son eklenen ürünlerimizi keşfedin",
-    metaTitle: "Yeni Ürünler | Poolemark",
+    metaTitle: "Yeni Ürünler",
     metaDescription: "Poolemark'a yeni eklenen ürünleri görün. Trendiest çıkan ürünlerimiz.",
   },
   featured: {
     title: "Öne Çıkan Ürünler",
     description: "Özel olarak seçilmiş en iyi ürünlerimiz",
-    metaTitle: "Öne Çıkan Ürünler | Poolemark",
+    metaTitle: "Öne Çıkan Ürünler",
     metaDescription: "Poolemark'ın özel seçkisi. En popüler ve kaliteli ürünlerimiz.",
   },
 };

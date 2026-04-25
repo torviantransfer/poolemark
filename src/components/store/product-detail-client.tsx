@@ -5,6 +5,7 @@ import { ProductGallery } from "@/components/store/product-gallery";
 import { ProductActions } from "@/components/store/product-actions";
 import { ShippingTimeline } from "@/components/store/shipping-timeline";
 import { trackEvent } from "@/lib/meta-pixel";
+import { gaViewItem } from "@/lib/ga";
 import type { Product, ProductImage } from "@/types";
 
 interface ProductDetailClientProps {
@@ -25,6 +26,10 @@ export function ProductDetailClient({ product, images, disabled, children }: Pro
       contents: [{ id: product.id, quantity: 1, item_price: product.price }],
       value: product.price,
       currency: "TRY",
+    });
+    gaViewItem({
+      value: product.price,
+      items: [{ item_id: product.id, item_name: product.name, price: product.price, quantity: 1 }],
     });
   }, [product.id, product.name, product.price]);
 

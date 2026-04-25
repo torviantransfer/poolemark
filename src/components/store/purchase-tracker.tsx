@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { trackEvent } from "@/lib/meta-pixel";
 import { trackSiteEvent } from "@/lib/site-events";
+import { gaPurchase } from "@/lib/ga";
 
 interface PurchaseTrackerProps {
   orderId: string;
@@ -64,6 +65,15 @@ export function PurchaseTracker({
         order_number: orderNumber,
         value: total,
       },
+    });
+    gaPurchase({
+      transaction_id: orderNumber,
+      value: total,
+      items: contents.map((c) => ({
+        item_id: c.id,
+        price: c.item_price,
+        quantity: c.quantity,
+      })),
     });
 
     if (typeof window !== "undefined") {

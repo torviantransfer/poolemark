@@ -23,6 +23,7 @@ import { formatPrice } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { gaRemoveFromCart } from "@/lib/ga";
 
 export function MiniCart({ transparent = false }: { transparent?: boolean }) {
   const { items, itemCount, subtotal, updateQuantity, removeItem, mounted } = useCart();
@@ -138,7 +139,18 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
                         </button>
                       </div>
                       <button
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => {
+                          gaRemoveFromCart({
+                            value: item.price * item.quantity,
+                            items: [{
+                              item_id: item.variant_id ?? item.product_id,
+                              item_name: item.name,
+                              price: item.price,
+                              quantity: item.quantity,
+                            }],
+                          });
+                          removeItem(item.id);
+                        }}
                         className="p-2 text-muted-foreground hover:text-destructive transition-colors min-w-[32px] flex items-center justify-center"
                         aria-label="Ürünü kaldır"
                       >
