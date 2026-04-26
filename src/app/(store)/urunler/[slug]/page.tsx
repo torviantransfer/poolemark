@@ -240,7 +240,7 @@ export default async function ProductPage({ params }: Props) {
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
                     {product.unit_label && (
                       <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                        <PackageCheck className="h-3.5 w-3.5 shrink-0" />
+                        <PackageCheck className="h-3.5 w-3.5 shrink-0 text-primary" />
                         Kaç adet? <span className="font-semibold text-foreground">{product.unit_label}</span>
                       </span>
                     )}

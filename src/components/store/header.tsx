@@ -315,7 +315,7 @@ export function Header() {
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     className={cn(
-                      "flex items-center justify-center w-9 h-9 rounded-full text-sm font-medium transition-colors",
+                      "flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-colors",
                       transparent
                         ? "bg-white/20 text-white hover:bg-white/30"
                         : "bg-primary text-primary-foreground hover:bg-primary/90"
