@@ -66,7 +66,7 @@ export function InstallmentModal({
       PAYTR_TOKEN
     )}&merchant_id=${encodeURIComponent(
       PAYTR_MERCHANT_ID
-    )}&amount=${calculatedTotal.toFixed(2)}&taksit=0&tumu=0`;
+    )}&amount=${Math.round(calculatedTotal * 100)}&taksit=0&tumu=1`;
     script.async = true;
     script.onload = () => setLoading(false);
     script.onerror = () => setLoading(false);
@@ -172,13 +172,13 @@ export function InstallmentModal({
                 Taksit tablosu yapılandırılmamış. Lütfen sistem yöneticinize başvurun.
               </div>
             ) : (
-              <div className="relative min-h-[200px]">
+              <div className="relative min-h-[200px] overflow-x-auto">
                 {loading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
                     <Loader2 className="h-6 w-6 text-primary animate-spin" />
                   </div>
                 )}
-                <div ref={containerRef} className="paytr-installment-host" />
+                <div ref={containerRef} className="paytr-installment-host min-w-0" />
               </div>
             )}
 
