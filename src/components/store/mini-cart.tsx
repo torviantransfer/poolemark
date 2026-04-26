@@ -155,11 +155,16 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
                         >
                           {item.name}
                         </Link>
-                        {(item.variant_name || item.unit_label) && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {[item.variant_name, item.unit_label].filter(Boolean).join(" · ")}
-                          </p>
-                        )}
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          {item.variant_name && (
+                            <span className="text-xs text-muted-foreground">{item.variant_name}</span>
+                          )}
+                          {item.unit_label && (
+                            <span className="inline-flex items-center text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+                              {item.unit_label}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {/* Sil */}
                       <button
