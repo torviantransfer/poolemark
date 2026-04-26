@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { formatPrice, formatDate } from "@/lib/helpers";
-import { Plus, Search, Edit, Eye, Package } from "lucide-react";
+import { Plus, Edit, Eye, Package } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 import { AdminSearchForm } from "@/components/admin/search-form";
 
@@ -38,10 +38,10 @@ export default async function AdminProductsPage({ searchParams }: Props) {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-white/90 backdrop-blur shadow-sm px-5 py-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Ürünler</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Ürünler</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             {count || 0} ürün bulundu
           </p>
         </div>
@@ -55,13 +55,13 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border shadow-sm p-4">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <AdminSearchForm
             placeholder="Ürün ara..."
             defaultValue={search}
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {[
               { value: "all", label: "Tümü" },
               { value: "active", label: "Aktif" },
@@ -71,10 +71,10 @@ export default async function AdminProductsPage({ searchParams }: Props) {
               <Link
                 key={s.value}
                 href={`/admin/urunler?status=${s.value}${search ? `&search=${search}` : ""}`}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors ${
                   status === s.value
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-foreground/70 hover:bg-secondary/80"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-secondary/80 text-foreground/70 hover:bg-secondary"
                 }`}
               >
                 {s.label}
@@ -85,11 +85,11 @@ export default async function AdminProductsPage({ searchParams }: Props) {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left text-muted-foreground bg-secondary/30">
+              <tr className="border-b text-left text-muted-foreground bg-secondary/40">
                 <th className="px-5 py-3 font-medium">Ürün</th>
                 <th className="px-5 py-3 font-medium">Kategori</th>
                 <th className="px-5 py-3 font-medium">Fiyat</th>
@@ -107,7 +107,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
                   return (
                     <tr
                       key={product.id}
-                      className="border-b last:border-0 hover:bg-secondary/20 transition-colors"
+                      className="border-b last:border-0 hover:bg-primary/[0.04] transition-colors"
                     >
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
@@ -178,14 +178,14 @@ export default async function AdminProductsPage({ searchParams }: Props) {
                           <Link
                             href={`/products/${product.slug}`}
                             target="_blank"
-                            className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                            className="p-2 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
                             title="Önizle"
                           >
                             <Eye className="h-4 w-4" />
                           </Link>
                           <Link
                             href={`/admin/urunler/${product.id}`}
-                            className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                            className="p-2 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
                             title="Düzenle"
                           >
                             <Edit className="h-4 w-4" />
@@ -218,7 +218,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-3 border-t">
+          <div className="flex items-center justify-between px-5 py-3 border-t bg-secondary/20">
             <p className="text-sm text-muted-foreground">
               Sayfa {page} / {totalPages}
             </p>
@@ -226,7 +226,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
               {page > 1 && (
                 <Link
                   href={`/admin/urunler?page=${page - 1}${search ? `&search=${search}` : ""}${status !== "all" ? `&status=${status}` : ""}`}
-                  className="px-3 py-1.5 rounded-lg text-sm bg-secondary hover:bg-secondary/80 transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-sm bg-white border hover:bg-secondary/70 transition-colors"
                 >
                   Önceki
                 </Link>
@@ -234,7 +234,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
               {page < totalPages && (
                 <Link
                   href={`/admin/urunler?page=${page + 1}${search ? `&search=${search}` : ""}${status !== "all" ? `&status=${status}` : ""}`}
-                  className="px-3 py-1.5 rounded-lg text-sm bg-secondary hover:bg-secondary/80 transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-sm bg-white border hover:bg-secondary/70 transition-colors"
                 >
                   Sonraki
                 </Link>

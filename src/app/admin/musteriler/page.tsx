@@ -34,22 +34,22 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Müşteriler</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
+      <div className="rounded-2xl border bg-white/90 backdrop-blur shadow-sm px-5 py-4">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Müşteriler</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           {count || 0} müşteri
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border shadow-sm p-4">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-4">
         <AdminSearchForm placeholder="Müşteri ara..." defaultValue={search} />
       </div>
 
-      <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left text-muted-foreground bg-secondary/30">
+              <tr className="border-b text-left text-muted-foreground bg-secondary/40">
                 <th className="px-5 py-3 font-medium">Ad Soyad</th>
                 <th className="px-5 py-3 font-medium">E-posta</th>
                 <th className="px-5 py-3 font-medium">Telefon</th>
@@ -60,7 +60,7 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
             <tbody>
               {customers && customers.length > 0 ? (
                 customers.map((c) => (
-                  <tr key={c.id} className="border-b last:border-0 hover:bg-secondary/20 transition-colors">
+                  <tr key={c.id} className="border-b last:border-0 hover:bg-primary/[0.04] transition-colors">
                     <td className="px-5 py-3 font-medium">
                       {c.first_name} {c.last_name}
                     </td>
@@ -72,7 +72,7 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
                     <td className="px-5 py-3 text-right">
                       <Link
                         href={`/admin/musteriler/${c.id}`}
-                        className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors inline-flex"
+                        className="p-2 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors inline-flex"
                       >
                         <Eye className="h-4 w-4" />
                       </Link>
@@ -92,14 +92,14 @@ export default async function AdminCustomersPage({ searchParams }: Props) {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-3 border-t">
+          <div className="flex items-center justify-between px-5 py-3 border-t bg-secondary/20">
             <p className="text-sm text-muted-foreground">Sayfa {page} / {totalPages}</p>
             <div className="flex gap-1">
               {page > 1 && (
-                <Link href={`/admin/musteriler?page=${page - 1}${search ? `&search=${search}` : ""}`} className="px-3 py-1.5 rounded-lg text-sm bg-secondary hover:bg-secondary/80">Önceki</Link>
+                <Link href={`/admin/musteriler?page=${page - 1}${search ? `&search=${search}` : ""}`} className="px-3 py-1.5 rounded-lg text-sm bg-white border hover:bg-secondary/70 transition-colors">Önceki</Link>
               )}
               {page < totalPages && (
-                <Link href={`/admin/musteriler?page=${page + 1}${search ? `&search=${search}` : ""}`} className="px-3 py-1.5 rounded-lg text-sm bg-secondary hover:bg-secondary/80">Sonraki</Link>
+                <Link href={`/admin/musteriler?page=${page + 1}${search ? `&search=${search}` : ""}`} className="px-3 py-1.5 rounded-lg text-sm bg-white border hover:bg-secondary/70 transition-colors">Sonraki</Link>
               )}
             </div>
           </div>

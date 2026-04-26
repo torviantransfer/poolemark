@@ -104,7 +104,7 @@ export function AdminSidebar() {
   }
 
   const navContent = (
-    <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
+    <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1.5">
       {ADMIN_NAV_LINKS.map((link) => {
         const Icon = ICON_MAP[link.icon] || LayoutDashboard;
         const isActive =
@@ -126,10 +126,10 @@ export function AdminSidebar() {
                 }
               }}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-foreground/70 hover:text-foreground hover:bg-secondary"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-foreground/70 hover:text-foreground hover:bg-secondary/80 hover:translate-x-0.5"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -149,7 +149,7 @@ export function AdminSidebar() {
               )}
             </Link>
             {hasChildren && isExpanded && (
-              <div className="ml-7 mt-0.5 space-y-0.5">
+              <div className="ml-7 mt-1 space-y-1">
                 {link.children.map((child) => (
                   <Link
                     key={child.href}
@@ -158,8 +158,8 @@ export function AdminSidebar() {
                     className={cn(
                       "block px-3 py-2 rounded-lg text-sm transition-colors",
                       pathname === child.href
-                        ? "text-primary font-medium bg-accent"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                        ? "text-primary font-medium bg-primary/10"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/80"
                     )}
                   >
                     {child.label}
@@ -176,9 +176,9 @@ export function AdminSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:left-0 bg-white border-r z-30">
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:left-0 bg-white/95 backdrop-blur border-r shadow-[0_10px_30px_-15px_rgba(0,0,0,0.25)] z-30">
         {/* Logo */}
-        <div className="h-16 flex items-center px-6 border-b shrink-0">
+        <div className="h-16 flex items-center justify-between px-6 border-b shrink-0">
           <Link
             href="/admin"
             className="text-lg font-bold text-primary tracking-tight"
@@ -188,15 +188,20 @@ export function AdminSidebar() {
               Admin
             </span>
           </Link>
+          {onlineCount > 0 && (
+            <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+              {onlineCount} online
+            </span>
+          )}
         </div>
 
         {navContent}
 
         {/* Bottom Actions */}
-        <div className="p-3 border-t">
+        <div className="p-3 border-t bg-secondary/20">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-destructive hover:bg-red-50 transition-colors"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-destructive hover:bg-red-50 transition-colors"
           >
             <LogOut className="h-4 w-4" />
             Çıkış Yap
@@ -205,9 +210,9 @@ export function AdminSidebar() {
       </aside>
 
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 inset-x-0 h-14 bg-white border-b z-30 flex items-center justify-between px-4">
+      <header className="lg:hidden fixed top-0 inset-x-0 h-14 bg-white/95 backdrop-blur border-b z-30 flex items-center justify-between px-4">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger className="p-2 -ml-2 text-foreground/70 hover:text-foreground">
+          <SheetTrigger className="p-2 -ml-2 rounded-lg text-foreground/70 hover:text-foreground hover:bg-secondary/80 transition-colors">
             <Menu className="h-5 w-5" />
           </SheetTrigger>
           <SheetContent side="left" className="w-[280px] p-0">

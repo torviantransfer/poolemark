@@ -56,16 +56,16 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Siparişler</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
+      <div className="rounded-2xl border bg-white/90 backdrop-blur shadow-sm px-5 py-4">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Siparişler</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           {count || 0} sipariş bulundu
           {status !== "abandoned" && (abandonedCount || 0) > 0 && (
             <>
               {" "}·{" "}
               <Link
                 href="/admin/siparisler?status=abandoned"
-                className="text-amber-600 hover:underline"
+                className="text-amber-600 hover:underline underline-offset-4"
               >
                 {abandonedCount} yarım bırakılmış ödeme
               </Link>
@@ -74,7 +74,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border shadow-sm p-4">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <AdminSearchForm placeholder="Sipariş no ara..." defaultValue={search} />
           <div className="flex gap-2 flex-wrap">
@@ -93,10 +93,10 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               <Link
                 key={s.value}
                 href={`/admin/siparisler?status=${s.value}${search ? `&search=${search}` : ""}`}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
                   status === s.value
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-foreground/70 hover:bg-secondary/80"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-secondary/80 text-foreground/70 hover:bg-secondary"
                 }`}
               >
                 {s.label}
@@ -106,11 +106,11 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[760px]">
             <thead>
-              <tr className="border-b text-left text-muted-foreground bg-secondary/30">
+              <tr className="border-b text-left text-muted-foreground bg-secondary/40">
                 <th className="px-3 md:px-5 py-3 font-medium">Sipariş No</th>
                 <th className="px-3 md:px-5 py-3 font-medium">Müşteri</th>
                 <th className="px-3 md:px-5 py-3 font-medium">Tutar</th>
@@ -145,7 +145,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                   return (
                   <tr
                     key={order.id}
-                    className="border-b last:border-0 hover:bg-secondary/20 transition-colors"
+                    className="border-b last:border-0 hover:bg-primary/[0.04] transition-colors"
                   >
                     <td className="px-5 py-3">
                       <Link
@@ -206,7 +206,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                         )}
                         <Link
                           href={`/admin/siparisler/${order.id}`}
-                          className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors inline-flex"
+                          className="p-2 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors inline-flex"
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
@@ -229,7 +229,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-3 border-t">
+          <div className="flex items-center justify-between px-5 py-3 border-t bg-secondary/20">
             <p className="text-sm text-muted-foreground">
               Sayfa {page} / {totalPages}
             </p>
@@ -237,7 +237,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               {page > 1 && (
                 <Link
                   href={`/admin/siparisler?page=${page - 1}${search ? `&search=${search}` : ""}${status !== "all" ? `&status=${status}` : ""}`}
-                  className="px-3 py-1.5 rounded-lg text-sm bg-secondary hover:bg-secondary/80 transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-sm bg-white border hover:bg-secondary/70 transition-colors"
                 >
                   Önceki
                 </Link>
@@ -245,7 +245,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               {page < totalPages && (
                 <Link
                   href={`/admin/siparisler?page=${page + 1}${search ? `&search=${search}` : ""}${status !== "all" ? `&status=${status}` : ""}`}
-                  className="px-3 py-1.5 rounded-lg text-sm bg-secondary hover:bg-secondary/80 transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-sm bg-white border hover:bg-secondary/70 transition-colors"
                 >
                   Sonraki
                 </Link>

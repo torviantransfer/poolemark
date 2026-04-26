@@ -88,10 +88,10 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-2xl border bg-white/90 backdrop-blur shadow-sm px-5 py-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Ayarlar</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Ayarlar</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Site genel ayarları
           </p>
         </div>
@@ -105,11 +105,11 @@ export default function AdminSettingsPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-5">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-5 space-y-5">
         {DEFAULT_SETTINGS.map((def) => (
           <div key={def.key}>
             {def.type === "checkbox" ? (
-              <label className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5">
+              <label className="flex items-center justify-between gap-3 rounded-xl border bg-secondary/20 px-3 py-2.5">
                 <span className="text-sm font-medium text-foreground">{def.label}</span>
                 <input
                   type="checkbox"
@@ -134,7 +134,7 @@ export default function AdminSettingsPage() {
                   setSettings((prev) => ({ ...prev, [def.key]: e.target.value }))
                 }
                 rows={3}
-                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                className="w-full rounded-xl border bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
               />
               </>
             ) : (
@@ -148,7 +148,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) =>
                   setSettings((prev) => ({ ...prev, [def.key]: e.target.value }))
                 }
-                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full rounded-xl border bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
               </>
             )}

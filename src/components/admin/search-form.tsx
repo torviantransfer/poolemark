@@ -36,8 +36,14 @@ export function AdminSearchForm({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-9 pr-4 py-2 rounded-lg border bg-secondary/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+        className="w-full pl-9 pr-24 py-2.5 rounded-xl border bg-white/90 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
       />
+      <button
+        type="submit"
+        className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+      >
+        Ara
+      </button>
     </form>
   );
 }

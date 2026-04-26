@@ -84,9 +84,9 @@ export default async function AdminDashboard() {
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
+      <div className="rounded-2xl border bg-white/90 backdrop-blur shadow-sm px-5 py-4">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Mağaza genel bakış
         </p>
       </div>
@@ -120,7 +120,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Funnel Stats */}
-      <div className="bg-white rounded-2xl border shadow-sm p-5">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-base font-semibold text-foreground">Bugünkü Dönüşüm Hunisi</h2>
@@ -180,7 +180,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Trafik Kaynakları */}
-      <div className="bg-white rounded-2xl border shadow-sm p-5">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-base font-semibold text-foreground">Bugünkü Trafik Kaynakları</h2>
@@ -218,7 +218,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* En Çok Terk Edilen Sayfalar */}
-      <div className="bg-white rounded-2xl border shadow-sm p-5">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-5">
         <div className="flex items-center gap-2 mb-4">
           <LogOut className="h-4 w-4 text-rose-600" />
           <div>
@@ -263,7 +263,7 @@ export default async function AdminDashboard() {
           {stats.lowStockProducts > 0 && (
             <Link
               href="/admin/urunler"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm hover:bg-amber-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm hover:bg-amber-100 transition-colors shadow-sm"
             >
               <AlertTriangle className="h-4 w-4" />
               <span className="font-medium">{stats.lowStockProducts}</span> ürünün stoku düşük
@@ -272,7 +272,7 @@ export default async function AdminDashboard() {
           {stats.unreadMessages > 0 && (
             <Link
               href="/admin/mesajlar"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm hover:bg-blue-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm hover:bg-blue-100 transition-colors shadow-sm"
             >
               <MessageSquare className="h-4 w-4" />
               <span className="font-medium">{stats.unreadMessages}</span> okunmamış mesaj
@@ -281,7 +281,7 @@ export default async function AdminDashboard() {
           {stats.pendingReviews > 0 && (
             <Link
               href="/admin/yorumlar"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 text-sm hover:bg-purple-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 text-sm hover:bg-purple-100 transition-colors shadow-sm"
             >
               <Star className="h-4 w-4" />
               <span className="font-medium">{stats.pendingReviews}</span> onay bekleyen yorum
@@ -292,7 +292,7 @@ export default async function AdminDashboard() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Orders */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border shadow-sm">
+        <div className="lg:col-span-2 bg-white/90 backdrop-blur rounded-2xl border shadow-sm">
           <div className="flex items-center justify-between p-5 pb-3">
             <h2 className="text-base font-semibold text-foreground">
               Son Siparişler
@@ -307,7 +307,7 @@ export default async function AdminDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-t text-left text-muted-foreground">
+                <tr className="border-t text-left text-muted-foreground bg-secondary/20">
                   <th className="px-5 py-2.5 font-medium">Sipariş No</th>
                   <th className="px-5 py-2.5 font-medium">Müşteri</th>
                   <th className="px-5 py-2.5 font-medium">Tutar</th>
@@ -340,7 +340,7 @@ export default async function AdminDashboard() {
                     return (
                     <tr
                       key={order.id}
-                      className="border-t hover:bg-secondary/30 transition-colors"
+                      className="border-t hover:bg-primary/[0.04] transition-colors"
                     >
                       <td className="px-5 py-3">
                         <Link
@@ -387,7 +387,7 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Low Stock */}
-        <div className="bg-white rounded-2xl border shadow-sm">
+        <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm">
           <div className="flex items-center justify-between p-5 pb-3">
             <h2 className="text-base font-semibold text-foreground">
               Stok Uyarısı
@@ -405,7 +405,7 @@ export default async function AdminDashboard() {
                 <Link
                   key={product.id}
                   href={`/admin/urunler/${product.id}`}
-                  className="flex items-center justify-between py-2 group"
+                  className="flex items-center justify-between py-2 group rounded-lg px-2 -mx-2 hover:bg-secondary/30 transition-colors"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
@@ -453,7 +453,7 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border shadow-sm p-5">
+    <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-5 hover:shadow-md transition-shadow">
       <div
         className={`inline-flex items-center justify-center w-10 h-10 rounded-xl ${color}`}
       >
@@ -479,7 +479,7 @@ function FunnelCard({
   color: string;
 }) {
   return (
-    <div className="rounded-xl border p-4">
+    <div className="rounded-xl border bg-white/80 p-4 hover:bg-white transition-colors">
       <div className="flex items-center gap-2">
         <div className={`inline-flex items-center justify-center w-8 h-8 rounded-lg ${color}`}>
           {icon}
