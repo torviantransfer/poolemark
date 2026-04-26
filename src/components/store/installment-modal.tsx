@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,186 @@ import {
 } from "@/components/ui/dialog";
 import { formatPrice } from "@/lib/helpers";
 import { CreditCard, Loader2 } from "lucide-react";
+
+interface InstallmentModalProps {
+  price: number;
+  quantity?: number;
+  unitPrice?: number;
+  minQuantity?: number;
+  maxQuantity?: number;
+}
+
+const PAYTR_TOKEN = process.env.NEXT_PUBLIC_PAYTR_INSTALLMENT_TOKEN || "";
+const PAYTR_MERCHANT_ID = process.env.NEXT_PUBLIC_PAYTR_MERCHANT_ID || "";
+
+export function InstallmentModal({
+  price,
+  quantity,
+  unitPrice,
+  minQuantity = 1,
+  maxQuantity = 10,
+}: InstallmentModalProps) {
+  const [open, setOpen] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+
+  const hasQuantitySelector = typeof unitPrice === "number";
+  const safeMinQuantity = Math.max(1, minQuantity);
+  const safeMaxQuantity = Math.max(safeMinQuantity, maxQuantity);
+  const initialQty = Math.min(
+    safeMaxQuantity,
+    Math.max(safeMinQuantity, quantity ?? safeMinQuantity)
+  );
+
+  const [modalQuantity, setModalQuantity] = useState(initialQty);
+
+  const calculatedTotal = hasQuantitySelector
+    ? (unitPrice as number) * modalQuantity
+    : price;
+
+  const iframeSrcDoc = useMemo(() => {
+    if (!PAYTR_TOKEN || !PAYTR_MERCHANT_ID) return "";
+    const scriptUrl = `https://www.paytr.com/odeme/taksit-tablosu/v2?token=${PAYTR_TOKEN}&merchant_id=${PAYTR_MERCHANT_ID}&amount=${calculatedTotal.toFixed(2)}&taksit=0&tumu=0`;
+    return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>
+  body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  #paytr_taksit_tablosu { clear: both; font-size: 12px; max-width: 100%; text-align: center; font-family: Arial, sans-serif; }
+  #paytr_taksit_tablosu::before { display: table; content: " "; }
+  #paytr_taksit_tablosu::after { content: ""; clear: both; display: table; }
+  .taksit-tablosu-wrapper { margin: 5px; width: 280px; padding: 12px; cursor: default; text-align: center; display: inline-block; border: 1px solid #e1e1e1; }
+  .taksit-logo img { max-height: 28px; padding-bottom: 10px; }
+  .taksit-tutari-text { float: left; width: 126px; color: #a2a2a2; margin-bottom: 5px; }
+  .taksit-tutar-wrapper { display: inline-block; background-color: #f7f7f7; }
+  .taksit-tutar-wrapper:hover { background-color: #e8e8e8; }
+  .taksit-tutari { float: left; width: 126px; padding: 6px 0; color: #474747; border: 2px solid #ffffff; }
+  .taksit-tutari-bold { font-weight: bold; }
+  @media all and (max-width: 600px) { .taksit-tablosu-wrapper { margin: 5px 0; } }
+</style>
+</head>
+<body>
+<div id="paytr_taksit_tablosu"></div>
+<script src="${scriptUrl}"></script>
+</body>
+</html>`;
+  }, [calculatedTotal]);
+
+  const previewMonthly = useMemo(() => Math.ceil(price / 12), [price]);
+
+  function handleOpenChange(val: boolean) {
+    setOpen(val);
+    if (val) setIframeLoaded(false);
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => handleOpenChange(true)}
+        className="w-full sm:w-auto inline-flex items-start sm:items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors text-left group"
+      >
+        <CreditCard className="h-3.5 w-3.5 text-primary shrink-0" />
+        <span className="inline-flex flex-wrap items-center gap-x-1.5 gap-y-0.5 min-w-0">
+          <span>12 taksitte yalnızca</span>
+          <span className="font-semibold text-foreground group-hover:text-primary whitespace-nowrap">
+            {formatPrice(previewMonthly)}/ay
+          </span>
+          <span className="text-primary font-medium underline underline-offset-2 decoration-dashed whitespace-nowrap">
+            taksit tablosu
+          </span>
+        </span>
+      </button>
+
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="w-[95vw] max-w-3xl sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="px-4 sm:px-6 pt-5 pb-3 pr-12 border-b sticky top-0 bg-white z-10">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Taksit Seçenekleri
+            </DialogTitle>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Anlaşmalı bankaların güncel taksit oranları (PayTR)
+            </p>
+          </DialogHeader>
+
+          <div className="px-4 sm:px-6 pb-6 pt-4 space-y-4">
+            <div className="rounded-xl border bg-secondary/30 p-3">
+              <p className="text-xs text-muted-foreground">Hesaplanan ödeme tutarı</p>
+              <p className="text-base font-semibold text-foreground mt-0.5">
+                {formatPrice(calculatedTotal)}
+              </p>
+
+              {hasQuantitySelector && (
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <div className="flex items-center border border-border rounded-lg overflow-hidden bg-white h-9">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setModalQuantity((q) => Math.max(safeMinQuantity, q - 1))
+                      }
+                      disabled={modalQuantity <= safeMinQuantity}
+                      className="h-full w-9 inline-flex items-center justify-center text-sm hover:bg-muted disabled:opacity-30"
+                    >
+                      -
+                    </button>
+                    <span className="w-10 text-center text-sm font-semibold tabular-nums">
+                      {modalQuantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setModalQuantity((q) => Math.min(safeMaxQuantity, q + 1))
+                      }
+                      disabled={modalQuantity >= safeMaxQuantity}
+                      className="h-full w-9 inline-flex items-center justify-center text-sm hover:bg-muted disabled:opacity-30"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">Adet</span>
+                </div>
+              )}
+
+              {hasQuantitySelector && typeof unitPrice === "number" && modalQuantity > 0 && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  {modalQuantity} adet x {formatPrice(unitPrice)}
+                </p>
+              )}
+            </div>
+
+            {!PAYTR_TOKEN || !PAYTR_MERCHANT_ID ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                Taksit tablosu yapılandırılmamış. Lütfen sistem yöneticinize başvurun.
+              </div>
+            ) : (
+              <div className="relative min-h-[300px]">
+                {!iframeLoaded && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
+                    <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                  </div>
+                )}
+                <iframe
+                  key={calculatedTotal}
+                  srcDoc={iframeSrcDoc}
+                  onLoad={() => setIframeLoaded(true)}
+                  className="w-full border-0"
+                  style={{ minHeight: 320, height: iframeLoaded ? "auto" : 320 }}
+                  scrolling="no"
+                />
+              </div>
+            )}
+
+            <p className="text-[11px] text-muted-foreground border-t pt-4">
+              Taksit seçenekleri bankanızın kampanya koşullarına göre değişebilir. Kesin
+              tutar ödeme sayfasında görüntülenir.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 
 interface InstallmentModalProps {
   price: number;
