@@ -225,7 +225,7 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
                         </p>
                         {item.quantity > 1 && (
                           <p className="text-[10px] text-muted-foreground tabular-nums">
-                            {formatPrice(item.price)} / adet
+                            {formatPrice(item.price)} / {item.unit_label ? "paket" : "adet"}
                           </p>
                         )}
                       </div>
