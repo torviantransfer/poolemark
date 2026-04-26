@@ -336,11 +336,23 @@ export async function POST(request: NextRequest) {
     if (isUniqueViolation(error)) {
       const { data: existingOrder } = await adminClient
         .from("orders")
-        .select("id, order_number, total")
+        .select("id, order_number, total, payment_status, status")
         .eq("order_number", orderNumber)
         .single();
 
       if (existingOrder) {
+        // If the previous attempt failed or was cancelled, reopen it so PayTR accepts a new token.
+        const isStale =
+          existingOrder.payment_status === "failed" ||
+          existingOrder.status === "cancelled";
+
+        if (isStale) {
+          await adminClient
+            .from("orders")
+            .update({ payment_status: "pending", status: "pending" })
+            .eq("id", existingOrder.id);
+        }
+
         const userIp = normalizePayTRUserIp(
           request.headers.get("x-forwarded-for") ||
           request.headers.get("x-real-ip") ||
