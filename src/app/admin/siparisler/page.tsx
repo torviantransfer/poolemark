@@ -10,6 +10,7 @@ import {
 import { ShoppingCart, Eye } from "lucide-react";
 import { AdminSearchForm } from "@/components/admin/search-form";
 import { WhatsAppReminderButton } from "@/components/admin/whatsapp-reminder-button";
+import { DeleteOrderButton } from "@/components/admin/delete-order-button";
 
 interface Props {
   searchParams: Promise<{ page?: string; search?: string; status?: string }>;
@@ -209,6 +210,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
+                        <DeleteOrderButton orderId={order.id} variant="icon" />
                       </div>
                     </td>
                   </tr>

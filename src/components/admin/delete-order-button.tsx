@@ -4,7 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
 
-export function DeleteOrderButton({ orderId }: { orderId: string }) {
+export function DeleteOrderButton({
+  orderId,
+  variant = "default",
+}: {
+  orderId: string;
+  variant?: "default" | "icon";
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -26,6 +32,20 @@ export function DeleteOrderButton({ orderId }: { orderId: string }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (variant === "icon") {
+    return (
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={loading}
+        title="Siparişi Sil"
+        className="p-2 rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors inline-flex disabled:opacity-50"
+      >
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+      </button>
+    );
   }
 
   return (
