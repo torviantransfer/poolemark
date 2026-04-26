@@ -97,6 +97,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               stock_quantity: ci.variant?.stock_quantity ?? ci.product?.stock_quantity ?? 0,
               slug: ci.product?.slug || "",
               variant_name: ci.variant?.name || null,
+              unit_label: ci.product?.unit_label || null,
             };
           });
 
