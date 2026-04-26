@@ -11,41 +11,52 @@ export async function POST(request: NextRequest) {
     const totalAmount = formData.get("total_amount") as string;
     const hash = formData.get("hash") as string;
 
+    console.log("[PayTR Callback] received", { merchantOid, status, totalAmount, hasHash: !!hash });
+
     // Verify hash
     if (!verifyPayTRCallback(merchantOid, status, totalAmount, hash)) {
+      console.error("[PayTR Callback] hash mismatch", { merchantOid, status, totalAmount });
       return new NextResponse("PAYTR notification hash mismatch", { status: 400 });
     }
+
+    console.log("[PayTR Callback] hash verified OK");
 
     const supabase = createAdminClient();
 
     const possibleOrderNumbers = getPossibleOrderNumbersFromMerchantOid(merchantOid);
+    console.log("[PayTR Callback] looking for order numbers", possibleOrderNumbers);
 
     // Find order by order_number
-    const { data: order } = await supabase
+    const { data: order, error: orderError } = await supabase
       .from("orders")
       .select("id, user_id, payment_status, order_number, subtotal, shipping_cost, discount_amount, total")
       .in("order_number", possibleOrderNumbers)
       .single();
 
     if (!order) {
+      console.error("[PayTR Callback] order not found", { possibleOrderNumbers, orderError });
       return new NextResponse("OK"); // PayTR expects "OK"
     }
 
+    console.log("[PayTR Callback] order found", { orderId: order.id, currentStatus: order.payment_status });
+
     // Prevent duplicate processing
     if (order.payment_status === "paid" || order.payment_status === "failed") {
+      console.log("[PayTR Callback] already processed, skipping");
       return new NextResponse("OK");
     }
 
     if (status === "success") {
       // Payment successful
-      await supabase
+      const { error: updateError } = await supabase
         .from("orders")
         .update({
           payment_status: "paid",
-          status: "processing",
+          status: "confirmed",
         })
         .eq("id", order.id);
 
+      console.log("[PayTR Callback] update result", { updateError });
       // Decrement stock
       const { data: orderItems } = await supabase
         .from("order_items")
@@ -128,6 +139,7 @@ export async function POST(request: NextRequest) {
     }
 
     // PayTR requires "OK" response
+    console.log("[PayTR Callback] done, returning OK");
     return new NextResponse("OK");
   } catch (error) {
     console.error("PayTR callback error:", error);
