@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getPossibleOrderNumbersFromMerchantOid, verifyPayTRCallback } from "@/lib/paytr";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return new NextResponse("PAYTR notification hash mismatch", { status: 400 });
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const possibleOrderNumbers = getPossibleOrderNumbersFromMerchantOid(merchantOid);
 
