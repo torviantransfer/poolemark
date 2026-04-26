@@ -6,9 +6,11 @@ import { Loader2, RotateCcw } from "lucide-react";
 export function ReturnRequestForm({
   orderId,
   existingStatus,
+  canReturn = false,
 }: {
   orderId: string;
   existingStatus?: string | null;
+  canReturn?: boolean;
 }) {
   const [reason, setReason] = useState("beden_uyumsuzlugu");
   const [description, setDescription] = useState("");
@@ -50,7 +52,11 @@ export function ReturnRequestForm({
       </div>
       <p className="text-xs text-muted-foreground -mt-2">14 gün içinde kolay iade süreciyle talebinizi güvenle oluşturabilirsiniz.</p>
 
-      {existingStatus ? (
+      {!canReturn && !existingStatus ? (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-muted-foreground">
+          İade talebi yalnızca teslim edilmiş siparişler için oluşturulabilir.
+        </div>
+      ) : existingStatus ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Bu sipariş için mevcut bir iade talebi bulunuyor: <span className="font-semibold">{existingStatus}</span>
         </div>

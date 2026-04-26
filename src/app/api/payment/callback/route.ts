@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
         .from("orders")
         .update({
           payment_status: "paid",
-          status: "confirmed",
+          status: "preparing",
         })
         .eq("id", order.id);
 

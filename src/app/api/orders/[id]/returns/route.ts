@@ -28,13 +28,20 @@ export async function POST(
 
     const { data: order } = await supabase
       .from("orders")
-      .select("id, user_id, order_number")
+      .select("id, user_id, order_number, status")
       .eq("id", orderId)
       .eq("user_id", user.id)
       .single();
 
     if (!order) {
       return NextResponse.json({ error: "Sipariş bulunamadı." }, { status: 404 });
+    }
+
+    if (order.status !== "delivered") {
+      return NextResponse.json(
+        { error: "İade talebi yalnızca teslim edilmiş siparişler için oluşturulabilir." },
+        { status: 400 }
+      );
     }
 
     const body = await request.json();

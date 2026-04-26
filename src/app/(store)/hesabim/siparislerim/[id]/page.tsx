@@ -330,6 +330,7 @@ export default async function OrderDetailPage({
                 <ReturnRequestForm
                   orderId={order.id}
                   existingStatus={returnRequest?.status ? RETURN_STATUS_LABELS[returnRequest.status] || returnRequest.status : null}
+                  canReturn={order.status === "delivered"}
                 />
               </div>
             </div>
