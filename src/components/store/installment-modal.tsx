@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +30,8 @@ export function InstallmentModal({
 }: InstallmentModalProps) {
   const [open, setOpen] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [iframeHeight, setIframeHeight] = useState(320);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const hasQuantitySelector = typeof unitPrice === "number";
   const safeMinQuantity = Math.max(1, minQuantity);
@@ -76,9 +78,27 @@ export function InstallmentModal({
 
   const previewMonthly = useMemo(() => Math.ceil(price / 12), [price]);
 
+  function handleIframeLoad() {
+    setIframeLoaded(true);
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    let attempts = 0;
+    const poll = setInterval(() => {
+      attempts++;
+      try {
+        const h = iframe.contentDocument?.body?.scrollHeight;
+        if (h && h > 100) {
+          setIframeHeight(h + 16);
+          clearInterval(poll);
+        }
+      } catch { clearInterval(poll); }
+      if (attempts > 30) clearInterval(poll);
+    }, 200);
+  }
+
   function handleOpenChange(val: boolean) {
     setOpen(val);
-    if (val) setIframeLoaded(false);
+    if (val) { setIframeLoaded(false); setIframeHeight(320); }
   }
 
   return (
@@ -168,11 +188,12 @@ export function InstallmentModal({
                   </div>
                 )}
                 <iframe
+                  ref={iframeRef}
                   key={calculatedTotal}
                   srcDoc={iframeSrcDoc}
-                  onLoad={() => setIframeLoaded(true)}
+                  onLoad={handleIframeLoad}
                   className="w-full border-0"
-                  style={{ minHeight: 320, height: iframeLoaded ? "auto" : 320 }}
+                  style={{ height: iframeHeight }}
                   scrolling="no"
                 />
               </div>
