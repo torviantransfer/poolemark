@@ -108,8 +108,24 @@ function CheckoutContent() {
 
   const searchParams = useSearchParams();
   const couponCode = searchParams.get("coupon") || "";
-  const total = subtotal + shipping; // Server will recalculate with coupon
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const total = subtotal + shipping - couponDiscount;
   const kdv = total * 20 / 120; // Fiyatlar KDV dahil
+
+  // Checkout'a kupon koduyla gelinmişse indirim tutarını çek
+  useEffect(() => {
+    if (!couponCode || subtotal === 0) return;
+    fetch("/api/coupons", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: couponCode, subtotal }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.discount) setCouponDiscount(data.discount);
+      })
+      .catch(() => {});
+  }, [couponCode, subtotal]);
 
   const isGuest = !authLoading && !user;
 
@@ -719,8 +735,12 @@ function CheckoutContent() {
                   </div>
                   {couponCode && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Kupon ({couponCode})</span>
-                      <span className="font-medium text-green-600">Uygulanacak</span>
+                      <span className="text-muted-foreground flex items-center gap-1">
+                        Kupon <span className="font-mono text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{couponCode}</span>
+                      </span>
+                      <span className="font-medium text-green-600">
+                        {couponDiscount > 0 ? `-${formatPrice(couponDiscount)}` : "Uygulanacak"}
+                      </span>
                     </div>
                   )}
                   <div className="border-t pt-2 mt-2 flex justify-between">
