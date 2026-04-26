@@ -159,11 +159,17 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
                           {item.variant_name && (
                             <span className="text-xs text-muted-foreground">{item.variant_name}</span>
                           )}
-                          {item.unit_label && (
-                            <span className="inline-flex items-center text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
-                              {item.unit_label}
-                            </span>
-                          )}
+                          {item.unit_label && (() => {
+                            const match = item.unit_label.match(/^(\d+)\s*(.+)$/);
+                            const label = match
+                              ? `${parseInt(match[1]) * item.quantity} ${match[2]}`
+                              : item.unit_label;
+                            return (
+                              <span className="inline-flex items-center text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+                                {label}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
                       {/* Sil */}
