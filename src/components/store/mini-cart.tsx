@@ -18,6 +18,8 @@ import {
   Trash2,
   ArrowRight,
   Truck,
+  Shield,
+  RotateCcw,
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
@@ -196,23 +198,38 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
                   {formatPrice(subtotal)}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  render={<Link href="/sepet" onClick={() => setOpen(false)} />}
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                >
-                  Sepete Git
-                </Button>
+              <div className="grid grid-cols-2 gap-2 pt-1">
                 <Button
                   render={<Link href="/checkout" onClick={() => setOpen(false)} />}
                   size="sm"
-                  className="w-full gap-1"
+                  className="w-full gap-1 col-span-2"
                 >
                   Sipariş Ver
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
+                <Button
+                  render={<Link href="/sepet" onClick={() => setOpen(false)} />}
+                  variant="outline"
+                  size="sm"
+                  className="w-full col-span-2"
+                >
+                  Sepeti Gör
+                </Button>
+              </div>
+              {/* Trust badges */}
+              <div className="flex items-center justify-center gap-4 pt-2 border-t">
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Shield className="h-3 w-3 text-primary" />
+                  <span className="text-[10px]">Güvenli ödeme</span>
+                </div>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Truck className="h-3 w-3 text-primary" />
+                  <span className="text-[10px]">500₺ ücretsiz kargo</span>
+                </div>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <RotateCcw className="h-3 w-3 text-primary" />
+                  <span className="text-[10px]">14 gün iade</span>
+                </div>
               </div>
             </div>
           </>

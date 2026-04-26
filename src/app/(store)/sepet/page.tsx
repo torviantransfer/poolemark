@@ -19,6 +19,7 @@ import {
   Truck,
   CreditCard,
   Gift,
+  RotateCcw,
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
 import { useState, useEffect } from "react";
@@ -48,6 +49,19 @@ export default function CartPage() {
     code: string;
     discount: number;
   } | null>(null);
+  const [cheapestShipping, setCheapestShipping] = useState<{ price: number; free_shipping_threshold: number | null } | null>(null);
+
+  // Kargo ücretini çek
+  useEffect(() => {
+    fetch("/api/shipping-companies")
+      .then((r) => r.json())
+      .then(({ companies }) => {
+        if (!companies?.length) return;
+        const sorted = [...companies].sort((a, b) => a.price - b.price);
+        setCheapestShipping(sorted[0]);
+      })
+      .catch(() => {});
+  }, []);
 
   // GA4 view_cart — sepet sayfası açılınca, ürünler hidrate olunca bir kez.
   useEffect(() => {
@@ -81,10 +95,11 @@ export default function CartPage() {
     removeItem(id);
   }
 
-  const FREE_SHIPPING_THRESHOLD = 500;
+  const FREE_SHIPPING_THRESHOLD = cheapestShipping?.free_shipping_threshold ?? 500;
   const discount = appliedCoupon?.discount || 0;
   const freeShippingEarned = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const total = subtotal - discount;
+  const shippingFee = freeShippingEarned ? 0 : (cheapestShipping?.price ?? null);
+  const total = subtotal + (shippingFee ?? 0) - discount;
   const kdv = total * 20 / 120; // Fiyatlar KDV dahil olduğundan içeriden hesaplanır
 
   async function applyCoupon() {
@@ -456,8 +471,10 @@ export default function CartPage() {
                       <span className="font-medium">
                         {freeShippingEarned ? (
                           <span className="text-green-600">Ücretsiz</span>
+                        ) : shippingFee !== null ? (
+                          <span>{formatPrice(shippingFee)}</span>
                         ) : (
-                          <span className="text-xs text-muted-foreground">Ödeme adımında hesaplanır</span>
+                          <span className="text-xs text-muted-foreground">Hesaplanıyor...</span>
                         )}
                       </span>
                     </div>
@@ -504,7 +521,7 @@ export default function CartPage() {
                   </Link>
 
                   {/* Trust Badges */}
-                  <div className="mt-5 pt-4 border-t grid grid-cols-3 gap-2">
+                  <div className="mt-5 pt-4 border-t grid grid-cols-2 gap-2">
                     <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
                       <Shield className="h-4 w-4 text-primary shrink-0" />
                       <span className="text-[11px] leading-tight text-muted-foreground">256-bit SSL güvenli ödeme</span>
@@ -514,8 +531,12 @@ export default function CartPage() {
                       <span className="text-[11px] leading-tight text-muted-foreground">Tüm kartlara 12 taksit</span>
                     </div>
                     <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
-                      <Gift className="h-4 w-4 text-primary shrink-0" />
-                      <span className="text-[11px] leading-tight text-muted-foreground">500₺ üzeri ücretsiz kargo</span>
+                      <Truck className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-[11px] leading-tight text-muted-foreground">{FREE_SHIPPING_THRESHOLD}₺ üzeri ücretsiz kargo</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-white border border-border/40">
+                      <RotateCcw className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-[11px] leading-tight text-muted-foreground">14 gün iade garantisi</span>
                     </div>
                   </div>
 
@@ -540,7 +561,9 @@ export default function CartPage() {
         <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 bg-white border-t shadow-[0_-4px_20px_rgba(0,0,0,0.06)] p-3">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] text-muted-foreground leading-none">Toplam</p>
+              <p className="text-[11px] text-muted-foreground leading-none">
+                Toplam {shippingFee !== null && !freeShippingEarned && <span className="text-primary">(kargo dahil)</span>}
+              </p>
               <p className="text-base font-bold text-foreground tabular-nums leading-tight mt-0.5">{formatPrice(total)}</p>
             </div>
             <Button
