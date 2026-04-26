@@ -235,16 +235,15 @@ export default async function ProductPage({ params }: Props) {
                     {FREE_SHIPPING_THRESHOLD}₺ üzeri ücretsiz kargo
                   </span>
                 </div>
-                {/* Unit label badge */}
-                {product.unit_label && (
-                  <div className="mt-2 inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
-                    <PackageCheck className="h-3.5 w-3.5 shrink-0" />
-                    Bu fiyat <span className="font-bold">{product.unit_label}</span> içindir
-                  </div>
-                )}
                 {/* Installment + Calculator hints — side by side */}
                 {product.stock_quantity > 0 && (
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    {product.unit_label && (
+                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                        <PackageCheck className="h-3.5 w-3.5 shrink-0" />
+                        Kaç adet? <span className="font-semibold text-foreground">{product.unit_label}</span>
+                      </span>
+                    )}
                     <InstallmentModal
                       price={product.price}
                       quantity={productInstallmentMinQty}
