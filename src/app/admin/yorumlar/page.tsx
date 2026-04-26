@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { formatDate } from "@/lib/helpers";
-import { Star } from "lucide-react";
+import { Star, MessageSquare } from "lucide-react";
 import { ReviewApproveToggle } from "@/components/admin/review-approve-toggle";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 import { ReviewReplyForm } from "@/components/admin/review-reply-form";
@@ -24,39 +25,58 @@ export default async function AdminReviewsPage({ searchParams }: Props) {
 
   const { data: reviews } = await query;
 
+  // Count badges
+  const { count: pendingCount } = await supabase
+    .from("reviews")
+    .select("id", { count: "exact", head: true })
+    .eq("is_approved", false);
+
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Yorumlar</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Ürün yorumlarını yönetin
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-white/90 backdrop-blur shadow-sm px-5 py-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Yorumlar</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Ürün yorumlarını yönetin
+            {(pendingCount ?? 0) > 0 && (
+              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                {pendingCount} onay bekliyor
+              </span>
+            )}
+          </p>
+        </div>
+        <MessageSquare className="h-5 w-5 text-muted-foreground shrink-0" />
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {[
           { value: "all", label: "Tümü" },
-          { value: "pending", label: "Onay Bekliyor" },
+          { value: "pending", label: "Onay Bekliyor", count: pendingCount ?? 0 },
           { value: "approved", label: "Onaylı" },
         ].map((f) => (
-          <a
+          <Link
             key={f.value}
             href={`/admin/yorumlar?filter=${f.value}`}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-colors ${
               filter === f.value
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-foreground/70 hover:bg-secondary/80"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "bg-white/90 backdrop-blur border text-foreground/70 hover:bg-secondary/80"
             }`}
           >
             {f.label}
-          </a>
+            {f.count ? (
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                filter === f.value ? "bg-white/20" : "bg-amber-100 text-amber-700"
+              }`}>{f.count}</span>
+            ) : null}
+          </Link>
         ))}
       </div>
 
       <div className="space-y-3">
         {reviews && reviews.length > 0 ? (
           reviews.map((review) => (
-            <div key={review.id} className={`bg-white rounded-2xl border shadow-sm p-5 ${!review.is_approved ? "border-amber-200" : ""}`}>
+            <div key={review.id} className={`bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-5 transition-colors ${!review.is_approved ? "border-amber-200 bg-amber-50/30" : ""}`}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
@@ -99,7 +119,7 @@ export default async function AdminReviewsPage({ searchParams }: Props) {
             </div>
           ))
         ) : (
-          <div className="bg-white rounded-2xl border shadow-sm p-16 text-center text-muted-foreground">
+          <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-16 text-center text-muted-foreground">
             <Star className="h-10 w-10 mx-auto mb-3 opacity-30" />
             {filter === "pending" ? "Onay bekleyen yorum yok" : "Henüz yorum yok"}
           </div>

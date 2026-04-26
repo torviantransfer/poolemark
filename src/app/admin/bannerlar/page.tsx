@@ -13,14 +13,13 @@ export default async function AdminBannersPage() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Bannerlar</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Ana sayfa slider görselleri
-        </p>
-      </div>
-      <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-white/90 backdrop-blur shadow-sm px-5 py-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Bannerlar</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {banners?.length || 0} banner · Ana sayfa slider
+          </p>
+        </div>
         <Link
           href="/admin/bannerlar/ekle"
           className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
@@ -28,7 +27,6 @@ export default async function AdminBannersPage() {
           <Plus className="h-4 w-4" />
           Yeni Banner
         </Link>
-      </div>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -237,9 +237,9 @@ export default async function ProductPage({ params }: Props) {
                 </div>
                 {/* Unit label badge */}
                 {product.unit_label && (
-                  <div className="mt-3 inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-lg">
+                  <div className="mt-2 inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
                     <PackageCheck className="h-3.5 w-3.5 shrink-0" />
-                    Bu fiyat <span className="underline underline-offset-2">{product.unit_label}</span> içindir
+                    Bu fiyat <span className="font-bold">{product.unit_label}</span> içindir
                   </div>
                 )}
                 {/* Installment + Calculator hints — side by side */}

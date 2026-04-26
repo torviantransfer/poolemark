@@ -15,11 +15,11 @@ export default async function AdminShippingCompaniesPage() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-white/90 backdrop-blur shadow-sm px-5 py-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Kargo Firmaları</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Kargo Firmaları</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Kargo firmalarını, ücretleri ve teslimat sürelerini yönetin
+            {companies?.length || 0} firma · Ücretsiz kargo eşiği ve süreleri
           </p>
         </div>
         <Link
@@ -31,7 +31,7 @@ export default async function AdminShippingCompaniesPage() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

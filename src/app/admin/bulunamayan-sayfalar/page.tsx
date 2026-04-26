@@ -50,21 +50,23 @@ export default async function NotFoundLogsPage() {
     .sort((a, b) => b.count - a.count);
 
   return (
-    <div className="px-4 lg:px-8 py-6 lg:py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">
-          Bulunamayan Sayfalar (404)
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Son 1000 isteği gösterir. Sıkça gelen URL'ler için{" "}
-          <code className="text-xs bg-secondary px-1.5 py-0.5 rounded">
-            next.config.ts
-          </code>{" "}
-          içinde 301 yönlendirme tanımlamak SEO açısından önemlidir.
-        </p>
+    <div className="p-4 md:p-6 lg:p-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-white/90 backdrop-blur shadow-sm px-5 py-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Bulunamayan Sayfalar (404)
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Son 1000 isteği gösterir.{" "}
+            <code className="text-xs bg-secondary px-1.5 py-0.5 rounded">
+              next.config.ts
+            </code>{" "}
+            içinde 301 yönlendirme tanımlamak SEO açısından önemlidir.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card label="Toplam İstek" value={logs.length} />
         <Card label="Benzersiz URL" value={summary.length} />
         <Card
@@ -74,17 +76,17 @@ export default async function NotFoundLogsPage() {
         />
       </div>
 
-      <div className="bg-white border rounded-xl overflow-hidden">
+      <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-secondary/50 text-muted-foreground text-xs uppercase tracking-wide">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">URL</th>
-                <th className="text-right px-4 py-3 font-medium">Sayı</th>
-                <th className="text-left px-4 py-3 font-medium hidden md:table-cell">
+            <thead>
+              <tr className="border-b text-left text-muted-foreground bg-secondary/40">
+                <th className="text-left px-4 py-3 font-medium text-sm">URL</th>
+                <th className="text-right px-4 py-3 font-medium text-sm">Sayı</th>
+                <th className="text-left px-4 py-3 font-medium text-sm hidden md:table-cell">
                   Son
                 </th>
-                <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">
+                <th className="text-left px-4 py-3 font-medium text-sm hidden lg:table-cell">
                   Yönlendiren
                 </th>
               </tr>
@@ -101,7 +103,7 @@ export default async function NotFoundLogsPage() {
                 </tr>
               )}
               {summary.slice(0, 200).map((row) => (
-                <tr key={row.path} className="border-t hover:bg-secondary/30">
+                <tr key={row.path} className="border-b last:border-0 hover:bg-primary/[0.04] transition-colors">
                   <td className="px-4 py-3 font-mono text-xs break-all max-w-[400px]">
                     {row.path}
                   </td>
@@ -134,7 +136,7 @@ function Card({
   sub?: string;
 }) {
   return (
-    <div className="bg-white border rounded-xl p-4">
+    <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-4">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="text-2xl font-bold text-foreground mt-1">{value}</div>
       {sub && (

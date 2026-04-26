@@ -11,13 +11,23 @@ export default async function AdminMessagesPage() {
     .select("*")
     .order("created_at", { ascending: false });
 
+  const unreadCount = messages?.filter((m) => !m.is_read).length ?? 0;
+
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Mesajlar</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          İletişim formu mesajları
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-white/90 backdrop-blur shadow-sm px-5 py-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Mesajlar</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {messages?.length || 0} mesaj
+            {unreadCount > 0 && (
+              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                {unreadCount} okunmamış
+              </span>
+            )}
+          </p>
+        </div>
+        <MessageSquare className="h-5 w-5 text-muted-foreground shrink-0" />
       </div>
 
       <div className="space-y-3">
@@ -25,7 +35,7 @@ export default async function AdminMessagesPage() {
           messages.map((msg) => (
             <div
               key={msg.id}
-              className={`bg-white rounded-2xl border shadow-sm p-5 transition-colors ${
+              className={`bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-5 transition-colors ${
                 !msg.is_read ? "border-primary/30 bg-accent/30" : ""
               }`}
             >
@@ -62,7 +72,7 @@ export default async function AdminMessagesPage() {
             </div>
           ))
         ) : (
-          <div className="bg-white rounded-2xl border shadow-sm p-16 text-center text-muted-foreground">
+          <div className="bg-white/90 backdrop-blur rounded-2xl border shadow-sm p-16 text-center text-muted-foreground">
             <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-30" />
             Henüz mesaj yok
           </div>
