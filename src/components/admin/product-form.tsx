@@ -78,6 +78,7 @@ export function ProductForm({ product, categories }: Props) {
     is_featured: product?.is_featured ?? false,
     meta_title: product?.meta_title || "",
     meta_description: product?.meta_description || "",
+    unit_label: product?.unit_label || "",
   });
 
   function updateField(field: string, value: string | boolean) {
@@ -171,6 +172,7 @@ export function ProductForm({ product, categories }: Props) {
         is_featured: form.is_featured,
         meta_title: form.meta_title || null,
         meta_description: form.meta_description || null,
+        unit_label: form.unit_label || null,
       };
 
       let productId = product?.id;
@@ -442,6 +444,19 @@ export function ProductForm({ product, categories }: Props) {
                 />
               </Field>
             </div>
+            <Field label="Paket Tanımı (Sepette gösterilir)">
+              <input
+                type="text"
+                value={form.unit_label}
+                onChange={(e) => updateField("unit_label", e.target.value)}
+                placeholder="Örn: 6 Panel Set, 3'lü Paket, 1 Rulo (10m)"
+                maxLength={100}
+                className={inputCls}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Müşteri sepette <strong>"6 Panel Set × 2"</strong> şeklinde görür. Tekil ürünlerse boş bırakın.
+              </p>
+            </Field>
           </Section>
 
           {/* Varyasyonlar */}

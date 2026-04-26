@@ -81,6 +81,7 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
       stock_quantity: currentStock,
       quantity,
       variant_name: activeVariant?.name ?? null,
+      unit_label: product.unit_label ?? null,
     });
     trackEvent(
       "AddToCart",
@@ -138,6 +139,7 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
       stock_quantity: currentStock,
       quantity,
       variant_name: activeVariant?.name ?? null,
+      unit_label: product.unit_label ?? null,
     });
     trackEvent("AddToCart", {
       content_ids: [activeVariant?.id ?? product.id],

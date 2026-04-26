@@ -55,6 +55,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
       stock_quantity: product.stock_quantity,
       slug: product.slug,
       variant_name: null,
+      unit_label: product.unit_label ?? null,
     });
     trackEvent("AddToCart", {
       content_ids: [product.id],

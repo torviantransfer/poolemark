@@ -257,6 +257,11 @@ export default function CartPage() {
                               {item.variant_name}
                             </p>
                           )}
+                          {item.unit_label && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded mt-1">
+                              📦 {item.unit_label} × {item.quantity}
+                            </span>
+                          )}
                         </div>
                         <button
                           onClick={() => handleRemoveItem(item.id)}

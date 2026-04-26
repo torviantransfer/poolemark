@@ -24,6 +24,7 @@ export interface CartItem {
   stock_quantity: number;
   slug: string;
   variant_name: string | null;
+  unit_label: string | null;
 }
 
 interface CartContextType {
