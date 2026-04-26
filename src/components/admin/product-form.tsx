@@ -4,8 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { slugify } from "@/lib/helpers";
-import type { Product, Category } from "@/types";
-import { Save, Upload, X, Loader2 } from "lucide-react";
+import type { Product, Category, ProductVariant } from "@/types";
+import { Save, Upload, X, Loader2, Plus, Trash2 } from "lucide-react";
+
+interface VariantDraft {
+  id?: string; // existing variant
+  name: string;
+  sku: string;
+  price: string;
+  stock_quantity: string;
+  image_url: string;
+  sort_order: number;
+}
 
 interface Props {
   product?: Product;
@@ -20,6 +30,20 @@ export function ProductForm({ product, categories }: Props) {
     product?.images?.sort((a, b) => a.sort_order - b.sort_order).map((i) => i.url) || []
   );
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  const [variants, setVariants] = useState<VariantDraft[]>(
+    product?.variants
+      ?.sort((a, b) => a.sort_order - b.sort_order)
+      .map((v) => ({
+        id: v.id,
+        name: v.name,
+        sku: v.sku || "",
+        price: v.price.toString(),
+        stock_quantity: v.stock_quantity.toString(),
+        image_url: v.image_url || "",
+        sort_order: v.sort_order,
+      })) || []
+  );
 
   const [form, setForm] = useState({
     name: product?.name || "",
@@ -78,6 +102,30 @@ export function ProductForm({ product, categories }: Props) {
 
   function removeImage(index: number) {
     setImages((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function addVariant() {
+    setVariants((prev) => [
+      ...prev,
+      {
+        name: "",
+        sku: "",
+        price: form.price || "0",
+        stock_quantity: "0",
+        image_url: "",
+        sort_order: prev.length,
+      },
+    ]);
+  }
+
+  function updateVariant(index: number, field: keyof VariantDraft, value: string) {
+    setVariants((prev) =>
+      prev.map((v, i) => (i === index ? { ...v, [field]: value } : v))
+    );
+  }
+
+  function removeVariant(index: number) {
+    setVariants((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -143,6 +191,27 @@ export function ProductForm({ product, categories }: Props) {
             is_primary: index === 0,
           }));
           await supabase.from("product_images").insert(imageRows);
+        }
+      }
+
+      // Update variants
+      if (productId) {
+        await supabase
+          .from("product_variants")
+          .delete()
+          .eq("product_id", productId);
+
+        if (variants.length > 0) {
+          const variantRows = variants.map((v, index) => ({
+            product_id: productId!,
+            name: v.name,
+            sku: v.sku || null,
+            price: parseFloat(v.price) || 0,
+            stock_quantity: parseInt(v.stock_quantity) || 0,
+            image_url: v.image_url || null,
+            sort_order: index,
+          }));
+          await supabase.from("product_variants").insert(variantRows);
         }
       }
 
@@ -313,6 +382,129 @@ export function ProductForm({ product, categories }: Props) {
               type="number"
               placeholder="0"
             />
+          </div>
+
+          {/* Variants */}
+          <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-semibold">Varyasyonlar</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Renk, beden, boyut gibi ürün seçenekleri ekleyin
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addVariant}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Varyasyon Ekle
+              </button>
+            </div>
+
+            {variants.length === 0 ? (
+              <div className="border-2 border-dashed rounded-xl p-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Henüz varyasyon eklenmedi
+                </p>
+                <button
+                  type="button"
+                  onClick={addVariant}
+                  className="mt-2 text-sm text-primary hover:underline"
+                >
+                  İlk varyasyonu ekle
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {variants.map((v, index) => (
+                  <div
+                    key={index}
+                    className="border rounded-xl p-4 space-y-3 bg-secondary/20"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Varyasyon {index + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeVariant(index)}
+                        className="p-1 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                        title="Sil"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">
+                          Ad *
+                        </label>
+                        <input
+                          type="text"
+                          value={v.name}
+                          onChange={(e) => updateVariant(index, "name", e.target.value)}
+                          placeholder="Örn: Mavi / L / 38cm"
+                          className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">
+                          SKU
+                        </label>
+                        <input
+                          type="text"
+                          value={v.sku}
+                          onChange={(e) => updateVariant(index, "sku", e.target.value)}
+                          placeholder="SKU-001-L"
+                          className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">
+                          Fiyat (₺)
+                        </label>
+                        <input
+                          type="number"
+                          value={v.price}
+                          onChange={(e) => updateVariant(index, "price", e.target.value)}
+                          placeholder="0.00"
+                          step="0.01"
+                          className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1">
+                          Stok
+                        </label>
+                        <input
+                          type="number"
+                          value={v.stock_quantity}
+                          onChange={(e) =>
+                            updateVariant(index, "stock_quantity", e.target.value)
+                          }
+                          placeholder="0"
+                          className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-foreground mb-1">
+                        Görsel URL (opsiyonel)
+                      </label>
+                      <input
+                        type="text"
+                        value={v.image_url}
+                        onChange={(e) => updateVariant(index, "image_url", e.target.value)}
+                        placeholder="https://..."
+                        className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* SEO */}
