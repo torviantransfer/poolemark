@@ -84,10 +84,19 @@ function CheckoutContent() {
   const [taxOffice, setTaxOffice] = useState("");
   const [taxId, setTaxId] = useState("");
   const [idempotencyKey] = useState(() => {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-      return crypto.randomUUID();
+    const SESSION_KEY = "checkout_idempotency_key";
+    if (typeof sessionStorage !== "undefined") {
+      const existing = sessionStorage.getItem(SESSION_KEY);
+      if (existing) return existing;
     }
-    return `fallback-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const newKey =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `fallback-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem(SESSION_KEY, newKey);
+    }
+    return newKey;
   });
 
   const selectedShipping = shippingCompanies.find((s) => s.id === selectedShippingId) || null;
@@ -300,6 +309,10 @@ function CheckoutContent() {
 
         setPaytrToken(data.token);
         clearCart();
+        // Clear idempotency key so next purchase gets a fresh order number.
+        if (typeof sessionStorage !== "undefined") {
+          sessionStorage.removeItem("checkout_idempotency_key");
+        }
         // Notify presence tracker so admin live-visitors page reflects payment step.
         const w = window as unknown as { pmPresenceUpdate?: (label: string) => void };
         w.pmPresenceUpdate?.("PayTR ödeme ekranında");
