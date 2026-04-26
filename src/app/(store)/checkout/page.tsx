@@ -744,7 +744,16 @@ function CheckoutContent() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium line-clamp-1">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">{item.quantity} adet</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.unit_label
+                            ? (() => {
+                                const match = item.unit_label.match(/^(\d+)\s*(.+)$/);
+                                return match
+                                  ? `${item.quantity} paket · ${parseInt(match[1]) * item.quantity} ${match[2]}`
+                                  : `${item.quantity} paket`;
+                              })()
+                            : `${item.quantity} adet`}
+                        </p>
                       </div>
                       <p className="text-sm font-semibold shrink-0">
                         {formatPrice(item.price * item.quantity)}
