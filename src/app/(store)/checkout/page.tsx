@@ -225,33 +225,6 @@ function CheckoutContent() {
       return;
     }
 
-    // Fire InitiateCheckout right before kicking off the payment request.
-    trackEvent(
-      "InitiateCheckout",
-      {
-        content_ids: items.map((i) => i.variant_id ?? i.product_id),
-        contents: items.map((i) => ({
-          id: i.variant_id ?? i.product_id,
-          quantity: i.quantity,
-          item_price: i.price,
-        })),
-        num_items: items.reduce((sum, i) => sum + i.quantity, 0),
-        value: items.reduce((sum, i) => sum + i.price * i.quantity, 0),
-        currency: "TRY",
-      },
-      {
-        userEmail: user?.email ?? guestAddress?.email ?? null,
-        userPhone: guestAddress?.phone ?? null,
-      }
-    );
-    trackSiteEvent("initiate_checkout", {
-      userId: user?.id ?? null,
-      metadata: {
-        num_items: items.reduce((sum, i) => sum + i.quantity, 0),
-        value: items.reduce((sum, i) => sum + i.price * i.quantity, 0),
-      },
-    });
-
     startTransition(async () => {
       try {
         const orderItems = items.map((item) => ({

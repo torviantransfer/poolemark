@@ -258,8 +258,8 @@ export default function CartPage() {
                             </p>
                           )}
                           {item.unit_label && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded mt-1">
-                              📦 {item.unit_label} × {item.quantity}
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-full mt-1">
+                              {item.unit_label} × {item.quantity}
                             </span>
                           )}
                         </div>
@@ -338,7 +338,7 @@ export default function CartPage() {
                   <div className="mt-8">
                     <h2 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
                       <Gift className="h-4 w-4 text-primary" />
-                      Bunlarda Önerilen Ürünler
+                      Bunlar da İlginizi Çekebilir
                     </h2>
                     <div className="grid grid-cols-2 gap-3">
                       {recommended.map((product) => (

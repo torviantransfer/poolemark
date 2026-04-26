@@ -115,8 +115,8 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
                       {item.name}
                     </Link>
                     {item.unit_label && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded mt-0.5">
-                        📦 {item.unit_label}
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-full mt-0.5">
+                        {item.unit_label}
                       </span>
                     )}
                     <p className="text-sm font-bold text-foreground mt-1">
