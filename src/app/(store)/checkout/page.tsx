@@ -31,6 +31,7 @@ import Script from "next/script";
 import type { Address } from "@/types";
 import { InstallmentModal } from "@/components/store/installment-modal";
 import { trackEvent } from "@/lib/meta-pixel";
+import { tiktokTrack } from "@/lib/tiktok-pixel";
 import { trackSiteEvent } from "@/lib/site-events";
 import { gaBeginCheckout, gaAddShippingInfo, gaAddPaymentInfo } from "@/lib/ga";
 
@@ -196,6 +197,19 @@ function CheckoutContent() {
         price: i.price,
         quantity: i.quantity,
       })),
+    });
+    tiktokTrack("InitiateCheckout", {
+      value,
+      currency: "TRY",
+      contents: items.map((i) => ({
+        content_id: i.variant_id ?? i.product_id,
+        content_type: "product",
+        content_name: i.name,
+        quantity: i.quantity,
+        price: i.price,
+      })),
+      content_ids: items.map((i) => i.variant_id ?? i.product_id),
+      quantity: num,
     });
   }, [cartLoading, items, user?.email, user?.id]);
 

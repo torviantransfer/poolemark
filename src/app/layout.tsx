@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/shared/json-ld";
 import { MetaPixel } from "@/components/shared/meta-pixel";
+import { TikTokPixel } from "@/components/shared/tiktok-pixel";
 import { GoogleAnalytics } from "@/components/shared/google-analytics";
 import { CartProvider } from "@/hooks/use-cart";
 import { RootMobileNav } from "@/components/store/root-mobile-nav";
@@ -109,6 +110,7 @@ export default function RootLayout({
         <OrganizationJsonLd />
         <WebSiteJsonLd />
         <MetaPixel />
+        <TikTokPixel />
         <GoogleAnalytics />
         <CartProvider>
           {children}

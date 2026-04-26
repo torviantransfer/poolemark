@@ -57,6 +57,10 @@ export async function POST(request: NextRequest) {
         .eq("id", order.id);
 
       console.log("[PayTR Callback] update result", { updateError });
+      if (updateError) {
+        throw new Error(`Order status update failed: ${updateError.message}`);
+      }
+
       // Decrement stock
       const { data: orderItems } = await supabase
         .from("order_items")
@@ -143,6 +147,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse("OK");
   } catch (error) {
     console.error("PayTR callback error:", error);
-    return new NextResponse("OK"); // Always return OK to prevent retries
+    // Return non-2xx on transient/internal failures so PayTR can retry callback.
+    return new NextResponse("ERROR", { status: 500 });
   }
 }

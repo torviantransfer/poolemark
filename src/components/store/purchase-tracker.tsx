@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { trackEvent } from "@/lib/meta-pixel";
+import { tiktokTrack } from "@/lib/tiktok-pixel";
 import { trackSiteEvent } from "@/lib/site-events";
 import { gaPurchase } from "@/lib/ga";
 
@@ -74,6 +75,19 @@ export function PurchaseTracker({
         price: c.item_price,
         quantity: c.quantity,
       })),
+    });
+    tiktokTrack("CompletePayment", {
+      value: total,
+      currency: "TRY",
+      contents: contents.map((c) => ({
+        content_id: c.id,
+        content_type: "product",
+        quantity: c.quantity,
+        price: c.item_price,
+      })),
+      content_ids: contentIds,
+      quantity: contents.reduce((s, c) => s + c.quantity, 0),
+      order_id: orderNumber,
     });
 
     if (typeof window !== "undefined") {
