@@ -69,6 +69,7 @@ export default function CartRecoveryHandler() {
             stock_quantity: it.stock_quantity,
             slug: it.slug,
             variant_name: it.variant_name,
+            unit_label: (it as any).unit_label ?? null,
           });
           added++;
         }

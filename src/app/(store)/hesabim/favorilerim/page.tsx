@@ -83,6 +83,7 @@ export default function FavoritesPage() {
       stock_quantity: product.stock_quantity,
       slug: product.slug,
       variant_name: null,
+      unit_label: null,
     });
   }
 
