@@ -11,6 +11,7 @@ import {
 import { ArrowLeft, MapPin, Phone, Mail, Package, FileText } from "lucide-react";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
 import { WhatsAppReminderButton } from "@/components/admin/whatsapp-reminder-button";
+import { DeleteOrderButton } from "@/components/admin/delete-order-button";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -81,6 +82,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             alreadyRemindedAt={orderExt.reminded_at ?? null}
           />
         )}
+        <DeleteOrderButton orderId={order.id} />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">

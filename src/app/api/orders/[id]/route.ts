@@ -197,3 +197,41 @@ export async function PATCH(
     return NextResponse.json({ error: "Bir hata oluştu" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Yetkilendirme hatası" }, { status: 401 });
+    }
+
+    const { data: adminUser } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (adminUser?.role !== "admin") {
+      return NextResponse.json({ error: "Yetkisiz erişim" }, { status: 403 });
+    }
+
+    const { error } = await supabase
+      .from("orders")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json({ error: "Silme başarısız" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Bir hata oluştu" }, { status: 500 });
+  }
+}
