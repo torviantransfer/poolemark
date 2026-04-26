@@ -147,32 +147,23 @@ export default async function OrderDetailPage({
   const timelineIndex = statusSteps.findIndex((s) => s.key === order.status);
 
   return (
-    <>
-      <section className="bg-secondary/40 border-b">
-        <div className="container mx-auto px-4 py-8 md:py-10">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground mb-3 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1">
-            <Link href="/" className="hover:text-primary transition-colors shrink-0">Anasayfa</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/hesabim" className="hover:text-primary transition-colors shrink-0">Hesabım</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/hesabim/siparislerim" className="hover:text-primary transition-colors shrink-0">Siparişlerim</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-foreground font-medium shrink-0">{order.order_number}</span>
-          </nav>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground">Sipariş Detayı</h1>
-              <p className="text-sm text-muted-foreground mt-1">{order.order_number}</p>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${displayOrderColor}`}>
-                Sipariş: {displayOrderLabel}
-              </span>
-              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${PAYMENT_STATUS_COLORS[order.payment_status] || "bg-gray-100 text-gray-800"}`}>
-                Ödeme: {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
-              </span>
-              {returnRequest?.status && (
-                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${RETURN_STATUS_COLORS[returnRequest.status] || "bg-amber-100 text-amber-800"}`}>
+    <div>
+      {/* Page header */}
+      <div className="mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Sipariş Detayı</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{order.order_number}</p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${displayOrderColor}`}>
+              Sipariş: {displayOrderLabel}
+            </span>
+            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${PAYMENT_STATUS_COLORS[order.payment_status] || "bg-gray-100 text-gray-800"}`}>
+              Ödeme: {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
+            </span>
+            {returnRequest?.status && (
+              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${RETURN_STATUS_COLORS[returnRequest.status] || "bg-amber-100 text-amber-800"}`}>
                   İade: {RETURN_STATUS_LABELS[returnRequest.status] || returnRequest.status}
                 </span>
               )}
@@ -191,10 +182,8 @@ export default async function OrderDetailPage({
             </div>
           )}
         </div>
-      </section>
 
-      <section className="py-8 md:py-12 pb-24 md:pb-12">
-        <div className="container mx-auto px-4">
+      <div className="pb-10">
           {timelineIndex >= 0 && !hasActiveReturn && (
             <div className="bg-white rounded-2xl border p-5 md:p-6 mb-5">
               <h2 className="font-semibold text-foreground mb-4">Sipariş Zaman Çizelgesi</h2>
@@ -426,8 +415,7 @@ export default async function OrderDetailPage({
               )}
             </div>
           </div>
-        </div>
-      </section>
-    </>
+      </div>
+    </div>
   );
 }

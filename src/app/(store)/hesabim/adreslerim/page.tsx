@@ -137,30 +137,17 @@ export default function AddressesPage() {
   }
 
   return (
-    <>
-      <section className="bg-secondary/40 border-b">
-        <div className="container mx-auto px-4 py-8 md:py-10">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
-            <Link href="/" className="hover:text-primary transition-colors">Anasayfa</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/hesabim" className="hover:text-primary transition-colors">Hesabım</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-foreground font-medium">Adreslerim</span>
-          </nav>
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Adreslerim</h1>
-            {!showForm && (
-              <Button size="sm" className="gap-1.5" onClick={() => setShowForm(true)}>
-                <Plus className="h-4 w-4" />
-                Yeni Adres
-              </Button>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-8 md:py-12">
-        <div className="container mx-auto px-4 max-w-3xl">
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-foreground">Adreslerim</h1>
+        {!showForm && (
+          <Button size="sm" className="gap-1.5" onClick={() => setShowForm(true)}>
+            <Plus className="h-4 w-4" />
+            Yeni Adres
+          </Button>
+        )}
+      </div>
+      <div>
           {showForm && (
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl border p-5 md:p-6 mb-6 space-y-4">
               <div className="flex items-center justify-between">
@@ -271,8 +258,7 @@ export default function AddressesPage() {
               <p className="text-sm text-muted-foreground mt-1">Sipariş verebilmek için bir teslimat adresi ekleyin.</p>
             </div>
           ) : null}
-        </div>
-      </section>
-    </>
+      </div>
+    </div>
   );
 }

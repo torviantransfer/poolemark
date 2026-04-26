@@ -119,22 +119,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <>
-      <section className="bg-secondary/40 border-b">
-        <div className="container mx-auto px-4 py-8 md:py-10">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
-            <Link href="/" className="hover:text-primary transition-colors">Anasayfa</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/hesabim" className="hover:text-primary transition-colors">Hesabım</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-foreground font-medium">Bilgilerim</span>
-          </nav>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Bilgilerim</h1>
-        </div>
-      </section>
-
-      <section className="py-8 md:py-12">
-        <div className="container mx-auto px-4 max-w-2xl space-y-6">
+    <div className="space-y-5">
+      <h1 className="text-xl font-bold text-foreground">Bilgilerim</h1>
+      <div className="space-y-5">
           {/* Profile Form */}
           <form onSubmit={handleSave} className="bg-white rounded-2xl border p-5 md:p-6 space-y-4">
             <h2 className="font-semibold flex items-center gap-2">
@@ -223,8 +210,7 @@ export default function ProfilePage() {
               )}
             </div>
           </form>
-        </div>
-      </section>
-    </>
+      </div>
+    </div>
   );
 }

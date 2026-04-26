@@ -96,29 +96,14 @@ export default function FavoritesPage() {
   }
 
   return (
-    <>
-      <section className="bg-secondary/40 border-b">
-        <div className="container mx-auto px-4 py-8 md:py-10">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
-            <Link href="/" className="hover:text-primary transition-colors">Anasayfa</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/hesabim" className="hover:text-primary transition-colors">Hesabım</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-foreground font-medium">Favorilerim</span>
-          </nav>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            Favorilerim
-            {favorites.length > 0 && (
-              <span className="text-base font-normal text-muted-foreground ml-2">
-                ({favorites.length} ürün)
-              </span>
-            )}
-          </h1>
-        </div>
-      </section>
-
-      <section className="py-8 md:py-12">
-        <div className="container mx-auto px-4">
+    <div className="space-y-5">
+      <h1 className="text-xl font-bold text-foreground">
+        Favorilerim
+        {favorites.length > 0 && (
+          <span className="text-base font-normal text-muted-foreground ml-2">({favorites.length} ürün)</span>
+        )}
+      </h1>
+      <div>
           {favorites.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {favorites.map((product) => {
@@ -196,8 +181,7 @@ export default function FavoritesPage() {
               </Link>
             </div>
           )}
-        </div>
-      </section>
-    </>
+      </div>
+    </div>
   );
 }

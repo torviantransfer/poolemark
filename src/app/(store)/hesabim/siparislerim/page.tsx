@@ -36,22 +36,9 @@ export default async function OrdersPage({
   const totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE);
 
   return (
-    <>
-      <section className="bg-secondary/40 border-b">
-        <div className="container mx-auto px-4 py-8 md:py-10">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
-            <Link href="/" className="hover:text-primary transition-colors">Anasayfa</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/hesabim" className="hover:text-primary transition-colors">Hesabım</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-foreground font-medium">Siparişlerim</span>
-          </nav>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Siparişlerim</h1>
-        </div>
-      </section>
-
-      <section className="py-8 md:py-12">
-        <div className="container mx-auto px-4">
+    <div className="space-y-4">
+      <h1 className="text-xl font-bold text-foreground">Siparişlerim</h1>
+      <div>
           {orders && orders.length > 0 ? (
             <div className="space-y-4">
               {orders.map((order) => (
@@ -112,8 +99,7 @@ export default async function OrdersPage({
               </Link>
             </div>
           )}
-        </div>
-      </section>
-    </>
+      </div>
+    </div>
   );
 }
