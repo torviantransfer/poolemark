@@ -20,7 +20,7 @@ export async function getAdminStats() {
     // Yarım bırakılan ödemeleri (payment_status=pending) istatistiklere dahil etme.
     supabase.from("orders").select("*", { count: "exact", head: true }).gte("created_at", todayISO).neq("payment_status", "pending"),
     supabase.from("orders").select("total").gte("created_at", todayISO).eq("payment_status", "paid"),
-    supabase.from("orders").select("id").eq("status", "pending").neq("payment_status", "pending"),
+    supabase.from("orders").select("id").in("status", ["pending", "confirmed"]).eq("payment_status", "paid"),
     supabase.from("products").select("*", { count: "exact", head: true }).eq("is_active", true).lt("stock_quantity", 5),
     supabase.from("contact_messages").select("*", { count: "exact", head: true }).eq("is_read", false),
     supabase.from("reviews").select("*", { count: "exact", head: true }).eq("is_approved", false),
@@ -214,6 +214,7 @@ export async function getRecentOrders(limit = 10) {
   const { data, error } = await supabase
     .from("orders")
     .select("*, user:users!user_id(first_name, last_name, email), return_requests:order_return_requests(status, created_at)")
+    .neq("payment_status", "pending")
     .order("created_at", { ascending: false })
     .limit(limit);
 
