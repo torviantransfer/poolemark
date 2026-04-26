@@ -84,97 +84,80 @@ export default async function AdminOrderDetailPage({ params }: Props) {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Order Items */}
+        {/* Sol: Sipariş Kalemleri + Müşteri + Adres */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Order Items */}
           <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
             <div className="p-4 md:p-5 pb-3">
               <h2 className="text-base font-semibold">Sipariş Kalemleri</h2>
             </div>
             <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[480px]">
-              <thead>
-                <tr className="border-t text-left text-muted-foreground">
-                  <th className="px-3 md:px-5 py-2.5 font-medium">Ürün</th>
-                  <th className="px-3 md:px-5 py-2.5 font-medium text-center">Adet</th>
-                  <th className="px-3 md:px-5 py-2.5 font-medium text-right">Fiyat</th>
-                  <th className="px-3 md:px-5 py-2.5 font-medium text-right">Toplam</th>
-                </tr>
-              </thead>
-              <tbody>
-                {order.items?.map((item: any) => (
-                  <tr key={item.id} className="border-t">
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        {item.product_image ? (
-                          <img
-                            src={item.product_image}
-                            alt={item.product_name}
-                            className="w-10 h-10 rounded-lg object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-medium">{item.product_name}</p>
-                          {item.variant_info && (
-                            <p className="text-xs text-muted-foreground">
-                              {item.variant_info}
-                            </p>
+              <table className="w-full text-sm min-w-[480px]">
+                <thead>
+                  <tr className="border-t text-left text-muted-foreground">
+                    <th className="px-3 md:px-5 py-2.5 font-medium">Ürün</th>
+                    <th className="px-3 md:px-5 py-2.5 font-medium text-center">Adet</th>
+                    <th className="px-3 md:px-5 py-2.5 font-medium text-right">Fiyat</th>
+                    <th className="px-3 md:px-5 py-2.5 font-medium text-right">Toplam</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {order.items?.map((item: any) => (
+                    <tr key={item.id} className="border-t">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          {item.product_image ? (
+                            <img
+                              src={item.product_image}
+                              alt={item.product_name}
+                              className="w-10 h-10 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                            </div>
                           )}
+                          <div>
+                            <p className="font-medium">{item.product_name}</p>
+                            {item.variant_info && (
+                              <p className="text-xs text-muted-foreground">{item.variant_info}</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-center">{item.quantity}</td>
-                    <td className="px-5 py-3 text-right">
-                      {formatPrice(item.unit_price)}
-                    </td>
-                    <td className="px-5 py-3 text-right font-medium">
-                      {formatPrice(item.unit_price * item.quantity)}
+                      </td>
+                      <td className="px-5 py-3 text-center">{item.quantity}</td>
+                      <td className="px-5 py-3 text-right">{formatPrice(item.unit_price)}</td>
+                      <td className="px-5 py-3 text-right font-medium">
+                        {formatPrice(item.unit_price * item.quantity)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t">
+                    <td colSpan={3} className="px-5 py-2 text-right text-muted-foreground">Ara Toplam</td>
+                    <td className="px-5 py-2 text-right font-medium">{formatPrice(order.subtotal)}</td>
+                  </tr>
+                  {order.shipping_cost > 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-5 py-2 text-right text-muted-foreground">Kargo</td>
+                      <td className="px-5 py-2 text-right">{formatPrice(order.shipping_cost)}</td>
+                    </tr>
+                  )}
+                  {order.discount_amount > 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-5 py-2 text-right text-muted-foreground">İndirim</td>
+                      <td className="px-5 py-2 text-right text-green-600">-{formatPrice(order.discount_amount)}</td>
+                    </tr>
+                  )}
+                  <tr className="border-t">
+                    <td colSpan={3} className="px-5 py-3 text-right font-semibold">Toplam</td>
+                    <td className="px-5 py-3 text-right text-lg font-bold text-primary">
+                      {formatPrice(order.total)}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className="border-t">
-                  <td colSpan={3} className="px-5 py-2 text-right text-muted-foreground">
-                    Ara Toplam
-                  </td>
-                  <td className="px-5 py-2 text-right font-medium">
-                    {formatPrice(order.subtotal)}
-                  </td>
-                </tr>
-                {order.shipping_cost > 0 && (
-                  <tr>
-                    <td colSpan={3} className="px-5 py-2 text-right text-muted-foreground">
-                      Kargo
-                    </td>
-                    <td className="px-5 py-2 text-right">
-                      {formatPrice(order.shipping_cost)}
-                    </td>
-                  </tr>
-                )}
-                {order.discount_amount > 0 && (
-                  <tr>
-                    <td colSpan={3} className="px-5 py-2 text-right text-muted-foreground">
-                      İndirim
-                    </td>
-                    <td className="px-5 py-2 text-right text-green-600">
-                      -{formatPrice(order.discount_amount)}
-                    </td>
-                  </tr>
-                )}
-                <tr className="border-t">
-                  <td colSpan={3} className="px-5 py-3 text-right font-semibold">
-                    Toplam
-                  </td>
-                  <td className="px-5 py-3 text-right text-lg font-bold text-primary">
-                    {formatPrice(order.total)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+                </tfoot>
+              </table>
             </div>
           </div>
 
@@ -184,15 +167,98 @@ export default async function AdminOrderDetailPage({ params }: Props) {
               <p className="text-sm text-foreground/80">{order.note}</p>
             </div>
           )}
+
+          {/* Müşteri + Adres yan yana */}
+          <div className="grid sm:grid-cols-2 gap-6">
+            {/* Müşteri */}
+            <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
+              <h2 className="text-base font-semibold">Müşteri</h2>
+              {order.user ? (
+                <div className="space-y-2 text-sm">
+                  <p className="font-medium">
+                    {order.user.first_name} {order.user.last_name}
+                  </p>
+                  <p className="flex items-center gap-2 text-muted-foreground">
+                    <Mail className="h-3.5 w-3.5 shrink-0" />
+                    {order.user.email}
+                  </p>
+                  {order.user.phone && (
+                    <p className="flex items-center gap-2 text-muted-foreground">
+                      <Phone className="h-3.5 w-3.5 shrink-0" />
+                      {order.user.phone}
+                    </p>
+                  )}
+                  <Link
+                    href={`/admin/musteriler/${order.user_id}`}
+                    className="text-primary text-xs hover:underline"
+                  >
+                    Müşteri profilini gör →
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2 text-sm">
+                  <p className="text-muted-foreground">Misafir sipariş</p>
+                  {order.guest_email && (
+                    <p className="flex items-center gap-2 text-muted-foreground">
+                      <Mail className="h-3.5 w-3.5 shrink-0" />
+                      {order.guest_email}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Teslimat Adresi */}
+            {shippingAddr && (
+              <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
+                <h2 className="text-base font-semibold flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Teslimat Adresi
+                </h2>
+                <div className="text-sm space-y-1 text-foreground/80">
+                  <p className="font-medium">
+                    {shippingAddr.first_name} {shippingAddr.last_name}
+                  </p>
+                  <p>{shippingAddr.address_line}</p>
+                  <p>
+                    {shippingAddr.neighborhood && `${shippingAddr.neighborhood}, `}
+                    {shippingAddr.district} / {shippingAddr.city}
+                  </p>
+                  {shippingAddr.postal_code && <p>Posta Kodu: {shippingAddr.postal_code}</p>}
+                  {shippingAddr.phone && (
+                    <p className="flex items-center gap-2">
+                      <Phone className="h-3 w-3" />
+                      {shippingAddr.phone}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Kurumsal Fatura */}
+          {isCorporateInvoice && billingAddr && (
+            <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
+              <h2 className="text-base font-semibold flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Kurumsal Fatura Bilgileri
+              </h2>
+              <div className="text-sm space-y-1 text-foreground/80">
+                <p className="font-medium">{billingAddr.company_name}</p>
+                <p>Vergi Dairesi: {billingAddr.tax_office}</p>
+                <p>Vergi/TC No: {billingAddr.tax_id}</p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Sidebar */}
+        {/* Sağ Sidebar: Ödeme + Durumu Güncelle */}
         <div className="space-y-6">
-          {/* Payment (always top, error prominent) */}
+          {/* Ödeme */}
           <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
             <h2 className="text-base font-semibold">Ödeme</h2>
             {order.payment_status === "failed" && (order.payment_failure_reason || order.payment_failure_code) && (
-              <div className="flex flex-col gap-1 mb-3 p-3 rounded-lg border border-rose-300 bg-rose-50">
+              <div className="flex flex-col gap-1 p-3 rounded-lg border border-rose-300 bg-rose-50">
                 <span className="text-xs font-semibold text-rose-700">Ödeme Hatası</span>
                 {order.payment_failure_reason && (
                   <span className="text-xs text-rose-700">{order.payment_failure_reason}</span>
@@ -239,7 +305,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Status Update */}
+          {/* Durumu Güncelle */}
           <OrderStatusForm
             orderId={order.id}
             currentStatus={order.status}
@@ -250,88 +316,6 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             invoiceUrl={orderExt.invoice_url || ""}
             orderTotal={order.total}
           />
-
-          {/* Customer */}
-          <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
-            <h2 className="text-base font-semibold">Müşteri</h2>
-            {order.user ? (
-              <div className="space-y-2 text-sm">
-                <p className="font-medium">
-                  {order.user.first_name} {order.user.last_name}
-                </p>
-                <p className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="h-3.5 w-3.5" />
-                  {order.user.email}
-                </p>
-                {order.user.phone && (
-                  <p className="flex items-center gap-2 text-muted-foreground">
-                    <Phone className="h-3.5 w-3.5" />
-                    {order.user.phone}
-                  </p>
-                )}
-                <Link
-                  href={`/admin/musteriler/${order.user_id}`}
-                  className="text-primary text-xs hover:underline"
-                >
-                  Müşteri profilini gör →
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-2 text-sm">
-                <p className="text-muted-foreground">Misafir sipariş</p>
-                {order.guest_email && (
-                  <p className="flex items-center gap-2 text-muted-foreground">
-                    <Mail className="h-3.5 w-3.5" />
-                    {order.guest_email}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Shipping Address */}
-          {shippingAddr && (
-            <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
-              <h2 className="text-base font-semibold flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Teslimat Adresi
-              </h2>
-              <div className="text-sm space-y-1 text-foreground/80">
-                <p className="font-medium">
-                  {shippingAddr.first_name} {shippingAddr.last_name}
-                </p>
-                <p>{shippingAddr.address_line}</p>
-                <p>
-                  {shippingAddr.neighborhood && `${shippingAddr.neighborhood}, `}
-                  {shippingAddr.district} / {shippingAddr.city}
-                </p>
-                {shippingAddr.postal_code && (
-                  <p>Posta Kodu: {shippingAddr.postal_code}</p>
-                )}
-                {shippingAddr.phone && (
-                  <p className="flex items-center gap-2">
-                    <Phone className="h-3 w-3" />
-                    {shippingAddr.phone}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Billing / Invoice */}
-          {isCorporateInvoice && billingAddr && (
-            <div className="bg-white rounded-2xl border shadow-sm p-5 space-y-3">
-              <h2 className="text-base font-semibold flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Kurumsal Fatura Bilgileri
-              </h2>
-              <div className="text-sm space-y-1 text-foreground/80">
-                <p className="font-medium">{billingAddr.company_name}</p>
-                <p>Vergi Dairesi: {billingAddr.tax_office}</p>
-                <p>Vergi/TC No: {billingAddr.tax_id}</p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
