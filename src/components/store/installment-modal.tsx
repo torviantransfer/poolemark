@@ -66,7 +66,7 @@ export function InstallmentModal({
       PAYTR_TOKEN
     )}&merchant_id=${encodeURIComponent(
       PAYTR_MERCHANT_ID
-    )}&amount=${Math.round(calculatedTotal * 100)}&taksit=0&tumu=1`;
+    )}&amount=${calculatedTotal.toFixed(2)}&taksit=0&tumu=0`;
     script.async = true;
     script.onload = () => setLoading(false);
     script.onerror = () => setLoading(false);
