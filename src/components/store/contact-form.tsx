@@ -43,9 +43,6 @@ export function ContactForm() {
 
   return (
     <>
-      <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">
-        İletişim Formu
-      </p>
       <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
         Mesajınızı Gönderin
       </h2>

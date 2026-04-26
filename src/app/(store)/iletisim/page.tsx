@@ -222,31 +222,6 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* Quick Contact */}
-              <div className="p-6 rounded-2xl border border-border/30 bg-secondary/30">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
-                    <Phone className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="text-base font-semibold text-foreground">
-                    Hızlı İletişim
-                  </h3>
-                </div>
-                <div className="space-y-3 text-sm">
-                  <a href={`tel:${SITE_CONFIG.phoneRaw}`} className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors">
-                    <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    {SITE_CONFIG.phone}
-                  </a>
-                  <a href={`mailto:${SITE_CONFIG.email}`} className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors">
-                    <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    {SITE_CONFIG.email}
-                  </a>
-                  <a href={`https://wa.me/${SITE_CONFIG.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors">
-                    <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    WhatsApp ile Mesaj
-                  </a>
-                </div>
-              </div>
             </div>
 
             {/* Right: Form */}
