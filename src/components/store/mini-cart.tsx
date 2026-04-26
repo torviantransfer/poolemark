@@ -15,11 +15,9 @@ import {
   ShoppingBag,
   Minus,
   Plus,
-  Trash2,
+  X,
   ArrowRight,
   Truck,
-  Shield,
-  RotateCcw,
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
@@ -32,6 +30,8 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
   const [open, setOpen] = useState(false);
 
   const FREE_SHIPPING_THRESHOLD = 500;
+  const shippingProgress = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
+  const remaining = FREE_SHIPPING_THRESHOLD - subtotal;
 
   if (!mounted) {
     return <Skeleton className="h-10 w-10 rounded-full" />;
@@ -42,11 +42,12 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
       <SheetTrigger
         aria-label="Sepeti aç"
         className={cn(
-        "relative p-2.5 transition-colors rounded-full",
-        transparent
-          ? "text-white/75 hover:text-white hover:bg-white/10"
-          : "text-foreground/70 hover:text-foreground hover:bg-secondary"
-      )}>
+          "relative p-2.5 transition-colors rounded-full",
+          transparent
+            ? "text-white/75 hover:text-white hover:bg-white/10"
+            : "text-foreground/70 hover:text-foreground hover:bg-secondary"
+        )}
+      >
         <ShoppingBag className="h-5 w-5" />
         {itemCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold px-1">
@@ -54,97 +55,113 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
           </span>
         )}
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
-        <SheetHeader className="p-5 pb-4 border-b shrink-0">
-          <SheetTitle className="flex items-center gap-2">
-            <ShoppingBag className="h-5 w-5 text-primary" />
-            Sepetim
-            {itemCount > 0 && (
-              <span className="text-sm font-normal text-muted-foreground">
-                ({itemCount} ürün)
-              </span>
-            )}
+
+      <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col gap-0">
+        {/* Header */}
+        <SheetHeader className="px-5 pt-5 pb-0 shrink-0">
+          <SheetTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-base font-semibold">
+              Sepetim
+              {itemCount > 0 && (
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold">
+                  {itemCount}
+                </span>
+              )}
+            </span>
           </SheetTitle>
         </SheetHeader>
 
+        {/* Kargo progress bar — header'a yapışık */}
+        {items.length > 0 && (
+          <div className="px-5 pt-3 pb-4 shrink-0">
+            {subtotal >= FREE_SHIPPING_THRESHOLD ? (
+              <div className="flex items-center gap-2 py-2 px-3 rounded-xl bg-green-50 border border-green-100">
+                <Truck className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                <span className="text-xs font-semibold text-green-700">Ücretsiz kargo kazandınız! 🎉</span>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Ücretsiz kargoya</span>
+                  <span className="text-xs font-semibold text-primary">{formatPrice(remaining)} kaldı</span>
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary/70 to-primary rounded-full transition-all duration-500"
+                    style={{ width: `${shippingProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Divider */}
+        {items.length > 0 && <div className="h-px bg-border shrink-0" />}
+
+        {/* Boş sepet */}
         {items.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-6">
-            <ShoppingBag className="h-12 w-12 text-muted-foreground/20 mb-4" />
-            <p className="font-medium text-foreground">Sepetiniz boş</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Hemen alışverişe başlayın!
+          <div className="flex-1 flex flex-col items-center justify-center px-6 pb-10">
+            <div className="w-20 h-20 rounded-2xl bg-secondary flex items-center justify-center mb-5">
+              <ShoppingBag className="h-9 w-9 text-muted-foreground/40" />
+            </div>
+            <p className="text-base font-semibold text-foreground">Sepetiniz boş</p>
+            <p className="text-sm text-muted-foreground mt-1 text-center">
+              Beğeneceğin ürünler seni bekliyor!
             </p>
             <Button
               render={<Link href="/products" onClick={() => setOpen(false)} />}
-              className="mt-5 gap-2"
-              size="sm"
+              className="mt-6 gap-2 px-6"
             >
-              Ürünlere Göz At
+              Alışverişe Başla
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
         ) : (
           <>
-            {/* Items */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {/* Ürünler */}
+            <div className="flex-1 overflow-y-auto py-3 px-4 space-y-2">
               {items.map((item) => (
-                <div key={item.id} className="flex gap-3 bg-secondary/30 rounded-xl p-3">
+                <div key={item.id} className="flex gap-3 bg-white border rounded-2xl p-3 shadow-sm">
+                  {/* Resim */}
                   <Link
                     href={`/products/${item.slug}`}
                     onClick={() => setOpen(false)}
-                    className="w-16 h-16 rounded-lg bg-white overflow-hidden shrink-0"
+                    className="w-[72px] h-[72px] rounded-xl bg-secondary overflow-hidden shrink-0"
                   >
                     {item.image ? (
                       <Image
                         src={item.image}
                         alt={item.name}
-                        width={64}
-                        height={64}
+                        width={72}
+                        height={72}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingBag className="h-4 w-4 text-muted-foreground/20" />
+                        <ShoppingBag className="h-5 w-5 text-muted-foreground/20" />
                       </div>
                     )}
                   </Link>
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      href={`/products/${item.slug}`}
-                      onClick={() => setOpen(false)}
-                      className="text-sm font-medium text-foreground line-clamp-1 hover:text-primary transition-colors"
-                    >
-                      {item.name}
-                    </Link>
-                    {item.unit_label && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-full mt-0.5">
-                        {item.unit_label}
-                      </span>
-                    )}
-                    <p className="text-sm font-bold text-foreground mt-1">
-                      {formatPrice(item.price * item.quantity)}
-                    </p>
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center border rounded-md bg-white">
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="p-2 text-muted-foreground hover:text-foreground min-w-[32px] flex items-center justify-center"
-                          aria-label="Azalt"
+
+                  {/* Bilgiler */}
+                  <div className="flex-1 min-w-0 flex flex-col justify-between">
+                    <div className="flex items-start justify-between gap-1">
+                      <div className="min-w-0">
+                        <Link
+                          href={`/products/${item.slug}`}
+                          onClick={() => setOpen(false)}
+                          className="text-sm font-medium text-foreground line-clamp-2 hover:text-primary transition-colors leading-snug"
                         >
-                          <Minus className="h-3.5 w-3.5" />
-                        </button>
-                        <span className="px-2 text-xs font-medium min-w-[24px] text-center">{item.quantity}</span>
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.id, Math.min(item.quantity + 1, item.stock_quantity))
-                          }
-                          disabled={item.quantity >= item.stock_quantity}
-                          className="p-2 text-muted-foreground hover:text-foreground disabled:opacity-30 min-w-[32px] flex items-center justify-center"
-                          aria-label="Artır"
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                        </button>
+                          {item.name}
+                        </Link>
+                        {(item.variant_name || item.unit_label) && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {[item.variant_name, item.unit_label].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
                       </div>
+                      {/* Sil */}
                       <button
                         onClick={() => {
                           gaRemoveFromCart({
@@ -158,11 +175,49 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
                           });
                           removeItem(item.id);
                         }}
-                        className="p-2 text-muted-foreground hover:text-destructive transition-colors min-w-[32px] flex items-center justify-center"
+                        className="p-1 rounded-lg text-muted-foreground/50 hover:text-destructive hover:bg-red-50 transition-colors shrink-0"
                         aria-label="Ürünü kaldır"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <X className="h-3.5 w-3.5" />
                       </button>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-2">
+                      {/* Miktar */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="w-7 h-7 rounded-lg border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                          aria-label="Azalt"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        <span className="text-sm font-semibold min-w-[24px] text-center tabular-nums">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.id, Math.min(item.quantity + 1, item.stock_quantity))
+                          }
+                          disabled={item.quantity >= item.stock_quantity}
+                          className="w-7 h-7 rounded-lg border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/30 disabled:opacity-30 transition-colors"
+                          aria-label="Artır"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </button>
+                      </div>
+
+                      {/* Fiyat */}
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-foreground tabular-nums">
+                          {formatPrice(item.price * item.quantity)}
+                        </p>
+                        {item.quantity > 1 && (
+                          <p className="text-[10px] text-muted-foreground tabular-nums">
+                            {formatPrice(item.price)} / adet
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -170,66 +225,33 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
             </div>
 
             {/* Footer */}
-            <div className="shrink-0 border-t p-4 space-y-3 bg-white">
-              {/* Free Shipping Progress Bar */}
-              {subtotal >= FREE_SHIPPING_THRESHOLD ? (
-                <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-green-50 border border-green-100">
-                  <Truck className="h-3.5 w-3.5 text-green-600 shrink-0" />
-                  <span className="text-xs font-semibold text-green-700">Ücretsiz kargo kazandınız!</span>
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Ücretsiz kargoya</span>
-                    <span className="text-xs font-semibold text-primary">{formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} kaldı</span>
-                  </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary/80 to-primary rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100)}%` }}
-                    />
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">500₺ ve üzeri siparişlerde kargo ücretsiz</p>
-                </div>
-              )}
+            <div className="shrink-0 border-t bg-white px-4 pt-4 pb-5 space-y-3">
+              {/* Toplam */}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Ara Toplam</span>
-                <span className="text-lg font-bold text-foreground">
+                <span className="text-xl font-bold text-foreground tabular-nums">
                   {formatPrice(subtotal)}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <Button
-                  render={<Link href="/checkout" onClick={() => setOpen(false)} />}
-                  size="sm"
-                  className="w-full gap-1 col-span-2"
+
+              {/* Ödemeye geç — ana CTA */}
+              <Button
+                render={<Link href="/checkout" onClick={() => setOpen(false)} />}
+                className="w-full h-12 text-base gap-2 rounded-xl"
+              >
+                Ödemeye Geç
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+
+              {/* Sepeti gör — ikincil */}
+              <div className="text-center">
+                <Link
+                  href="/sepet"
+                  onClick={() => setOpen(false)}
+                  className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
                 >
-                  Sipariş Ver
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  render={<Link href="/sepet" onClick={() => setOpen(false)} />}
-                  variant="outline"
-                  size="sm"
-                  className="w-full col-span-2"
-                >
-                  Sepeti Gör
-                </Button>
-              </div>
-              {/* Trust badges */}
-              <div className="flex items-center justify-center gap-4 pt-2 border-t">
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Shield className="h-3 w-3 text-primary" />
-                  <span className="text-[10px]">Güvenli ödeme</span>
-                </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Truck className="h-3 w-3 text-primary" />
-                  <span className="text-[10px]">500₺ ücretsiz kargo</span>
-                </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <RotateCcw className="h-3 w-3 text-primary" />
-                  <span className="text-[10px]">14 gün iade</span>
-                </div>
+                  Sepeti Düzenle
+                </Link>
               </div>
             </div>
           </>
