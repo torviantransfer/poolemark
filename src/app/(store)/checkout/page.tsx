@@ -32,7 +32,7 @@ import type { Address } from "@/types";
 import { InstallmentModal } from "@/components/store/installment-modal";
 import { trackEvent } from "@/lib/meta-pixel";
 import { trackSiteEvent } from "@/lib/site-events";
-import { gaBeginCheckout } from "@/lib/ga";
+import { gaBeginCheckout, gaAddShippingInfo, gaAddPaymentInfo } from "@/lib/ga";
 
 interface GuestAddress {
   first_name: string;
@@ -240,6 +240,17 @@ function CheckoutContent() {
       toast.error("Kurumsal fatura için firma adı, vergi dairesi ve vergi numarasını giriniz.");
       return;
     }
+
+    gaAddPaymentInfo({
+      value: total,
+      payment_type: "credit_card",
+      items: items.map((i) => ({
+        item_id: i.variant_id ?? i.product_id,
+        item_name: i.name,
+        price: i.price,
+        quantity: i.quantity,
+      })),
+    });
 
     startTransition(async () => {
       try {
@@ -557,7 +568,21 @@ function CheckoutContent() {
                       return (
                         <button
                           key={company.id}
-                          onClick={() => setSelectedShippingId(company.id)}
+                          onClick={() => {
+                            setSelectedShippingId(company.id);
+                            const isFreeShip = company.free_shipping_threshold && subtotal >= company.free_shipping_threshold;
+                            gaAddShippingInfo({
+                              value: subtotal,
+                              shipping_tier: company.name,
+                              items: items.map((i) => ({
+                                item_id: i.variant_id ?? i.product_id,
+                                item_name: i.name,
+                                price: i.price,
+                                quantity: i.quantity,
+                              })),
+                            });
+                            void isFreeShip;
+                          }}
                           title={`${company.name} – ${isFree ? "Ücretsiz" : formatPrice(company.price)}`}
                           className={`relative flex flex-col items-center justify-center gap-1 px-3 py-2.5 rounded-xl border transition-all flex-1 min-w-[110px] sm:flex-none sm:min-w-[120px] ${
                             isSelected

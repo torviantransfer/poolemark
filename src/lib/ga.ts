@@ -98,6 +98,34 @@ export function gaAddToWishlist(params: { value?: number; items: GtagItem[]; cur
   });
 }
 
+export function gaAddShippingInfo(params: {
+  value: number;
+  items: GtagItem[];
+  shipping_tier?: string;
+  currency?: string;
+}) {
+  gtag("event", "add_shipping_info", {
+    currency: params.currency || "TRY",
+    value: params.value,
+    shipping_tier: params.shipping_tier,
+    items: params.items,
+  });
+}
+
+export function gaAddPaymentInfo(params: {
+  value: number;
+  items: GtagItem[];
+  payment_type?: string;
+  currency?: string;
+}) {
+  gtag("event", "add_payment_info", {
+    currency: params.currency || "TRY",
+    value: params.value,
+    payment_type: params.payment_type || "credit_card",
+    items: params.items,
+  });
+}
+
 export function gaLogin(method: string = "email") {
   gtag("event", "login", { method });
 }
