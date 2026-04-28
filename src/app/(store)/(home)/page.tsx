@@ -417,7 +417,10 @@ export default async function HomePage({
                   itemScope
                   itemType="https://schema.org/Review"
                 >
-                  <meta itemProp="itemReviewed" content="Poolemark" />
+                  <div itemProp="itemReviewed" itemScope itemType="https://schema.org/LocalBusiness" style={{ display: "none" }}>
+                    <meta itemProp="name" content="Poolemark" />
+                    <meta itemProp="url" content="https://poolemark.com" />
+                  </div>
                   <div className="flex items-center gap-1 mb-3">
                     {Array.from({ length: 5 }, (_, s) => (
                       <Star
@@ -440,8 +443,8 @@ export default async function HomePage({
                     &ldquo;{review.comment}&rdquo;
                   </p>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-foreground" itemProp="author">
-                      {getReviewerDisplayName(review)}
+                    <p className="text-sm font-semibold text-foreground" itemProp="author" itemScope itemType="https://schema.org/Person">
+                      <span itemProp="name">{getReviewerDisplayName(review)}</span>
                     </p>
                     <time className="text-xs text-muted-foreground" itemProp="datePublished" dateTime={review.created_at}>
                       {new Date(review.created_at).toLocaleDateString("tr-TR", { month: "long", year: "numeric" })}
