@@ -5,6 +5,7 @@ import { trackEvent } from "@/lib/meta-pixel";
 import { tiktokTrack } from "@/lib/tiktok-pixel";
 import { trackSiteEvent } from "@/lib/site-events";
 import { gaPurchase } from "@/lib/ga";
+import { useCart } from "@/hooks/use-cart";
 
 interface PurchaseTrackerProps {
   orderId: string;
@@ -32,6 +33,7 @@ export function PurchaseTracker({
   userPhone,
 }: PurchaseTrackerProps) {
   const fired = useRef(false);
+  const { clearCart } = useCart();
 
   useEffect(() => {
     if (fired.current) return;
@@ -90,10 +92,12 @@ export function PurchaseTracker({
       order_id: orderNumber,
     });
 
+    clearCart();
+
     if (typeof window !== "undefined") {
       sessionStorage.setItem(storageKey, "1");
     }
-  }, [orderId, orderNumber, total, contentIds, contents, userEmail, userPhone]);
+  }, [orderId, orderNumber, total, contentIds, contents, userEmail, userPhone, clearCart]);
 
   return null;
 }

@@ -322,8 +322,9 @@ function CheckoutContent() {
         }
 
         setPaytrToken(data.token);
-        clearCart();
         // Clear idempotency key so next purchase gets a fresh order number.
+        // NOTE: cart is cleared in PurchaseTracker (success page) so that a
+        // failed or cancelled payment doesn't wipe the user's cart.
         if (typeof sessionStorage !== "undefined") {
           sessionStorage.removeItem("checkout_idempotency_key");
         }
