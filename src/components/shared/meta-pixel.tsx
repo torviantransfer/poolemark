@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { generateEventId, trackEvent } from "@/lib/meta-pixel";
 
@@ -27,6 +27,7 @@ export function MetaPixel() {
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
           fbq('init', '${PIXEL_ID}');
+          fbq('track', 'PageView');
         `}
       </Script>
       <noscript>
@@ -45,16 +46,20 @@ export function MetaPixel() {
   );
 }
 
-/** Fires PageView (browser + CAPI) on every route change. */
+/** Fires PageView (browser + CAPI) on every SPA route change (skips initial load — covered by inline fbq snippet). */
 function PageViewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isFirst = useRef(true);
 
   useEffect(() => {
+    if (isFirst.current) {
+      isFirst.current = false;
+      return; // initial load already fired by inline fbq('track','PageView')
+    }
     if (!PIXEL_ID) return;
     const id = generateEventId();
     trackEvent("PageView", {}, { eventId: id });
-    // pathname/searchParams in deps so SPA navigations also fire
   }, [pathname, searchParams]);
 
   return null;
