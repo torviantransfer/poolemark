@@ -155,7 +155,6 @@ export default async function PaymentResultPage({
             userEmail={loggedInUserEmail}
             externalId={loggedInUserId}
           />
-          />
         ) : null}
         {isSuccess ? (
           <>
