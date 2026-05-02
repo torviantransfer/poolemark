@@ -99,7 +99,7 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
         value: currentPrice * quantity,
         currency: "TRY",
       },
-      { userEmail: user?.email ?? null }
+      { userEmail: user?.email ?? null, userPhone: user?.phone ?? null, externalId: user?.id ?? null }
     );
     trackSiteEvent("add_to_cart", {
       userId: user?.id ?? null,
@@ -148,7 +148,7 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
       contents: [{ id: activeVariant?.id ?? product.id, quantity, item_price: currentPrice }],
       value: currentPrice * quantity,
       currency: "TRY",
-    });
+    }, { userEmail: user?.email ?? null, userPhone: user?.phone ?? null, externalId: user?.id ?? null });
     trackSiteEvent("add_to_cart", {
       metadata: { product_id: product.id, value: currentPrice * quantity, source: "buy_now" },
     });

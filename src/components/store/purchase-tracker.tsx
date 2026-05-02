@@ -15,6 +15,7 @@ interface PurchaseTrackerProps {
   contents: { id: string; quantity: number; item_price: number }[];
   userEmail?: string | null;
   userPhone?: string | null;
+  externalId?: string | null;
 }
 
 /**
@@ -31,6 +32,7 @@ export function PurchaseTracker({
   contents,
   userEmail,
   userPhone,
+  externalId,
 }: PurchaseTrackerProps) {
   const fired = useRef(false);
   const { clearCart } = useCart();
@@ -60,6 +62,7 @@ export function PurchaseTracker({
         eventId: `purchase_${orderId}`,
         userEmail: userEmail ?? null,
         userPhone: userPhone ?? null,
+        externalId: externalId ?? null,
       }
     );
     trackSiteEvent("purchase", {

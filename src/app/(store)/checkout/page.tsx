@@ -183,7 +183,7 @@ function CheckoutContent() {
         value,
         currency: "TRY",
       },
-      { userEmail: user?.email ?? null }
+      { userEmail: user?.email ?? null, userPhone: user?.phone ?? null, externalId: user?.id ?? null }
     );
     trackSiteEvent("initiate_checkout", {
       userId: user?.id ?? null,

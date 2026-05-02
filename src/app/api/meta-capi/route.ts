@@ -19,6 +19,7 @@ export const runtime = "nodejs";
 interface CapiUser {
   email?: string | null;
   phone?: string | null;
+  externalId?: string | null;
   fbp?: string | null;
   fbc?: string | null;
 }
@@ -49,13 +50,31 @@ function normalizePhone(phone: string): string {
   return phone.replace(/\D+/g, "");
 }
 
+function isIPv6(ip: string): boolean {
+  return ip.includes(":");
+}
+
 function getClientIp(request: NextRequest): string | null {
-  const fwd =
-    request.headers.get("x-forwarded-for") ||
-    request.headers.get("x-real-ip") ||
-    request.headers.get("cf-connecting-ip");
-  if (!fwd) return null;
-  return fwd.split(",")[0].trim();
+  // Prefer IPv6 over IPv4 as recommended by Meta CAPI best practices.
+  // Cloudflare sends the real IP; x-forwarded-for may contain a comma-separated list.
+  const cf6 = request.headers.get("cf-connecting-ipv6");
+  if (cf6) return cf6.trim();
+
+  const candidates: string[] = [];
+
+  const fwd = request.headers.get("x-forwarded-for");
+  if (fwd) {
+    candidates.push(...fwd.split(",").map((s) => s.trim()).filter(Boolean));
+  }
+
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) candidates.push(realIp.trim());
+
+  const cfIp = request.headers.get("cf-connecting-ip");
+  if (cfIp) candidates.push(cfIp.trim());
+
+  // Return first IPv6 address found, otherwise fall back to first IPv4.
+  return candidates.find(isIPv6) ?? candidates[0] ?? null;
 }
 
 export async function POST(request: NextRequest) {
@@ -78,6 +97,7 @@ export async function POST(request: NextRequest) {
   const userData: Record<string, string> = {};
   if (body.user?.email) userData.em = sha256(normalizeEmail(body.user.email));
   if (body.user?.phone) userData.ph = sha256(normalizePhone(body.user.phone));
+  if (body.user?.externalId) userData.external_id = sha256(body.user.externalId);
   if (body.user?.fbp) userData.fbp = body.user.fbp;
   if (body.user?.fbc) userData.fbc = body.user.fbc;
 

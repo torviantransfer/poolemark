@@ -64,7 +64,12 @@ export function generateEventId(): string {
 export function trackEvent(
   event: StandardEvent,
   params: MetaEventParams = {},
-  options: { eventId?: string; userEmail?: string | null; userPhone?: string | null } = {}
+  options: {
+    eventId?: string;
+    userEmail?: string | null;
+    userPhone?: string | null;
+    externalId?: string | null;
+  } = {}
 ) {
   if (typeof window === "undefined") return;
 
@@ -88,6 +93,7 @@ export function trackEvent(
       user: {
         email: options.userEmail ?? null,
         phone: options.userPhone ?? null,
+        externalId: options.externalId ?? null,
         fbp: getFbpFromCookie(),
         fbc: getFbcFromCookie(),
       },

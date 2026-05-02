@@ -65,12 +65,16 @@ export default async function PaymentResultPage({
   } | null = null;
   let orderItems: OrderItemSummary[] = [];
   let isLoggedIn = false;
+  let loggedInUserId: string | null = null;
+  let loggedInUserEmail: string | null = null;
 
   if (isValidOrderId) {
     try {
       const supabase = await createClient();
       const { data: { user } } = await supabase.auth.getUser();
       isLoggedIn = !!user;
+      loggedInUserId = user?.id ?? null;
+      loggedInUserEmail = user?.email ?? null;
       const { data } = await supabase
         .from("orders")
         .select("id, order_number, subtotal, shipping_cost, discount_amount, total, shipping_address_json, created_at")
@@ -148,6 +152,9 @@ export default async function PaymentResultPage({
                 quantity: toSafeNumber(i.quantity),
                 item_price: toSafeNumber(i.unit_price),
               }))}
+            userEmail={loggedInUserEmail}
+            externalId={loggedInUserId}
+          />
           />
         ) : null}
         {isSuccess ? (

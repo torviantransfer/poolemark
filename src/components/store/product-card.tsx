@@ -9,6 +9,7 @@ import { formatPrice, calculateDiscountPercentage } from "@/lib/helpers";
 import type { Product } from "@/types";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
+import { useUser } from "@/hooks/use-user";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/meta-pixel";
 import { trackSiteEvent } from "@/lib/site-events";
@@ -36,6 +37,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
 
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
+  const { user } = useUser();
   const router = useRouter();
 
   function handleAddToCart(e: React.MouseEvent) {
@@ -64,7 +66,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
       contents: [{ id: product.id, quantity: 1, item_price: product.price }],
       value: product.price,
       currency: "TRY",
-    });
+    }, { userEmail: user?.email ?? null, userPhone: user?.phone ?? null, externalId: user?.id ?? null });
     trackSiteEvent("add_to_cart", {
       metadata: { product_id: product.id, value: product.price },
     });
