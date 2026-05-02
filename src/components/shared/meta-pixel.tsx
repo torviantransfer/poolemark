@@ -7,6 +7,19 @@ import { generateEventId, trackEvent } from "@/lib/meta-pixel";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
 
+declare global {
+  interface Window {
+    clientParamBuilder?: {
+      processAndCollectAllParams: (
+        url?: string,
+        getIpFn?: () => Promise<string>
+      ) => Promise<Record<string, string | null>>;
+      getFbc: () => string | null;
+      getFbp: () => string | null;
+    };
+  }
+}
+
 /**
  * Base Meta Pixel snippet.
  * Loaded once in the root layout. Disabled if no Pixel ID is configured.
@@ -16,6 +29,16 @@ export function MetaPixel() {
 
   return (
     <>
+      {/* Meta CAPI Parameter Builder — improves fbp/fbc coverage and EMQ score */}
+      <Script
+        id="meta-capi-param-builder"
+        src="https://unpkg.com/meta-capi-param-builder-clientjs@1.3.0/dist/clientParamBuilder.bundle.js"
+        strategy="afterInteractive"
+        onLoad={() => {
+          // Sets _fbp / _fbc cookies with SDK appendix format as soon as script loads
+          void window.clientParamBuilder?.processAndCollectAllParams(window.location.href);
+        }}
+      />
       <Script id="meta-pixel-base" strategy="afterInteractive">
         {`
           !function(f,b,e,v,n,t,s)
@@ -55,9 +78,14 @@ function PageViewTracker() {
   useEffect(() => {
     if (isFirst.current) {
       isFirst.current = false;
-      return; // initial load already fired by inline fbq('track','PageView')
+      // Race-safe: also called in onLoad above, but cover the case where script
+      // was already cached and onLoad fired before this effect.
+      void window.clientParamBuilder?.processAndCollectAllParams(window.location.href);
+      return; // initial PageView already fired by inline fbq('track','PageView')
     }
     if (!PIXEL_ID) return;
+    // Refresh param builder on SPA navigation so fbc/fbp cookies stay current
+    void window.clientParamBuilder?.processAndCollectAllParams(window.location.href);
     const id = generateEventId();
     trackEvent("PageView", {}, { eventId: id });
   }, [pathname, searchParams]);

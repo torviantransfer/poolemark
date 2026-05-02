@@ -81,6 +81,18 @@ export async function POST(request: NextRequest) {
   if (body.user?.fbp) userData.fbp = body.user.fbp;
   if (body.user?.fbc) userData.fbc = body.user.fbc;
 
+  // Server-side fallback: read _fbp/_fbc directly from request cookies.
+  // The Meta CAPI Parameter Builder SDK sets these cookies with proper appendix
+  // format on the client; they are sent automatically with same-origin requests.
+  if (!userData.fbp) {
+    const fbpCookie = request.cookies.get("_fbp")?.value;
+    if (fbpCookie) userData.fbp = fbpCookie;
+  }
+  if (!userData.fbc) {
+    const fbcCookie = request.cookies.get("_fbc")?.value;
+    if (fbcCookie) userData.fbc = fbcCookie;
+  }
+
   const clientIp = getClientIp(request);
   if (clientIp) userData.client_ip_address = clientIp;
   const userAgent = request.headers.get("user-agent");
