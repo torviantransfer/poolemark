@@ -267,11 +267,18 @@ export function ProductForm({ product, categories }: Props) {
         }
       }
 
-      // Storefront cache'ini temizle
-      fetch("/api/revalidate", {
+      // Storefront cache'ini temizle (await - yönlendirmeden önce)
+      await fetch("/api/revalidate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paths: [`/products/${productData.slug}`, "/products"] }),
+        body: JSON.stringify({
+          paths: [
+            `/products/${productData.slug}`,
+            `/urunler/${productData.slug}`,
+            "/products",
+            "/",
+          ],
+        }),
       }).catch(() => {});
 
       router.push("/admin/urunler");
