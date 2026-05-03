@@ -45,6 +45,8 @@ export function ProductForm({ product, categories }: Props) {
     product?.images?.sort((a, b) => a.sort_order - b.sort_order).map((i) => i.url) || []
   );
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const [variants, setVariants] = useState<VariantDraft[]>(
     product?.variants
@@ -118,6 +120,46 @@ export function ProductForm({ product, categories }: Props) {
 
   function removeImage(index: number) {
     setImages((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function setPrimary(index: number) {
+    if (index === 0) return;
+    setImages((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.unshift(item);
+      return next;
+    });
+  }
+
+  function handleDragStart(index: number) {
+    setDraggingIndex(index);
+  }
+
+  function handleDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault();
+    setDragOverIndex(index);
+  }
+
+  function handleDrop(index: number) {
+    if (draggingIndex === null || draggingIndex === index) {
+      setDraggingIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    setImages((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(draggingIndex, 1);
+      next.splice(index, 0, item);
+      return next;
+    });
+    setDraggingIndex(null);
+    setDragOverIndex(null);
+  }
+
+  function handleDragEnd() {
+    setDraggingIndex(null);
+    setDragOverIndex(null);
   }
 
   function addVariant() {
@@ -306,16 +348,39 @@ export function ProductForm({ product, categories }: Props) {
           >
             <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 gap-3">
               {images.map((url, index) => (
-                <div key={index} className="relative group aspect-square">
+                <div
+                  key={url}
+                  draggable
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDrop={() => handleDrop(index)}
+                  onDragEnd={handleDragEnd}
+                  className={`relative group aspect-square cursor-grab active:cursor-grabbing transition-opacity ${
+                    draggingIndex === index ? "opacity-40" : ""
+                  } ${
+                    dragOverIndex === index && draggingIndex !== index
+                      ? "ring-2 ring-primary rounded-xl"
+                      : ""
+                  }`}
+                >
                   <img
                     src={url}
                     alt=""
                     className="w-full h-full object-cover rounded-xl border"
                   />
-                  {index === 0 && (
+                  {index === 0 ? (
                     <span className="absolute top-1 left-1 text-[9px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded font-semibold leading-none">
                       ANA
                     </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPrimary(index)}
+                      title="Ana görsel yap"
+                      className="absolute top-1 left-1 bg-white/95 text-muted-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow hover:text-primary"
+                    >
+                      <Star className="h-3 w-3" />
+                    </button>
                   )}
                   <button
                     type="button"
@@ -346,7 +411,7 @@ export function ProductForm({ product, categories }: Props) {
               </label>
             </div>
             <p className="text-xs text-muted-foreground">
-              İlk görsel ana görsel olarak kullanılır. Sürükleyerek sıralayabilirsiniz.
+              Sürükleyerek sıralayın. Yıldız ikonuna tıklayarak ana görseli değiştirin.
             </p>
           </Section>
 
