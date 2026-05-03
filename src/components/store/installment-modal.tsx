@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -55,7 +55,7 @@ export function InstallmentModal({
 <head>
 <meta charset="utf-8"/>
 <style>
-  body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  body { margin: 0; padding: 0; font-family: Arial, sans-serif; overflow-x: hidden; }
   #paytr_taksit_tablosu { clear: both; font-size: 12px; max-width: 100%; text-align: center; font-family: Arial, sans-serif; }
   #paytr_taksit_tablosu::before { display: table; content: " "; }
   #paytr_taksit_tablosu::after { content: ""; clear: both; display: table; }
@@ -88,11 +88,18 @@ export function InstallmentModal({
       try {
         const h = iframe.contentDocument?.body?.scrollHeight;
         if (h && h > 100) {
-          setIframeHeight(h + 16);
+          setIframeHeight(h + 24);
           clearInterval(poll);
+          // Re-measure after a short delay in case content re-renders (mobile layout)
+          setTimeout(() => {
+            try {
+              const h2 = iframe.contentDocument?.body?.scrollHeight;
+              if (h2 && h2 > h) setIframeHeight(h2 + 24);
+            } catch { /* cross-origin guard */ }
+          }, 800);
         }
       } catch { clearInterval(poll); }
-      if (attempts > 30) clearInterval(poll);
+      if (attempts > 60) clearInterval(poll);
     }, 200);
   }
 
@@ -181,7 +188,7 @@ export function InstallmentModal({
                 Taksit tablosu yapılandırılmamış. Lütfen sistem yöneticinize başvurun.
               </div>
             ) : (
-              <div className="relative min-h-[300px]">
+              <div className="relative min-h-[300px] overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
                 {!iframeLoaded && (
                   <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
                     <Loader2 className="h-6 w-6 text-primary animate-spin" />
@@ -193,8 +200,8 @@ export function InstallmentModal({
                   srcDoc={iframeSrcDoc}
                   onLoad={handleIframeLoad}
                   className="w-full border-0"
-                  style={{ height: iframeHeight }}
-                  scrolling="no"
+                  style={{ height: iframeHeight, minHeight: 320 }}
+                  scrolling="auto"
                 />
               </div>
             )}
