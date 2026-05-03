@@ -114,9 +114,9 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
             <ZoomIn className="h-4 w-4 text-foreground/70" />
           </div>
 
-          {/* Image counter */}
+          {/* Image counter - sadece masaüstü, mobilde görselin dışında gösteriliyor */}
           {activeImages.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-xs font-medium">
+            <div className="hidden md:block absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-xs font-medium">
               {activeIndex + 1} / {activeImages.length}
             </div>
           )}
@@ -141,6 +141,15 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
             </>
           )}
         </div>
+
+        {/* Mobilde görsel sayacı - görselin dışında */}
+        {activeImages.length > 1 && (
+          <div className="flex md:hidden justify-center">
+            <span className="text-xs text-muted-foreground font-medium">
+              {activeIndex + 1} / {activeImages.length}
+            </span>
+          </div>
+        )}
 
         {/* Thumbnails */}
         {activeImages.length > 1 && (
