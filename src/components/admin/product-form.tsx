@@ -99,12 +99,12 @@ export function ProductForm({ product, categories }: Props) {
         const ext = file.name.split(".").pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         const { error } = await supabase.storage
-          .from("product-images")
+          .from("products")
           .upload(fileName, file);
         if (error) throw error;
 
         const { data } = supabase.storage
-          .from("product-images")
+          .from("products")
           .getPublicUrl(fileName);
         setImages((prev) => [...prev, data.publicUrl]);
       }
