@@ -109,30 +109,31 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
             className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
 
-          {/* Zoom hint */}
-          <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Zoom hint - sadece masaüstü */}
+          <div className="hidden md:flex absolute top-3 right-3 w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <ZoomIn className="h-4 w-4 text-foreground/70" />
           </div>
 
           {/* Image counter */}
           {activeImages.length > 1 && (
-            <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-xs font-medium">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-xs font-medium">
               {activeIndex + 1} / {activeImages.length}
             </div>
           )}
 
+          {/* Ok butonları - sadece masaüstü, mobilde swipe ile geçiş */}
           {activeImages.length > 1 && (
             <>
               <button
                 onClick={(e) => { e.stopPropagation(); prev(); }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white"
+                className="hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white"
                 aria-label="Önceki resim"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); next(); }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white"
+                className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-white"
                 aria-label="Sonraki resim"
               >
                 <ChevronRight className="h-5 w-5" />
