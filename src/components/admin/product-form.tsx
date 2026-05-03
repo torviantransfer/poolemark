@@ -99,11 +99,11 @@ export function ProductForm({ product, categories }: Props) {
     try {
       const supabase = createClient();
       for (const file of Array.from(files)) {
-        const ext = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const compressed = await compressImage(file, 1200, 0.82);
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
         const { error } = await supabase.storage
           .from("products")
-          .upload(fileName, file);
+          .upload(fileName, compressed, { contentType: "image/webp" });
         if (error) throw error;
 
         const { data } = supabase.storage
@@ -896,6 +896,37 @@ export function ProductForm({ product, categories }: Props) {
 
 const inputCls =
   "w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white";
+
+function compressImage(file: File, maxPx: number, quality: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxPx || height > maxPx) {
+        if (width > height) {
+          height = Math.round((height * maxPx) / width);
+          width = maxPx;
+        } else {
+          width = Math.round((width * maxPx) / height);
+          height = maxPx;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Compress failed"))),
+        "image/webp",
+        quality
+      );
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
 
 function Section({
   icon,
