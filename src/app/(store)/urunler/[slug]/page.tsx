@@ -30,7 +30,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export const revalidate = 600; // 10 minutes
+export const revalidate = 0; // always fresh
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
