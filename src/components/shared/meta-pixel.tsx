@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { generateEventId, trackEvent } from "@/lib/meta-pixel";
+import { getFbcFromCookie, getFbpFromCookie } from "@/lib/meta-cookies";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
 
@@ -81,6 +82,24 @@ function PageViewTracker() {
       // Race-safe: also called in onLoad above, but cover the case where script
       // was already cached and onLoad fired before this effect.
       void window.clientParamBuilder?.processAndCollectAllParams(window.location.href);
+      // Send CAPI for the initial PageView — the browser Pixel already fired via
+      // the inline fbq snippet but NO CAPI call was made, causing the "380 fewer
+      // server events" gap. We call fetch directly to avoid re-firing fbq.
+      if (PIXEL_ID) {
+        const id = generateEventId();
+        void fetch("/api/meta-capi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          keepalive: true,
+          body: JSON.stringify({
+            event: "PageView",
+            eventId: id,
+            eventSourceUrl: window.location.href,
+            params: {},
+            user: { fbp: getFbpFromCookie(), fbc: getFbcFromCookie() },
+          }),
+        }).catch(() => {});
+      }
       return; // initial PageView already fired by inline fbq('track','PageView')
     }
     if (!PIXEL_ID) return;

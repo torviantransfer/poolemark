@@ -20,16 +20,20 @@ export function getFbpFromCookie(): string | null {
 /**
  * `_fbc` cookie or, as a fallback, build it from `?fbclid=` in the URL.
  * Format: `fb.1.<timestamp>.<fbclid>`
+ *
+ * IMPORTANT: When fbclid is present in the URL we always build fbc from
+ * the raw URL parameter — never from the cookie. Third-party SDKs such as
+ * the Meta CAPI Parameter Builder may overwrite the `_fbc` cookie with a
+ * decoded/modified fbclid value, which triggers the "modified fbclid" error
+ * in Meta's Conversions API diagnostics.
  */
 export function getFbcFromCookie(): string | null {
-  const fromCookie = readCookie("_fbc");
-  if (fromCookie) return fromCookie;
+  if (typeof window === "undefined") return readCookie("_fbc");
 
-  if (typeof window === "undefined") return null;
-  // Use a raw regex instead of URLSearchParams to avoid auto-decoding
-  // percent-encoded characters — Meta Pixel reads fbclid from the URL raw.
+  // URL takes priority over cookie: guarantees the raw, unmodified fbclid.
   const raw = window.location.search.match(/[?&]fbclid=([^&#]*)/);
   const fbclid = raw ? raw[1] : null;
-  if (!fbclid) return null;
-  return `fb.1.${Date.now()}.${fbclid}`;
+  if (fbclid) return `fb.1.${Date.now()}.${fbclid}`;
+
+  return readCookie("_fbc");
 }
