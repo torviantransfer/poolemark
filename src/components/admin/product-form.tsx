@@ -236,7 +236,7 @@ export function ProductForm({ product, categories }: Props) {
       }
 
       if (productId) {
-        await supabase.from("product_images").delete().eq("product_id", productId);
+        await supabase.from("product_images").delete().eq("product_id", productId).throwOnError();
         if (images.length > 0) {
           await supabase.from("product_images").insert(
             images.map((url, index) => ({
@@ -245,12 +245,12 @@ export function ProductForm({ product, categories }: Props) {
               sort_order: index,
               is_primary: index === 0,
             }))
-          );
+          ).throwOnError();
         }
       }
 
       if (productId) {
-        await supabase.from("product_variants").delete().eq("product_id", productId);
+        await supabase.from("product_variants").delete().eq("product_id", productId).throwOnError();
         if (variants.length > 0) {
           await supabase.from("product_variants").insert(
             variants.map((v, index) => ({
@@ -262,9 +262,16 @@ export function ProductForm({ product, categories }: Props) {
               image_url: v.image_url || null,
               sort_order: index,
             }))
-          );
+          ).throwOnError();
         }
       }
+
+      // Storefront cache'ini temizle
+      fetch("/api/revalidate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paths: [`/products/${productData.slug}`, "/products"] }),
+      }).catch(() => {});
 
       router.push("/admin/urunler");
       router.refresh();
