@@ -47,6 +47,7 @@ export function ProductForm({ product, categories }: Props) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
 
   const [variants, setVariants] = useState<VariantDraft[]>(
     product?.variants
@@ -373,8 +374,19 @@ export function ProductForm({ product, categories }: Props) {
                   <img
                     src={url}
                     alt=""
-                    className="w-full h-full object-cover rounded-xl border"
+                    className={`w-full h-full object-cover rounded-xl border ${
+                      brokenImages.has(url) ? "opacity-20" : ""
+                    }`}
+                    onError={() =>
+                      setBrokenImages((prev) => new Set(prev).add(url))
+                    }
                   />
+                  {brokenImages.has(url) && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-red-50 border-2 border-red-400 text-red-500">
+                      <X className="h-5 w-5 mb-0.5" />
+                      <span className="text-[9px] font-semibold">BOZUK</span>
+                    </div>
+                  )}
                   {index === 0 ? (
                     <span className="absolute top-1 left-1 text-[9px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded font-semibold leading-none">
                       ANA
