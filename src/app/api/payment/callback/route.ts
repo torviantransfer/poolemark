@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPossibleOrderNumbersFromMerchantOid, verifyPayTRCallback } from "@/lib/paytr";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { sendServerCapiEvent } from "@/lib/meta-capi-server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
     // Find order by order_number
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select("id, user_id, payment_status, order_number, subtotal, shipping_cost, discount_amount, total")
+      .select("id, user_id, payment_status, order_number, subtotal, shipping_cost, discount_amount, total, guest_email, shipping_address_json")
       .in("order_number", possibleOrderNumbers)
       .single();
 
@@ -79,6 +80,13 @@ export async function POST(request: NextRequest) {
       // Send confirmation email
       let recipientEmail: string | null = null;
       let recipientName = "Değerli Müşterimiz";
+      const shippingAddress = (order.shipping_address_json as Record<string, unknown> | null) || null;
+      const recipientPhone =
+        typeof shippingAddress?.phone === "string"
+          ? shippingAddress.phone
+          : typeof shippingAddress?.phone_number === "string"
+            ? shippingAddress.phone_number
+            : null;
 
       if (order.user_id) {
         const { data: userData } = await supabase
@@ -94,17 +102,30 @@ export async function POST(request: NextRequest) {
 
       // Fallback to guest_email
       if (!recipientEmail) {
-        const { data: orderFull } = await supabase
-          .from("orders")
-          .select("guest_email, shipping_address_json")
-          .eq("id", order.id)
-          .single();
-        if (orderFull?.guest_email) {
-          recipientEmail = orderFull.guest_email;
-          const addrJson = orderFull.shipping_address_json as Record<string, string> | null;
-          recipientName = addrJson?.first_name || recipientName;
+        if (order.guest_email) {
+          recipientEmail = order.guest_email;
+          const firstName =
+            typeof shippingAddress?.first_name === "string" ? shippingAddress.first_name : null;
+          recipientName = firstName || recipientName;
         }
       }
+
+      // Server-side Purchase event with a stable event_id for browser/server dedup.
+      await sendServerCapiEvent({
+        event: "Purchase",
+        eventId: `purchase_${order.id}`,
+        eventSourceUrl: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/odeme-sonucu?order=${order.id}&status=success`,
+        customData: {
+          order_id: order.order_number,
+          value: Number(order.total || 0),
+          currency: "TRY",
+          num_items: (orderItems || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0),
+        },
+        user: {
+          email: recipientEmail,
+          phone: recipientPhone,
+        },
+      });
 
       if (recipientEmail) {
         const { data: items } = await supabase

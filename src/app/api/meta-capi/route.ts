@@ -109,6 +109,10 @@ export async function POST(request: NextRequest) {
     if (fbpCookie) userData.fbp = fbpCookie;
   }
   if (!userData.fbc) {
+    const rawFbcCookie = request.cookies.get("pm_meta_fbc_raw")?.value;
+    if (rawFbcCookie) userData.fbc = rawFbcCookie;
+  }
+  if (!userData.fbc) {
     const fbcCookie = request.cookies.get("_fbc")?.value;
     if (fbcCookie) userData.fbc = fbcCookie;
   }

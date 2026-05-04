@@ -3,6 +3,10 @@
  * Browser-only.
  */
 
+const RAW_FBC_STORAGE_KEY = "pm_meta_fbc_raw";
+const RAW_FBC_COOKIE_KEY = "pm_meta_fbc_raw";
+const RAW_FBC_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 90;
+
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(
@@ -15,6 +19,42 @@ function readCookie(name: string): string | null {
 
 export function getFbpFromCookie(): string | null {
   return readCookie("_fbp");
+}
+
+function readRawFbcFromStorage(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const fromLocal = window.localStorage.getItem(RAW_FBC_STORAGE_KEY);
+    if (fromLocal) return fromLocal;
+  } catch {
+    // ignore storage access errors
+  }
+  try {
+    const fromSession = window.sessionStorage.getItem(RAW_FBC_STORAGE_KEY);
+    if (fromSession) return fromSession;
+  } catch {
+    // ignore storage access errors
+  }
+  return null;
+}
+
+function persistRawFbc(value: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(RAW_FBC_STORAGE_KEY, value);
+  } catch {
+    // ignore storage access errors
+  }
+  try {
+    window.sessionStorage.setItem(RAW_FBC_STORAGE_KEY, value);
+  } catch {
+    // ignore storage access errors
+  }
+  try {
+    document.cookie = `${RAW_FBC_COOKIE_KEY}=${value}; Max-Age=${RAW_FBC_COOKIE_MAX_AGE_SECONDS}; Path=/; SameSite=Lax`;
+  } catch {
+    // ignore cookie write errors
+  }
 }
 
 /**
@@ -33,7 +73,14 @@ export function getFbcFromCookie(): string | null {
   // URL takes priority over cookie: guarantees the raw, unmodified fbclid.
   const raw = window.location.search.match(/[?&]fbclid=([^&#]*)/);
   const fbclid = raw ? raw[1] : null;
-  if (fbclid) return `fb.1.${Date.now()}.${fbclid}`;
+  if (fbclid) {
+    const value = `fb.1.${Date.now()}.${fbclid}`;
+    persistRawFbc(value);
+    return value;
+  }
+
+  const storedRawFbc = readRawFbcFromStorage() || readCookie(RAW_FBC_COOKIE_KEY);
+  if (storedRawFbc) return storedRawFbc;
 
   return readCookie("_fbc");
 }
