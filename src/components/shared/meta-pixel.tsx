@@ -94,6 +94,7 @@ function PageViewTracker() {
           body: JSON.stringify({
             event: "PageView",
             eventId: id,
+            event_id: id,
             eventSourceUrl: window.location.href,
             params: {},
             user: { fbp: getFbpFromCookie(), fbc: getFbcFromCookie() },

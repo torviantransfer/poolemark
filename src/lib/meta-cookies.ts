@@ -57,6 +57,13 @@ function persistRawFbc(value: string): void {
   }
 }
 
+function extractFbclidFromFbc(fbc: string): string | null {
+  const parts = fbc.split(".");
+  if (parts.length < 4) return null;
+  const fbclid = parts.slice(3).join(".");
+  return fbclid || null;
+}
+
 /**
  * `_fbc` cookie or, as a fallback, build it from `?fbclid=` in the URL.
  * Format: `fb.1.<timestamp>.<fbclid>`
@@ -70,16 +77,21 @@ function persistRawFbc(value: string): void {
 export function getFbcFromCookie(): string | null {
   if (typeof window === "undefined") return readCookie("_fbc");
 
+  const storedRawFbc = readRawFbcFromStorage() || readCookie(RAW_FBC_COOKIE_KEY);
+
   // URL takes priority over cookie: guarantees the raw, unmodified fbclid.
   const raw = window.location.search.match(/[?&]fbclid=([^&#]*)/);
   const fbclid = raw ? raw[1] : null;
   if (fbclid) {
+    const storedFbclid = storedRawFbc ? extractFbclidFromFbc(storedRawFbc) : null;
+    if (storedRawFbc && storedFbclid === fbclid) {
+      return storedRawFbc;
+    }
     const value = `fb.1.${Date.now()}.${fbclid}`;
     persistRawFbc(value);
     return value;
   }
 
-  const storedRawFbc = readRawFbcFromStorage() || readCookie(RAW_FBC_COOKIE_KEY);
   if (storedRawFbc) return storedRawFbc;
 
   return readCookie("_fbc");

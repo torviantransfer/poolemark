@@ -6,6 +6,7 @@ import { tiktokTrack } from "@/lib/tiktok-pixel";
 import { trackSiteEvent } from "@/lib/site-events";
 import { gaPurchase } from "@/lib/ga";
 import { useCart } from "@/hooks/use-cart";
+import { getPurchaseEventId } from "@/lib/meta-event-id";
 
 interface PurchaseTrackerProps {
   orderId: string;
@@ -59,7 +60,7 @@ export function PurchaseTracker({
         num_items: contents.reduce((s, c) => s + c.quantity, 0),
       },
       {
-        eventId: `purchase_${orderId}`,
+        eventId: getPurchaseEventId(orderId),
         userEmail: userEmail ?? null,
         userPhone: userPhone ?? null,
         externalId: externalId ?? null,

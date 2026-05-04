@@ -88,6 +88,7 @@ export function trackEvent(
     body: JSON.stringify({
       event,
       eventId,
+      event_id: eventId,
       eventSourceUrl: window.location.href,
       params,
       user: {

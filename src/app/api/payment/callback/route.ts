@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getPossibleOrderNumbersFromMerchantOid, verifyPayTRCallback } from "@/lib/paytr";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { sendServerCapiEvent } from "@/lib/meta-capi-server";
+import { getPurchaseEventId } from "@/lib/meta-event-id";
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
       // Decrement stock
       const { data: orderItems } = await supabase
         .from("order_items")
-        .select("product_id, quantity")
+        .select("product_id, quantity, unit_price")
         .eq("order_id", order.id);
 
       if (orderItems) {
@@ -87,6 +88,32 @@ export async function POST(request: NextRequest) {
           : typeof shippingAddress?.phone_number === "string"
             ? shippingAddress.phone_number
             : null;
+      const recipientFirstName =
+        typeof shippingAddress?.first_name === "string" ? shippingAddress.first_name : null;
+      const recipientLastName =
+        typeof shippingAddress?.last_name === "string" ? shippingAddress.last_name : null;
+      const recipientCity =
+        typeof shippingAddress?.city === "string" ? shippingAddress.city : null;
+      const recipientState =
+        typeof shippingAddress?.district === "string" ? shippingAddress.district : null;
+      const recipientZip =
+        typeof shippingAddress?.zip_code === "string"
+          ? shippingAddress.zip_code
+          : typeof shippingAddress?.postal_code === "string"
+            ? shippingAddress.postal_code
+            : null;
+      const recipientCountry =
+        typeof shippingAddress?.country === "string" ? shippingAddress.country : "TR";
+      const contentIds = (orderItems || [])
+        .map((item) => item.product_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0);
+      const contents = (orderItems || [])
+        .filter((item) => typeof item.product_id === "string" && item.product_id.length > 0)
+        .map((item) => ({
+          id: item.product_id as string,
+          quantity: Number(item.quantity || 0),
+          item_price: Number(item.unit_price || 0),
+        }));
 
       if (order.user_id) {
         const { data: userData } = await supabase
@@ -111,19 +138,30 @@ export async function POST(request: NextRequest) {
       }
 
       // Server-side Purchase event with a stable event_id for browser/server dedup.
+      const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
       await sendServerCapiEvent({
         event: "Purchase",
-        eventId: `purchase_${order.id}`,
-        eventSourceUrl: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/odeme-sonucu?order=${order.id}&status=success`,
+        eventId: getPurchaseEventId(order.id),
+        eventSourceUrl: `${siteOrigin}/odeme-sonucu?order=${order.id}&status=success`,
         customData: {
           order_id: order.order_number,
           value: Number(order.total || 0),
           currency: "TRY",
+          content_ids: contentIds,
+          contents,
+          content_type: "product",
           num_items: (orderItems || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0),
         },
         user: {
           email: recipientEmail,
           phone: recipientPhone,
+          externalId: order.user_id,
+          firstName: recipientFirstName,
+          lastName: recipientLastName,
+          city: recipientCity,
+          state: recipientState,
+          zip: recipientZip,
+          country: recipientCountry,
         },
       });
 

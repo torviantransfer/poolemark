@@ -25,6 +25,14 @@ function normalizePhone(phone: string): string {
   return phone.replace(/\D+/g, "");
 }
 
+function normalizeText(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function normalizeZip(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, "");
+}
+
 interface ServerCapiInput {
   event: string;
   eventId: string;
@@ -33,6 +41,13 @@ interface ServerCapiInput {
   user?: {
     email?: string | null;
     phone?: string | null;
+    externalId?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
+    country?: string | null;
     ip?: string | null;
     userAgent?: string | null;
     fbp?: string | null;
@@ -50,6 +65,13 @@ export async function sendServerCapiEvent(input: ServerCapiInput): Promise<void>
   const userData: Record<string, string> = {};
   if (input.user?.email) userData.em = sha256(normalizeEmail(input.user.email));
   if (input.user?.phone) userData.ph = sha256(normalizePhone(input.user.phone));
+  if (input.user?.externalId) userData.external_id = sha256(input.user.externalId);
+  if (input.user?.firstName) userData.fn = sha256(normalizeText(input.user.firstName));
+  if (input.user?.lastName) userData.ln = sha256(normalizeText(input.user.lastName));
+  if (input.user?.city) userData.ct = sha256(normalizeText(input.user.city));
+  if (input.user?.state) userData.st = sha256(normalizeText(input.user.state));
+  if (input.user?.zip) userData.zp = sha256(normalizeZip(input.user.zip));
+  if (input.user?.country) userData.country = sha256(normalizeText(input.user.country));
   if (input.user?.ip) userData.client_ip_address = input.user.ip;
   if (input.user?.userAgent) userData.client_user_agent = input.user.userAgent;
   if (input.user?.fbp) userData.fbp = input.user.fbp;

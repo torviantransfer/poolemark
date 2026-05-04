@@ -26,7 +26,8 @@ interface CapiUser {
 
 interface CapiPayload {
   event: string;
-  eventId: string;
+  eventId?: string;
+  event_id?: string;
   eventSourceUrl?: string;
   params?: Record<string, unknown>;
   user?: CapiUser;
@@ -77,6 +78,13 @@ function getClientIp(request: NextRequest): string | null {
   return candidates.find(isIPv6) ?? candidates[0] ?? null;
 }
 
+function resolveEventId(body: CapiPayload): string | null {
+  const raw = body.eventId ?? body.event_id;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export async function POST(request: NextRequest) {
   if (!PIXEL_ID || !ACCESS_TOKEN) {
     // Silently accept so the browser doesn't see errors when CAPI isn't configured.
@@ -90,7 +98,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "invalid json" }, { status: 400 });
   }
 
-  if (!body?.event || !body?.eventId) {
+  const eventId = resolveEventId(body);
+  if (!body?.event || !eventId) {
     return NextResponse.json({ ok: false, error: "missing fields" }, { status: 400 });
   }
 
@@ -129,7 +138,7 @@ export async function POST(request: NextRequest) {
       {
         event_name: body.event,
         event_time: eventTime,
-        event_id: body.eventId,
+        event_id: eventId,
         event_source_url: body.eventSourceUrl,
         action_source: "website",
         user_data: userData,
