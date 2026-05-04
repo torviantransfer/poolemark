@@ -51,7 +51,8 @@ export function MetaPixel() {
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
           fbq('init', '${PIXEL_ID}');
-          fbq('track', 'PageView');
+          // Initial PageView is fired from PageViewTracker with a stable eventID
+          // so it can deduplicate against the matching CAPI server PageView.
         `}
       </Script>
       <noscript>
@@ -82,11 +83,16 @@ function PageViewTracker() {
       // Race-safe: also called in onLoad above, but cover the case where script
       // was already cached and onLoad fired before this effect.
       void window.clientParamBuilder?.processAndCollectAllParams(window.location.href);
-      // Send CAPI for the initial PageView — the browser Pixel already fired via
-      // the inline fbq snippet but NO CAPI call was made, causing the "380 fewer
-      // server events" gap. We call fetch directly to avoid re-firing fbq.
+      // Fire the initial PageView ourselves with a stable eventID so the
+      // browser Pixel and the server CAPI event share the same event_id and
+      // Meta can deduplicate them. (The inline snippet no longer fires it.)
       if (PIXEL_ID) {
         const id = generateEventId();
+        // 1) Browser Pixel with eventID
+        if (typeof window.fbq === "function") {
+          window.fbq("track", "PageView", {}, { eventID: id });
+        }
+        // 2) Server CAPI with the same event_id
         void fetch("/api/meta-capi", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -101,7 +107,7 @@ function PageViewTracker() {
           }),
         }).catch(() => {});
       }
-      return; // initial PageView already fired by inline fbq('track','PageView')
+      return;
     }
     if (!PIXEL_ID) return;
     // Refresh param builder on SPA navigation so fbc/fbp cookies stay current

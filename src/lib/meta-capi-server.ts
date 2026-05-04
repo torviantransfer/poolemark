@@ -62,6 +62,9 @@ interface ServerCapiInput {
 export async function sendServerCapiEvent(input: ServerCapiInput): Promise<void> {
   if (!PIXEL_ID || !ACCESS_TOKEN) return;
 
+  // Event must always carry a stable event_id so browser/server dedup works.
+  if (!input.eventId || !input.eventId.trim()) return;
+
   const userData: Record<string, string> = {};
   if (input.user?.email) userData.em = sha256(normalizeEmail(input.user.email));
   if (input.user?.phone) userData.ph = sha256(normalizePhone(input.user.phone));
