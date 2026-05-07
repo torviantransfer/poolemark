@@ -5,6 +5,7 @@ import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { generateEventId, trackEvent } from "@/lib/meta-pixel";
 import { getFbcFromCookie, getFbpFromCookie } from "@/lib/meta-cookies";
+import { useUser } from "@/hooks/use-user";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
 
@@ -76,6 +77,29 @@ function PageViewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isFirst = useRef(true);
+  const { user } = useUser();
+
+  // Re-init pixel with advanced matching data when user is available
+  useEffect(() => {
+    if (!PIXEL_ID || !user || typeof window.fbq !== "function") return;
+
+    const matchData: Record<string, string> = {};
+    if (user.email) matchData.em = user.email;
+    if (user.phone) matchData.ph = user.phone;
+    const meta = user.user_metadata as Record<string, string> | undefined;
+    if (meta?.full_name) {
+      const parts = (meta.full_name as string).trim().split(" ");
+      if (parts[0]) matchData.fn = parts[0];
+      if (parts.length > 1) matchData.ln = parts.slice(1).join(" ");
+    } else {
+      if (meta?.first_name) matchData.fn = meta.first_name;
+      if (meta?.last_name) matchData.ln = meta.last_name;
+    }
+
+    if (Object.keys(matchData).length > 0) {
+      window.fbq("init", PIXEL_ID, matchData);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (isFirst.current) {
