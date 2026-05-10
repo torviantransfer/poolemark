@@ -197,6 +197,7 @@ export function ProductForm({ product, categories }: Props) {
     setLoading(true);
     try {
       const supabase = createClient();
+      const normalizedUnitLabel = form.unit_label.trim();
       const productData = {
         name: form.name,
         slug: form.slug || slugify(form.name),
@@ -215,7 +216,7 @@ export function ProductForm({ product, categories }: Props) {
         is_featured: form.is_featured,
         meta_title: form.meta_title || null,
         meta_description: form.meta_description || null,
-        unit_label: form.unit_label || null,
+        unit_label: normalizedUnitLabel || null,
       };
 
       let productId = product?.id;

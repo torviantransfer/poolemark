@@ -94,5 +94,7 @@ export function getFbcFromCookie(): string | null {
 
   if (storedRawFbc) return storedRawFbc;
 
-  return readCookie("_fbc");
+  // Avoid forwarding a potentially decoded/modified `_fbc` cookie value.
+  // If we do not have a trusted raw value, skip fbc instead of sending bad data.
+  return null;
 }

@@ -85,6 +85,23 @@ function resolveEventId(body: CapiPayload): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function readRawFbclidFromRequestUrl(request: NextRequest): string | null {
+  // Keep raw bytes from URL; do not decode fbclid.
+  const match = request.url.match(/[?&]fbclid=([^&#]*)/);
+  return match ? match[1] || null : null;
+}
+
+function extractFbclidFromFbc(fbc: string): string | null {
+  const parts = fbc.split(".");
+  if (parts.length < 4) return null;
+  const fbclid = parts.slice(3).join(".");
+  return fbclid || null;
+}
+
+function buildFbcFromFbclid(fbclid: string): string {
+  return `fb.1.${Date.now()}.${fbclid}`;
+}
+
 export async function POST(request: NextRequest) {
   if (!PIXEL_ID || !ACCESS_TOKEN) {
     // Silently accept so the browser doesn't see errors when CAPI isn't configured.
@@ -110,6 +127,13 @@ export async function POST(request: NextRequest) {
   if (body.user?.fbp) userData.fbp = body.user.fbp;
   if (body.user?.fbc) userData.fbc = body.user.fbc;
 
+  // Highest-priority fbc source: raw fbclid from the current request URL.
+  const rawFbclid = readRawFbclidFromRequestUrl(request);
+  if (rawFbclid) {
+    const existingFbclid = userData.fbc ? extractFbclidFromFbc(userData.fbc) : null;
+    userData.fbc = existingFbclid === rawFbclid ? userData.fbc : buildFbcFromFbclid(rawFbclid);
+  }
+
   // Server-side fallback: read _fbp/_fbc directly from request cookies.
   // The Meta CAPI Parameter Builder SDK sets these cookies with proper appendix
   // format on the client; they are sent automatically with same-origin requests.
@@ -120,10 +144,6 @@ export async function POST(request: NextRequest) {
   if (!userData.fbc) {
     const rawFbcCookie = request.cookies.get("pm_meta_fbc_raw")?.value;
     if (rawFbcCookie) userData.fbc = rawFbcCookie;
-  }
-  if (!userData.fbc) {
-    const fbcCookie = request.cookies.get("_fbc")?.value;
-    if (fbcCookie) userData.fbc = fbcCookie;
   }
 
   const clientIp = getClientIp(request);
