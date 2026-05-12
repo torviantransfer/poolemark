@@ -1,5 +1,14 @@
 import crypto from "crypto";
 
+export class PayTRError extends Error {
+  public readonly userMessage: string;
+  constructor(userMessage: string, diagnostics: string) {
+    super(`PayTR token request failed: ${diagnostics}`);
+    this.name = "PayTRError";
+    this.userMessage = userMessage;
+  }
+}
+
 function readEnv(name: "PAYTR_MERCHANT_ID" | "PAYTR_MERCHANT_KEY" | "PAYTR_MERCHANT_SALT" | "NEXT_PUBLIC_SITE_URL") {
   return (process.env[name] || "").trim();
 }
@@ -111,23 +120,44 @@ export async function createPayTRToken(params: PayTRTokenParams): Promise<string
     lang,
   });
 
-  const response = await fetch(PAYTR_BASE_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: formData.toString(),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  let response: Response;
+  try {
+    response = await fetch(PAYTR_BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData.toString(),
+      signal: controller.signal,
+    });
+  } catch (fetchErr) {
+    clearTimeout(timeoutId);
+    const isTimeout = fetchErr instanceof Error && fetchErr.name === "AbortError";
+    throw new PayTRError(
+      isTimeout
+        ? "Ödeme sistemi şu an yavaş yanıt veriyor. Lütfen birkaç saniye bekleyip tekrar deneyin."
+        : "Ödeme sistemine bağlanılamadı. Lütfen tekrar deneyin.",
+      `fetchError=${isTimeout ? "timeout" : String(fetchErr)}`
+    );
+  }
+  clearTimeout(timeoutId);
 
   const raw = await response.text();
   let data: { status?: string; reason?: string; token?: string } = {};
   try {
     data = JSON.parse(raw);
   } catch {
-    throw new Error(`PayTR geçersiz yanıt döndürdü (HTTP ${response.status})`);
+    throw new PayTRError(
+      "Ödeme sisteminden geçersiz yanıt alındı. Lütfen tekrar deneyin.",
+      `invalidJson=true, httpStatus=${response.status}`
+    );
   }
 
   if (data.status !== "success" || !data.token) {
+    const reason = data.reason || "unknown";
     const diagnostics = [
-      `reason=${data.reason || "unknown"}`,
+      `reason=${reason}`,
       `status=${response.status}`,
       `merchantIdLength=${PAYTR_MERCHANT_ID.length}`,
       `merchantKeyLength=${PAYTR_MERCHANT_KEY.length}`,
@@ -140,7 +170,12 @@ export async function createPayTRToken(params: PayTRTokenParams): Promise<string
       `merchantOkUrl=${merchantOkUrl}`,
     ].join(", ");
 
-    throw new Error(`PayTR token request failed: ${diagnostics}`);
+    const userMessage =
+      reason === "bad signature"
+        ? "Ödeme sistemi yapılandırma hatası. Lütfen destek ile iletişime geçin."
+        : "Ödeme başlatılamadı. Lütfen tekrar deneyin veya farklı bir tarayıcı kullanın.";
+
+    throw new PayTRError(userMessage, diagnostics);
   }
 
   return data.token;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useTransition, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/use-user";
@@ -78,7 +78,7 @@ function CheckoutContent() {
   const [shippingCompanies, setShippingCompanies] = useState<ShippingCompanyOption[]>([]);
   const [selectedShippingId, setSelectedShippingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
   const [notes, setNotes] = useState("");
   const [invoiceType, setInvoiceType] = useState<"individual" | "corporate">("individual");
   const [companyName, setCompanyName] = useState("");
@@ -266,8 +266,9 @@ function CheckoutContent() {
       })),
     });
 
-    startTransition(async () => {
-      try {
+    if (isPending) return;
+    setIsPending(true);
+    try {
         const orderItems = items.map((item) => ({
           product_id: item.product_id,
           variant_id: item.variant_id,
@@ -331,10 +332,11 @@ function CheckoutContent() {
         // Notify presence tracker so admin live-visitors page reflects payment step.
         const w = window as unknown as { pmPresenceUpdate?: (label: string) => void };
         w.pmPresenceUpdate?.("PayTR ödeme ekranında");
-      } catch {
-        toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
-      }
-    });
+    } catch {
+      toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setIsPending(false);
+    }
   }
 
   if (loading || cartLoading || authLoading) {

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createPayTRToken, normalizePayTRUserIp } from "@/lib/paytr";
+import { createPayTRToken, normalizePayTRUserIp, PayTRError } from "@/lib/paytr";
 
 function buildOrderNumberFromIdempotencyKey(key: string): string {
   const now = new Date();
@@ -447,8 +447,14 @@ export async function POST(request: NextRequest) {
     });
   } catch (err: unknown) {
     console.error("Payment init error:", err);
+    const userError =
+      err instanceof PayTRError
+        ? err.userMessage
+        : err instanceof Error
+        ? err.message
+        : "Ödeme başlatılamadı";
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Ödeme başlatılamadı" },
+      { error: userError },
       { status: 500 }
     );
   }
