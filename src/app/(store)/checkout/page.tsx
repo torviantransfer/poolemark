@@ -247,6 +247,25 @@ function CheckoutContent() {
 
   const [paytrToken, setPaytrToken] = useState<string | null>(null);
 
+  // iFrameResize'ı script yüklendikten sonra güvenilir şekilde çağır.
+  // Script onLoad bazen tetiklenmediği için useEffect kullanıyoruz.
+  useEffect(() => {
+    if (!paytrToken) return;
+    let attempts = 0;
+    const tryResize = () => {
+      attempts++;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const win = window as any;
+      if (win.iFrameResize && document.getElementById("paytriframe")) {
+        win.iFrameResize({ checkOrigin: false }, "#paytriframe");
+      } else if (attempts < 10) {
+        setTimeout(tryResize, 300);
+      }
+    };
+    const timer = setTimeout(tryResize, 300);
+    return () => clearTimeout(timer);
+  }, [paytrToken]);
+
   async function handlePlaceOrder() {
     if (items.length === 0) return;
     if (!canCheckout) return;
@@ -369,14 +388,10 @@ function CheckoutContent() {
 
     return (
       <>
-          <Script
-            src="https://www.paytr.com/js/iframeResizer.min.js"
-            strategy="afterInteractive"
-            onLoad={() => {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (window as any).iFrameResize({ checkOrigin: false }, "#paytriframe");
-            }}
-          />
+        <Script
+          src="https://www.paytr.com/js/iframeResizer.min.js"
+          strategy="afterInteractive"
+        />
         <section className="bg-secondary/40 border-b">
           <div className="container mx-auto px-4 py-8 md:py-10">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Ödeme</h1>
@@ -385,19 +400,19 @@ function CheckoutContent() {
             </p>
           </div>
         </section>
-          <section className="py-4 md:py-12">
+        <section className="py-4 md:py-12 pb-16 lg:pb-12">
           <div className="container mx-auto px-0 md:px-4 max-w-4xl">
-              <div className="bg-white md:rounded-2xl md:border md:shadow-sm">
+            <div className="bg-white md:rounded-2xl md:border md:shadow-sm">
               <div className="flex items-center gap-2 px-4 md:px-5 py-4 border-b">
                 <Shield className="h-5 w-5 text-primary" />
                 <span className="text-sm font-medium">256-bit SSL ile Güvenli Ödeme</span>
               </div>
               <iframe
                 src={paytrUrl}
-                  className="w-full min-h-[78vh] md:min-h-[600px] border-0 block"
+                className="w-full min-h-[80vh] md:min-h-[600px] border-0 block"
                 id="paytriframe"
                 frameBorder="0"
-                  scrolling="auto"
+                scrolling="auto"
               />
             </div>
           </div>
