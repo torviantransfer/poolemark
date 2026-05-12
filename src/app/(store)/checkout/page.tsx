@@ -246,6 +246,7 @@ function CheckoutContent() {
   }
 
   const [paytrToken, setPaytrToken] = useState<string | null>(null);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
 
   // iFrameResize'ı script yüklendikten sonra güvenilir şekilde çağır.
   // Script onLoad bazen tetiklenmediği için useEffect kullanıyoruz.
@@ -407,12 +408,19 @@ function CheckoutContent() {
                 <Shield className="h-5 w-5 text-primary" />
                 <span className="text-sm font-medium">256-bit SSL ile Güvenli Ödeme</span>
               </div>
+              {!iframeLoaded && (
+                <div className="flex flex-col items-center justify-center gap-3 py-20 text-muted-foreground">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <p className="text-sm">Ödeme ekranı yükleniyor...</p>
+                </div>
+              )}
               <iframe
                 src={paytrUrl}
-                className="w-full min-h-[80vh] md:min-h-[600px] border-0 block"
+                className={`w-full border-0 block transition-opacity duration-300 ${iframeLoaded ? "min-h-[80vh] md:min-h-[600px] opacity-100" : "h-0 opacity-0"}`}
                 id="paytriframe"
                 frameBorder="0"
                 scrolling="auto"
+                onLoad={() => setIframeLoaded(true)}
               />
             </div>
           </div>
