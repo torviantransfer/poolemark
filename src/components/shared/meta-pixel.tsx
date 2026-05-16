@@ -51,7 +51,6 @@ export function MetaPixel() {
           t.src=v;s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '${PIXEL_ID}', {});
           // Initial PageView is fired from PageViewTracker with a stable eventID
           // so it can deduplicate against the matching CAPI server PageView.
         `}
@@ -77,28 +76,31 @@ function PageViewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isFirst = useRef(true);
+  const didInitPixel = useRef(false);
   const { user } = useUser();
 
-  // Re-init pixel with advanced matching data when user is available
+  // Initialize (or re-initialize) pixel with advanced matching data.
+  // Meta supports calling init again to refresh user data.
   useEffect(() => {
-    if (!PIXEL_ID || !user || typeof window.fbq !== "function") return;
+    if (!PIXEL_ID || typeof window.fbq !== "function") return;
 
     const matchData: Record<string, string> = {};
-    if (user.email) matchData.em = user.email;
-    if (user.phone) matchData.ph = user.phone;
-    const meta = user.user_metadata as Record<string, string> | undefined;
-    if (meta?.full_name) {
-      const parts = (meta.full_name as string).trim().split(" ");
-      if (parts[0]) matchData.fn = parts[0];
-      if (parts.length > 1) matchData.ln = parts.slice(1).join(" ");
-    } else {
-      if (meta?.first_name) matchData.fn = meta.first_name;
-      if (meta?.last_name) matchData.ln = meta.last_name;
+    if (user) {
+      if (user.email) matchData.em = user.email;
+      if (user.phone) matchData.ph = user.phone;
+      const meta = user.user_metadata as Record<string, string> | undefined;
+      if (meta?.full_name) {
+        const parts = (meta.full_name as string).trim().split(" ");
+        if (parts[0]) matchData.fn = parts[0];
+        if (parts.length > 1) matchData.ln = parts.slice(1).join(" ");
+      } else {
+        if (meta?.first_name) matchData.fn = meta.first_name;
+        if (meta?.last_name) matchData.ln = meta.last_name;
+      }
     }
 
-    if (Object.keys(matchData).length > 0) {
-      window.fbq("init", PIXEL_ID, matchData);
-    }
+    window.fbq("init", PIXEL_ID, matchData);
+    didInitPixel.current = true;
   }, [user]);
 
   useEffect(() => {
@@ -111,6 +113,10 @@ function PageViewTracker() {
       // browser Pixel and the server CAPI event share the same event_id and
       // Meta can deduplicate them. (The inline snippet no longer fires it.)
       if (PIXEL_ID) {
+        if (typeof window.fbq === "function" && !didInitPixel.current) {
+          window.fbq("init", PIXEL_ID, {});
+          didInitPixel.current = true;
+        }
         const id = generateEventId();
         // 1) Browser Pixel with eventID
         if (typeof window.fbq === "function") {

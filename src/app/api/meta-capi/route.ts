@@ -37,6 +37,7 @@ const PIXEL_ID = process.env.META_PIXEL_ID || process.env.NEXT_PUBLIC_FB_PIXEL_I
 const ACCESS_TOKEN = process.env.META_CAPI_TOKEN;
 const TEST_EVENT_CODE = process.env.META_TEST_EVENT_CODE;
 const ENDPOINT = `https://graph.facebook.com/v19.0/${PIXEL_ID}/events`;
+const FBC_FORMAT = /^fb\.1\.\d+\..+$/;
 
 function sha256(value: string): string {
   return crypto.createHash("sha256").update(value).digest("hex");
@@ -85,9 +86,21 @@ function resolveEventId(body: CapiPayload): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function readRawFbclidFromRequestUrl(request: NextRequest): string | null {
+function isValidFbc(value: string | null | undefined): value is string {
+  return Boolean(value && FBC_FORMAT.test(value));
+}
+
+function readRawCookieFromHeader(request: NextRequest, name: string): string | null {
+  const cookieHeader = request.headers.get("cookie");
+  if (!cookieHeader) return null;
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${escaped}=([^;]*)`));
+  return match ? match[1] : null;
+}
+
+function readRawFbclidFromUrl(url: string): string | null {
   // Keep raw bytes from URL; do not decode fbclid.
-  const match = request.url.match(/[?&]fbclid=([^&#]*)/);
+  const match = url.match(/[?&]fbclid=([^&#]*)/);
   return match ? match[1] || null : null;
 }
 
@@ -125,25 +138,31 @@ export async function POST(request: NextRequest) {
   if (body.user?.phone) userData.ph = sha256(normalizePhone(body.user.phone));
   if (body.user?.externalId) userData.external_id = sha256(body.user.externalId);
   if (body.user?.fbp) userData.fbp = body.user.fbp;
-  if (body.user?.fbc) userData.fbc = body.user.fbc;
+  if (isValidFbc(body.user?.fbc)) userData.fbc = body.user.fbc;
 
-  // Highest-priority fbc source: raw fbclid from the current request URL.
-  const rawFbclid = readRawFbclidFromRequestUrl(request);
+  // Highest-priority fbc source: raw fbclid from the original page URL.
+  const rawFbclid = body.eventSourceUrl ? readRawFbclidFromUrl(body.eventSourceUrl) : null;
   if (rawFbclid) {
     const existingFbclid = userData.fbc ? extractFbclidFromFbc(userData.fbc) : null;
     userData.fbc = existingFbclid === rawFbclid ? userData.fbc : buildFbcFromFbclid(rawFbclid);
   }
 
-  // Server-side fallback: read _fbp/_fbc directly from request cookies.
+  // Server-side fallback: read _fbp/_fbc directly from the raw cookie header
+  // so we do not accidentally decode/transform values before forwarding to Meta.
   // The Meta CAPI Parameter Builder SDK sets these cookies with proper appendix
   // format on the client; they are sent automatically with same-origin requests.
   if (!userData.fbp) {
-    const fbpCookie = request.cookies.get("_fbp")?.value;
+    const fbpCookie = readRawCookieFromHeader(request, "_fbp");
     if (fbpCookie) userData.fbp = fbpCookie;
   }
   if (!userData.fbc) {
-    const rawFbcCookie = request.cookies.get("pm_meta_fbc_raw")?.value;
-    if (rawFbcCookie) userData.fbc = rawFbcCookie;
+    const rawFbcCookie = readRawCookieFromHeader(request, "_fbc");
+    if (isValidFbc(rawFbcCookie)) {
+      userData.fbc = rawFbcCookie;
+    } else {
+      const backupFbc = readRawCookieFromHeader(request, "pm_meta_fbc_raw");
+      if (isValidFbc(backupFbc)) userData.fbc = backupFbc;
+    }
   }
 
   const clientIp = getClientIp(request);

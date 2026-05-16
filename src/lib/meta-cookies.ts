@@ -7,6 +7,8 @@ const RAW_FBC_STORAGE_KEY = "pm_meta_fbc_raw";
 const RAW_FBC_COOKIE_KEY = "pm_meta_fbc_raw";
 const RAW_FBC_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 90;
 
+const FBC_FORMAT = /^fb\.1\.\d+\..+$/;
+
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(
@@ -15,6 +17,10 @@ function readCookie(name: string): string | null {
   // Return the raw value without decoding — Meta Pixel reads cookies without
   // decodeURIComponent, so we must send the same raw bytes to CAPI.
   return match ? match[1] : null;
+}
+
+function isValidFbc(value: string | null | undefined): value is string {
+  return Boolean(value && FBC_FORMAT.test(value));
 }
 
 export function getFbpFromCookie(): string | null {
@@ -75,7 +81,12 @@ function extractFbclidFromFbc(fbc: string): string | null {
  * in Meta's Conversions API diagnostics.
  */
 export function getFbcFromCookie(): string | null {
-  if (typeof window === "undefined") return readCookie("_fbc");
+  const cookieFbc = readCookie("_fbc");
+  if (isValidFbc(cookieFbc)) {
+    return cookieFbc;
+  }
+
+  if (typeof window === "undefined") return null;
 
   const storedRawFbc = readRawFbcFromStorage() || readCookie(RAW_FBC_COOKIE_KEY);
 
@@ -84,7 +95,7 @@ export function getFbcFromCookie(): string | null {
   const fbclid = raw ? raw[1] : null;
   if (fbclid) {
     const storedFbclid = storedRawFbc ? extractFbclidFromFbc(storedRawFbc) : null;
-    if (storedRawFbc && storedFbclid === fbclid) {
+    if (storedRawFbc && isValidFbc(storedRawFbc) && storedFbclid === fbclid) {
       return storedRawFbc;
     }
     const value = `fb.1.${Date.now()}.${fbclid}`;
@@ -92,7 +103,7 @@ export function getFbcFromCookie(): string | null {
     return value;
   }
 
-  if (storedRawFbc) return storedRawFbc;
+  if (isValidFbc(storedRawFbc)) return storedRawFbc;
 
   // Avoid forwarding a potentially decoded/modified `_fbc` cookie value.
   // If we do not have a trusted raw value, skip fbc instead of sending bad data.
