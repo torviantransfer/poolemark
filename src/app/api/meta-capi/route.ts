@@ -22,6 +22,7 @@ interface CapiUser {
   externalId?: string | null;
   fbp?: string | null;
   fbc?: string | null;
+  fbclidRaw?: string | null;
 }
 
 interface CapiPayload {
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
   if (isValidFbc(body.user?.fbc)) userData.fbc = body.user.fbc;
 
   // Highest-priority fbc source: raw fbclid from the original page URL.
-  const rawFbclid = body.eventSourceUrl ? readRawFbclidFromUrl(body.eventSourceUrl) : null;
+  const rawFbclid = body.user?.fbclidRaw || (body.eventSourceUrl ? readRawFbclidFromUrl(body.eventSourceUrl) : null);
   if (rawFbclid) {
     const existingFbclid = userData.fbc ? extractFbclidFromFbc(userData.fbc) : null;
     userData.fbc = existingFbclid === rawFbclid ? userData.fbc : buildFbcFromFbclid(rawFbclid);

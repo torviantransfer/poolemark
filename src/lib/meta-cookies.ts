@@ -70,6 +70,12 @@ function extractFbclidFromFbc(fbc: string): string | null {
   return fbclid || null;
 }
 
+export function getRawFbclidFromUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.location.search.match(/[?&]fbclid=([^&#]*)/);
+  return raw ? raw[1] : null;
+}
+
 /**
  * `_fbc` cookie or, as a fallback, build it from `?fbclid=` in the URL.
  * Format: `fb.1.<timestamp>.<fbclid>`
@@ -82,27 +88,29 @@ function extractFbclidFromFbc(fbc: string): string | null {
  */
 export function getFbcFromCookie(): string | null {
   const cookieFbc = readCookie("_fbc");
-  if (isValidFbc(cookieFbc)) {
-    return cookieFbc;
-  }
-
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") return isValidFbc(cookieFbc) ? cookieFbc : null;
 
   const storedRawFbc = readRawFbcFromStorage() || readCookie(RAW_FBC_COOKIE_KEY);
 
   // URL takes priority over cookie: guarantees the raw, unmodified fbclid.
-  const raw = window.location.search.match(/[?&]fbclid=([^&#]*)/);
-  const fbclid = raw ? raw[1] : null;
+  const fbclid = getRawFbclidFromUrl();
   if (fbclid) {
+    const cookieFbclid = cookieFbc ? extractFbclidFromFbc(cookieFbc) : null;
+    if (isValidFbc(cookieFbc) && cookieFbclid === fbclid) {
+      return cookieFbc;
+    }
+
     const storedFbclid = storedRawFbc ? extractFbclidFromFbc(storedRawFbc) : null;
     if (storedRawFbc && isValidFbc(storedRawFbc) && storedFbclid === fbclid) {
       return storedRawFbc;
     }
+
     const value = `fb.1.${Date.now()}.${fbclid}`;
     persistRawFbc(value);
     return value;
   }
 
+  if (isValidFbc(cookieFbc)) return cookieFbc;
   if (isValidFbc(storedRawFbc)) return storedRawFbc;
 
   // Avoid forwarding a potentially decoded/modified `_fbc` cookie value.

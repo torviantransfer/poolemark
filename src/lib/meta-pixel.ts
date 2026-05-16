@@ -8,7 +8,7 @@
  * Both client + server share the same `eventId` so Meta can deduplicate.
  */
 
-import { getFbcFromCookie, getFbpFromCookie } from "./meta-cookies";
+import { getFbcFromCookie, getFbpFromCookie, getRawFbclidFromUrl } from "./meta-cookies";
 
 declare global {
   interface Window {
@@ -97,6 +97,7 @@ export function trackEvent(
         externalId: options.externalId ?? null,
         fbp: getFbpFromCookie(),
         fbc: getFbcFromCookie(),
+        fbclidRaw: getRawFbclidFromUrl(),
       },
     }),
   }).catch(() => {

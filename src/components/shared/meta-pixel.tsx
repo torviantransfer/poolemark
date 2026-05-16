@@ -4,7 +4,7 @@ import Script from "next/script";
 import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { generateEventId, trackEvent } from "@/lib/meta-pixel";
-import { getFbcFromCookie, getFbpFromCookie } from "@/lib/meta-cookies";
+import { getFbcFromCookie, getFbpFromCookie, getRawFbclidFromUrl } from "@/lib/meta-cookies";
 import { useUser } from "@/hooks/use-user";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
@@ -133,7 +133,11 @@ function PageViewTracker() {
             event_id: id,
             eventSourceUrl: window.location.href,
             params: {},
-            user: { fbp: getFbpFromCookie(), fbc: getFbcFromCookie() },
+            user: {
+              fbp: getFbpFromCookie(),
+              fbc: getFbcFromCookie(),
+              fbclidRaw: getRawFbclidFromUrl(),
+            },
           }),
         }).catch(() => {});
       }
