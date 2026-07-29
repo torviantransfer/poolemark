@@ -80,7 +80,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-[var(--announcement-h,0px)] left-0 right-0 z-50 transition-all duration-300",
         transparent
           ? "bg-transparent"
           : "bg-white/95 shadow-sm border-b border-border/40 md:backdrop-blur-xl"

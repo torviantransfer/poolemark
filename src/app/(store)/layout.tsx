@@ -1,5 +1,6 @@
 import { Header } from "@/components/store/header";
 import { Footer } from "@/components/store/footer";
+import { AnnouncementBar } from "@/components/store/announcement-bar";
 // import { ExitIntent } from "@/components/store/exit-intent";
 import { PresenceTracker } from "@/components/store/presence-tracker";
 import { SiteEventsTracker } from "@/components/shared/site-events-tracker";
@@ -40,8 +41,14 @@ export default async function StoreLayout({
     <>
       <SiteEventsTracker />
       {enablePresence ? <PresenceTracker /> : null}
+      <AnnouncementBar />
       <Header />
-      <main id="main" className="flex-1 pb-16 lg:pb-0 pt-16 md:pt-[68px]">{children}</main>
+      <main
+        id="main"
+        className="flex-1 pb-16 lg:pb-0 pt-[calc(var(--announcement-h,0px)+4rem)] md:pt-[calc(var(--announcement-h,0px)+68px)]"
+      >
+        {children}
+      </main>
       <Footer settings={footerSettings} />
       {/* <ExitIntent /> */}
     </>
