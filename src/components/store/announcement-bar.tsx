@@ -59,7 +59,7 @@ export function AnnouncementBar() {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center text-center text-xs sm:text-sm font-medium"
+      className="fixed top-0 left-0 right-0 z-40 flex items-center justify-center text-center text-xs sm:text-sm font-medium"
       style={{
         height: BAR_HEIGHT,
         backgroundColor: current.bg_color || "#22C55E",
