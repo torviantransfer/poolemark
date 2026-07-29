@@ -247,11 +247,25 @@ function CheckoutContent() {
 
   const [paytrToken, setPaytrToken] = useState<string | null>(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  // ÖNEMLİ: PayTR iframe'i kart formunu KENDİ sayfasında (paytr.com) gösterir
+  // ve bu sayfa iframeResizer içerik scriptini barındırdığı için yükseklik
+  // otomatik büyür. Ancak "Ödeme Yap" sonrası 3D Secure adımında iframe,
+  // BANKANIN kendi sayfasına (farklı origin) yönlendirilir. Banka sayfası
+  // PayTR'nin resize scriptini içermediği için o andan itibaren otomatik
+  // yükseklik ayarı durur ve iframe kart formu için hesaplanmış ESKİ
+  // yükseklikte kalır. Bankanın SMS/güvenlik kodu alanı bu sabit yükseklikten
+  // uzunsa alan görünmez olur — bankadan bankaya değiştiği için bazı
+  // müşterilerde sorun çıkar, bazılarında çıkmaz. Bu yüzden resize başarılı
+  // olsa bile taban yüksekliği her zaman yeterince büyük tutuyoruz; resize
+  // script'i hiç yüklenemezse (engellenmişse) daha da büyük bir yükseklik
+  // uyguluyoruz.
+  const [resizeScriptFailed, setResizeScriptFailed] = useState(false);
 
   // iFrameResize'ı script yüklendikten sonra güvenilir şekilde çağır.
   // Script onLoad bazen tetiklenmediği için useEffect kullanıyoruz.
   useEffect(() => {
     if (!paytrToken) return;
+    setResizeScriptFailed(false);
     let attempts = 0;
     const tryResize = () => {
       attempts++;
@@ -261,6 +275,10 @@ function CheckoutContent() {
         win.iFrameResize({ checkOrigin: false }, "#paytriframe");
       } else if (attempts < 10) {
         setTimeout(tryResize, 300);
+      } else {
+        // Script hiç yüklenemedi (muhtemelen engellendi) — güvenlik ağı
+        // olarak sabit büyük yükseklik uygula.
+        setResizeScriptFailed(true);
       }
     };
     const timer = setTimeout(tryResize, 300);
@@ -404,9 +422,19 @@ function CheckoutContent() {
         <section className="py-4 md:py-12 pb-16 lg:pb-12">
           <div className="container mx-auto px-0 md:px-4 max-w-4xl">
             <div className="bg-white md:rounded-2xl md:border md:shadow-sm">
-              <div className="flex items-center gap-2 px-4 md:px-5 py-4 border-b">
-                <Shield className="h-5 w-5 text-primary" />
-                <span className="text-sm font-medium">256-bit SSL ile Güvenli Ödeme</span>
+              <div className="flex flex-col items-center gap-3 px-4 md:px-5 py-5 border-b">
+                <Image
+                  src="/payment-methods/paytr-guvenlik-rozeti.png"
+                  alt="PayTR Güvenli Ödeme - 3D Secure - 256-Bit SSL"
+                  width={280}
+                  height={88}
+                  className="h-auto w-full max-w-[280px]"
+                  priority
+                />
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Shield className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-medium">256-bit SSL ile Güvenli Ödeme</span>
+                </div>
               </div>
               {!iframeLoaded && (
                 <div className="flex flex-col items-center justify-center gap-3 py-20 text-muted-foreground">
@@ -416,12 +444,21 @@ function CheckoutContent() {
               )}
               <iframe
                 src={paytrUrl}
-                className={`w-full border-0 block transition-opacity duration-300 ${iframeLoaded ? "min-h-[80vh] md:min-h-[600px] opacity-100" : "h-0 opacity-0"}`}
+                className={`w-full border-0 block transition-opacity duration-300 ${
+                  iframeLoaded
+                    ? resizeScriptFailed
+                      ? "min-h-[1600px] md:min-h-[1100px] opacity-100"
+                      : "min-h-[1200px] md:min-h-[900px] opacity-100"
+                    : "h-0 opacity-0"
+                }`}
                 id="paytriframe"
                 frameBorder="0"
                 scrolling="auto"
                 onLoad={() => setIframeLoaded(true)}
               />
+              <p className="text-center text-xs text-muted-foreground px-4 pb-4">
+                3D Secure onay ekranında güvenlik kodu (SMS) alanını göremiyorsanız lütfen sayfayı aşağı kaydırın.
+              </p>
             </div>
           </div>
         </section>
