@@ -4,6 +4,9 @@ import { formatDate } from "@/lib/helpers";
 import { Image, Plus, Edit } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminBannersPage() {
   const supabase = await createClient();
   const { data: banners } = await supabase

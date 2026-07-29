@@ -2,6 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/helpers";
 import { BarChart3, TrendingUp, ShoppingCart, Users, Package } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminReportsPage() {
   const supabase = await createClient();
 

@@ -6,6 +6,9 @@ import { ReviewApproveToggle } from "@/components/admin/review-approve-toggle";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 import { ReviewReplyForm } from "@/components/admin/review-reply-form";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface Props {
   searchParams: Promise<{ filter?: string }>;
 }

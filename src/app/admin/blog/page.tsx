@@ -4,6 +4,9 @@ import { formatDate } from "@/lib/helpers";
 import { FileText, Plus, Edit, Eye } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminBlogPage() {
   const supabase = await createClient();
   const { data: posts } = await supabase

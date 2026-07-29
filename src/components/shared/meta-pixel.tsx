@@ -77,12 +77,16 @@ function PageViewTracker() {
   const searchParams = useSearchParams();
   const isFirst = useRef(true);
   const didInitPixel = useRef(false);
-  const { user } = useUser();
+  const { user, loading } = useUser();
 
-  // Initialize (or re-initialize) pixel with advanced matching data.
-  // Meta supports calling init again to refresh user data.
+  // Initialize the pixel exactly once. We wait until the auth check settles
+  // (loading === false) so we only ever call fbq('init', PIXEL_ID, ...) a
+  // single time — calling init twice for the same Pixel ID (once as guest,
+  // once again after the user loads) triggers Facebook's own
+  // "[Meta Pixel] - Duplicate Pixel ID" console warning.
   useEffect(() => {
     if (!PIXEL_ID || typeof window.fbq !== "function") return;
+    if (loading || didInitPixel.current) return;
 
     const matchData: Record<string, string> = {};
     if (user) {
@@ -101,7 +105,7 @@ function PageViewTracker() {
 
     window.fbq("init", PIXEL_ID, matchData);
     didInitPixel.current = true;
-  }, [user]);
+  }, [user, loading]);
 
   useEffect(() => {
     if (isFirst.current) {
@@ -113,10 +117,6 @@ function PageViewTracker() {
       // browser Pixel and the server CAPI event share the same event_id and
       // Meta can deduplicate them. (The inline snippet no longer fires it.)
       if (PIXEL_ID) {
-        if (typeof window.fbq === "function" && !didInitPixel.current) {
-          window.fbq("init", PIXEL_ID, {});
-          didInitPixel.current = true;
-        }
         const id = generateEventId();
         // 1) Browser Pixel with eventID
         if (typeof window.fbq === "function") {

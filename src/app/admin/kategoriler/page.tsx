@@ -4,6 +4,9 @@ import { FolderTree, Edit, Plus } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 import type { Category } from "@/types";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminCategoriesPage() {
   const supabase = await createClient();
   const { data: categories } = await supabase

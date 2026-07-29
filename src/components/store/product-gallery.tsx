@@ -153,7 +153,7 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
 
         {/* Thumbnails */}
         {activeImages.length > 1 && (
-          <div className="flex gap-2.5 overflow-x-auto overflow-y-hidden py-2 -my-1 scrollbar-hide">
+          <div className="flex gap-2.5 overflow-x-auto overflow-y-hidden px-0.5 py-2 -my-1 scrollbar-hide">
             {activeImages.slice(0, 5).map((img, idx) => (
               <button
                 key={img.id}
@@ -161,8 +161,8 @@ export function ProductGallery({ images, productName, forcedImageUrl }: ProductG
                 className={cn(
                   "relative aspect-square w-16 h-16 md:w-[72px] md:h-[72px] shrink-0 rounded-xl overflow-hidden border-2 transition-all duration-150",
                   idx === activeIndex
-                    ? "border-primary shadow-md scale-[1.04]"
-                    : "border-border/50 hover:border-primary/50 hover:scale-[1.02] opacity-70 hover:opacity-100"
+                    ? "border-primary shadow-md"
+                    : "border-border/50 hover:border-primary/50 opacity-70 hover:opacity-100"
                 )}
                 aria-label={`Resim ${idx + 1}`}
               >

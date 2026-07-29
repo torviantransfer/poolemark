@@ -12,6 +12,9 @@ import { AdminSearchForm } from "@/components/admin/search-form";
 import { WhatsAppReminderButton } from "@/components/admin/whatsapp-reminder-button";
 import { DeleteOrderButton } from "@/components/admin/delete-order-button";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface Props {
   searchParams: Promise<{ page?: string; search?: string; status?: string }>;
 }

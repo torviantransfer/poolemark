@@ -5,6 +5,9 @@ import { Plus, Edit, Eye, Package } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 import { AdminSearchForm } from "@/components/admin/search-form";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface Props {
   searchParams: Promise<{ page?: string; search?: string; status?: string }>;
 }

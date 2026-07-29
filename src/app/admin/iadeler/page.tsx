@@ -4,6 +4,9 @@ import { formatDateTime } from "@/lib/helpers";
 import { RotateCcw } from "lucide-react";
 import { ReturnRequestStatusForm } from "@/components/admin/return-request-status-form";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const STATUS_LABELS: Record<string, string> = {
   requested: "Talep Alındı",
   approved: "Onaylandı",

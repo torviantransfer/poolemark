@@ -5,6 +5,9 @@ import { Truck, Plus, Edit } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 import { AdminToggleActiveButton } from "@/components/admin/toggle-active-button";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminShippingCompaniesPage() {
   const supabase = await createClient();
   const { data: companies } = await supabase

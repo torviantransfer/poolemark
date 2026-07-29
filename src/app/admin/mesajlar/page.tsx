@@ -4,6 +4,9 @@ import { MessageSquare, Mail, CheckCircle } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 import { MessageReadToggle } from "@/components/admin/message-read-toggle";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminMessagesPage() {
   const supabase = await createClient();
   const { data: messages } = await supabase
