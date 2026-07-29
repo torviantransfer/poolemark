@@ -23,6 +23,7 @@ export function AnnouncementForm({ announcement }: Props) {
   const router = useRouter();
   const isEditing = !!announcement;
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     text: announcement?.text || "",
@@ -39,8 +40,9 @@ export function AnnouncementForm({ announcement }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setErrorMsg(null);
     if (!form.text) {
-      alert("Duyuru mesajı zorunludur.");
+      setErrorMsg("Duyuru mesajı zorunludur.");
       return;
     }
 
@@ -74,7 +76,8 @@ export function AnnouncementForm({ announcement }: Props) {
       router.push("/admin/duyurular");
       router.refresh();
     } catch (err) {
-      alert("Duyuru kaydedilirken hata oluştu.");
+      const message = err instanceof Error ? err.message : "Bilinmeyen bir hata oluştu.";
+      setErrorMsg(`Duyuru kaydedilirken hata oluştu: ${message}`);
       console.error(err);
     } finally {
       setLoading(false);
@@ -83,6 +86,11 @@ export function AnnouncementForm({ announcement }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+      {errorMsg && (
+        <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium">
+          {errorMsg}
+        </div>
+      )}
       <div className="bg-white rounded-2xl border p-5 space-y-4">
         <h3 className="font-semibold text-foreground">Duyuru Bilgileri</h3>
 
