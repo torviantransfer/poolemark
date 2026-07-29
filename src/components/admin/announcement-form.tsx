@@ -69,15 +69,31 @@ export function AnnouncementForm({ announcement }: Props) {
           throw new Error("Güncelleme kaydedilemedi. Bu kayıt bulunamadı veya yetkiniz olmayabilir.");
         }
       } else {
-        const { error } = await supabase.from("announcements").insert(payload);
+        const { data, error } = await supabase
+          .from("announcements")
+          .insert(payload)
+          .select("id");
         if (error) throw error;
+        if (!data || data.length === 0) {
+          throw new Error(
+            "Kayıt eklenemedi (0 satır döndü). Muhtemelen yetki (RLS) engeli var: giriş yaptığınız hesabın 'users' tablosundaki 'role' değeri 'admin' olmalı."
+          );
+        }
       }
 
       router.push("/admin/duyurular");
       router.refresh();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Bilinmeyen bir hata oluştu.";
-      setErrorMsg(`Duyuru kaydedilirken hata oluştu: ${message}`);
+      const e = err as { message?: string; details?: string; hint?: string; code?: string };
+      const parts = [
+        e?.message,
+        e?.details ? `Detay: ${e.details}` : null,
+        e?.hint ? `İpucu: ${e.hint}` : null,
+        e?.code ? `Kod: ${e.code}` : null,
+      ].filter(Boolean);
+      setErrorMsg(
+        `Duyuru kaydedilemedi. ${parts.length ? parts.join(" | ") : "Bilinmeyen bir hata oluştu."}`
+      );
       console.error(err);
     } finally {
       setLoading(false);
