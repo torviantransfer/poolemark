@@ -13,10 +13,18 @@ export function ReviewApproveToggle({ id, isApproved }: { id: string; isApproved
     setLoading(true);
     try {
       const supabase = createClient();
-      await supabase.from("reviews").update({ is_approved: !isApproved }).eq("id", id);
+      const { data, error } = await supabase
+        .from("reviews")
+        .update({ is_approved: !isApproved })
+        .eq("id", id)
+        .select("id");
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Durum güncellenemedi.");
+      }
       router.refresh();
     } catch {
-      // ignore
+      alert("Yorum durumu güncellenemedi.");
     } finally {
       setLoading(false);
     }

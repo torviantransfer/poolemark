@@ -13,10 +13,18 @@ export function MessageReadToggle({ id, isRead }: { id: string; isRead: boolean 
     setLoading(true);
     try {
       const supabase = createClient();
-      await supabase.from("contact_messages").update({ is_read: !isRead }).eq("id", id);
+      const { data, error } = await supabase
+        .from("contact_messages")
+        .update({ is_read: !isRead })
+        .eq("id", id)
+        .select("id");
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Durum güncellenemedi.");
+      }
       router.refresh();
     } catch {
-      // ignore
+      alert("Mesaj durumu güncellenemedi.");
     } finally {
       setLoading(false);
     }

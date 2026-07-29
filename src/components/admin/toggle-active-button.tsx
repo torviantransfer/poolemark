@@ -21,11 +21,15 @@ export function AdminToggleActiveButton({
     setLoading(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from(table)
         .update({ is_active: !isActive })
-        .eq("id", id);
+        .eq("id", id)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Durum güncellenemedi.");
+      }
       router.refresh();
     } catch {
       alert("Durum güncellenemedi.");

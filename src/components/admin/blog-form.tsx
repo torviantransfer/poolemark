@@ -68,9 +68,18 @@ export function BlogPostForm({ post }: Props) {
       };
 
       if (isEditing) {
-        await supabase.from("blog_posts").update(data).eq("id", post!.id);
+        const { data: updatedRows, error } = await supabase
+          .from("blog_posts")
+          .update(data)
+          .eq("id", post!.id)
+          .select("id");
+        if (error) throw error;
+        if (!updatedRows || updatedRows.length === 0) {
+          throw new Error("Güncelleme kaydedilemedi. Bu kayıt bulunamadı veya yetkiniz olmayabilir.");
+        }
       } else {
-        await supabase.from("blog_posts").insert(data);
+        const { error } = await supabase.from("blog_posts").insert(data);
+        if (error) throw error;
       }
       router.push("/admin/blog");
       router.refresh();

@@ -42,9 +42,18 @@ export function PageForm({ page }: { page?: Page }) {
         meta_description: form.meta_description || null,
       };
       if (isEditing) {
-        await supabase.from("pages").update(data).eq("id", page!.id);
+        const { data: updatedRows, error } = await supabase
+          .from("pages")
+          .update(data)
+          .eq("id", page!.id)
+          .select("id");
+        if (error) throw error;
+        if (!updatedRows || updatedRows.length === 0) {
+          throw new Error("Güncelleme kaydedilemedi. Bu kayıt bulunamadı veya yetkiniz olmayabilir.");
+        }
       } else {
-        await supabase.from("pages").insert(data);
+        const { error } = await supabase.from("pages").insert(data);
+        if (error) throw error;
       }
       router.push("/admin/sayfalar");
       router.refresh();

@@ -98,11 +98,15 @@ export function BannerForm({ banner }: Props) {
       };
 
       if (isEditing) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("banners")
           .update(payload)
-          .eq("id", banner.id);
+          .eq("id", banner.id)
+          .select("id");
         if (error) throw error;
+        if (!data || data.length === 0) {
+          throw new Error("Güncelleme kaydedilemedi. Bu kayıt bulunamadı veya yetkiniz olmayabilir.");
+        }
       } else {
         const { error } = await supabase.from("banners").insert(payload);
         if (error) throw error;

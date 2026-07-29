@@ -97,11 +97,15 @@ export function CategoryForm({ category, parentCategories }: Props) {
       };
 
       if (isEditing) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("categories")
           .update(payload)
-          .eq("id", category.id);
+          .eq("id", category.id)
+          .select("id");
         if (error) throw error;
+        if (!data || data.length === 0) {
+          throw new Error("Güncelleme kaydedilemedi. Bu kayıt bulunamadı veya yetkiniz olmayabilir.");
+        }
       } else {
         const { error } = await supabase.from("categories").insert(payload);
         if (error) throw error;

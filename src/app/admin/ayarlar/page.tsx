@@ -54,8 +54,12 @@ export default function AdminSettingsPage() {
       return acc;
     }, {} as Record<string, string>);
 
+    // site_settings.value bir jsonb kolonu: boolean/number olarak da dönebilir.
+    // Supabase-js jsonb'yi otomatik parse ettiği için burada string'e normalize ediyoruz,
+    // aksi halde checkbox karşılaştırmaları (=== "true") yanlış çalışır.
     data?.forEach((s: Setting) => {
-      map[s.key] = s.value;
+      const raw = s.value as unknown;
+      map[s.key] = raw === null || raw === undefined ? "" : String(raw);
     });
     setSettings(map);
     setLoading(false);
@@ -66,13 +70,19 @@ export default function AdminSettingsPage() {
     try {
       const supabase = createClient();
       for (const [key, value] of Object.entries(settings)) {
-        await supabase
+        const { data, error } = await supabase
           .from("site_settings")
-          .upsert({ key, value }, { onConflict: "key" });
+          .upsert({ key, value }, { onConflict: "key" })
+          .select("id");
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          throw new Error(`"${key}" ayarı kaydedilemedi. Yetkiniz olmayabilir.`);
+        }
       }
       alert("Ayarlar kaydedildi.");
-    } catch {
-      alert("Kaydetme başarısız oldu.");
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Kaydetme başarısız oldu.");
     } finally {
       setSaving(false);
     }

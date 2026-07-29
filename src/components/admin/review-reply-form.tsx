@@ -25,6 +25,8 @@ export function ReviewReplyForm({ reviewId, existingReply }: Props) {
     if (res.ok) {
       setSaved(true);
       setTimeout(() => { setSaved(false); setOpen(false); }, 1500);
+    } else {
+      alert("Cevap kaydedilemedi. Lütfen tekrar deneyin.");
     }
   }
 

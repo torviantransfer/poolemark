@@ -117,11 +117,15 @@ export function ShippingCompanyForm({ company }: Props) {
       };
 
       if (isEditing) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("shipping_companies")
           .update(payload)
-          .eq("id", company.id);
+          .eq("id", company.id)
+          .select("id");
         if (error) throw error;
+        if (!data || data.length === 0) {
+          throw new Error("Güncelleme kaydedilemedi. Bu kayıt bulunamadı veya yetkiniz olmayabilir.");
+        }
       } else {
         const { error } = await supabase.from("shipping_companies").insert(payload);
         if (error) throw error;

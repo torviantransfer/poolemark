@@ -25,8 +25,11 @@ export function AdminDeleteButton({
     setLoading(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase.from(table).delete().eq("id", id);
+      const { data, error } = await supabase.from(table).delete().eq("id", id).select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Silme işlemi gerçekleşmedi. Yetkiniz olmayabilir.");
+      }
 
       if (redirectTo) {
         router.push(redirectTo);

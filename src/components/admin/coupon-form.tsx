@@ -64,11 +64,15 @@ export function CouponForm({ coupon }: Props) {
       };
 
       if (isEditing) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("coupons")
           .update(payload)
-          .eq("id", coupon.id);
+          .eq("id", coupon.id)
+          .select("id");
         if (error) throw error;
+        if (!data || data.length === 0) {
+          throw new Error("Güncelleme kaydedilemedi. Bu kayıt bulunamadı veya yetkiniz olmayabilir.");
+        }
       } else {
         const { error } = await supabase.from("coupons").insert(payload);
         if (error) throw error;

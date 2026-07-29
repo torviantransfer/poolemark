@@ -43,16 +43,41 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     product.short_description ||
     `${product.name} - Poolemark'ta uygun fiyatla satın alın.`;
 
+  // Facebook/Instagram/WhatsApp gibi platformlar paylaşım önizlemesinde
+  // og:image / twitter:image kullanır. Bu alan boş bırakılırsa kök layout'taki
+  // genel site görseli (logo) miras alınır — bu yüzden ürünün kendi görselini
+  // burada açıkça belirtiyoruz.
+  const primaryImage = product.images
+    ?.slice()
+    .sort((a, b) => {
+      if (a.is_primary) return -1;
+      if (b.is_primary) return 1;
+      return a.sort_order - b.sort_order;
+    })[0]?.url;
+
+  const canonicalUrl = `/products/${slug}`;
+
   return {
     title,
     description,
     alternates: {
-      canonical: `/products/${slug}`,
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: "Poolemark",
+      images: primaryImage
+        ? [{ url: primaryImage, width: 1200, height: 1200, alt: title }]
+        : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: primaryImage ? [primaryImage] : undefined,
     },
   };
 }

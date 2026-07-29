@@ -222,11 +222,15 @@ export function ProductForm({ product, categories }: Props) {
       let productId = product?.id;
 
       if (isEditing && productId) {
-        const { error } = await supabase
+        const { data: updatedRows, error } = await supabase
           .from("products")
           .update(productData)
-          .eq("id", productId);
+          .eq("id", productId)
+          .select("id");
         if (error) throw error;
+        if (!updatedRows || updatedRows.length === 0) {
+          throw new Error("Güncelleme kaydedilemedi. Bu kayıt bulunamadı veya yetkiniz olmayabilir.");
+        }
       } else {
         const { data, error } = await supabase
           .from("products")
