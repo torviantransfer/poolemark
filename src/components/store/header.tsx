@@ -308,70 +308,74 @@ export function Header() {
 
             <MiniCart transparent={transparent} />
 
-            <div className="hidden md:block">
+            <div className="hidden md:flex items-center">
               {loading ? (
-                <div className="w-9 h-9 rounded-full bg-secondary animate-pulse" />
+                <div className="flex h-10 w-10 items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-secondary animate-pulse" />
+                </div>
               ) : user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    className={cn(
-                      "flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-colors",
-                      transparent
-                        ? "bg-white/20 text-white hover:bg-white/30"
-                        : "bg-primary text-primary-foreground hover:bg-primary/90"
-                    )}
-                  >
-                    {user.user_metadata?.first_name?.[0]?.toUpperCase() || "U"}
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52">
-                    <div className="px-3 py-2">
-                      <p className="text-sm font-medium">
-                        {user.user_metadata?.first_name}{" "}
-                        {user.user_metadata?.last_name}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {user.email}
-                      </p>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem render={<Link href="/hesabim" />}>
-                      <User className="mr-2 h-4 w-4" />
-                      Hesabım
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      render={<Link href="/hesabim/siparislerim" />}
+                <div className="flex h-10 w-10 items-center justify-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      className={cn(
+                        "flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-colors",
+                        transparent
+                          ? "bg-white/20 text-white hover:bg-white/30"
+                          : "bg-primary text-primary-foreground hover:bg-primary/90"
+                      )}
                     >
-                      <Package className="mr-2 h-4 w-4" />
-                      Siparişlerim
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      render={<Link href="/hesabim/adreslerim" />}
-                    >
-                      <MapPin className="mr-2 h-4 w-4" />
-                      Adreslerim
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      render={<Link href="/hesabim/bilgilerim" />}
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      Bilgilerim
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      render={<Link href="/hesabim/bildirimler" />}
-                    >
-                      <Bell className="mr-2 h-4 w-4" />
-                      Bildirimler
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      className="text-destructive cursor-pointer"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Çıkış Yap
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      {user.user_metadata?.first_name?.[0]?.toUpperCase() || "U"}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52">
+                      <div className="px-3 py-2">
+                        <p className="text-sm font-medium">
+                          {user.user_metadata?.first_name}{" "}
+                          {user.user_metadata?.last_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem render={<Link href="/hesabim" />}>
+                        <User className="mr-2 h-4 w-4" />
+                        Hesabım
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        render={<Link href="/hesabim/siparislerim" />}
+                      >
+                        <Package className="mr-2 h-4 w-4" />
+                        Siparişlerim
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        render={<Link href="/hesabim/adreslerim" />}
+                      >
+                        <MapPin className="mr-2 h-4 w-4" />
+                        Adreslerim
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        render={<Link href="/hesabim/bilgilerim" />}
+                      >
+                        <Settings className="mr-2 h-4 w-4" />
+                        Bilgilerim
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        render={<Link href="/hesabim/bildirimler" />}
+                      >
+                        <Bell className="mr-2 h-4 w-4" />
+                        Bildirimler
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="text-destructive cursor-pointer"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Çıkış Yap
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <Button
