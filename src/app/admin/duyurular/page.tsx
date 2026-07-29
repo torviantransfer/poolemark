@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { formatDate } from "@/lib/helpers";
 import { Megaphone, Plus, Edit } from "lucide-react";
 import { AdminDeleteButton } from "@/components/admin/delete-button";
 
@@ -12,7 +11,7 @@ export default async function AdminAnnouncementsPage() {
   const { data: announcements } = await supabase
     .from("announcements")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("sort_order", { ascending: true });
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">

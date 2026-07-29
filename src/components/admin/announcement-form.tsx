@@ -24,7 +24,6 @@ export function AnnouncementForm({ announcement }: Props) {
   const isEditing = !!announcement;
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     text: announcement?.text || "",
@@ -42,7 +41,6 @@ export function AnnouncementForm({ announcement }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrorMsg(null);
-    setSuccessMsg(null);
     if (!form.text) {
       setErrorMsg("Duyuru mesajı zorunludur.");
       return;
@@ -81,19 +79,6 @@ export function AnnouncementForm({ announcement }: Props) {
             "Kayıt eklenemedi (0 satır döndü). Muhtemelen yetki (RLS) engeli var: giriş yaptığınız hesabın 'users' tablosundaki 'role' değeri 'admin' olmalı."
           );
         }
-        setSuccessMsg(
-          `✅ Duyuru başarıyla eklendi! (ID: ${data[0].id}) — Duyurular listesine gitmek için yukarıdaki "Duyurular" bağlantısına tıklayın.`
-        );
-        setForm({
-          text: "",
-          link_url: "",
-          bg_color: "#22C55E",
-          text_color: "#FFFFFF",
-          is_active: true,
-          sort_order: "0",
-        });
-        router.refresh();
-        return;
       }
 
       router.push("/admin/duyurular");
@@ -117,12 +102,6 @@ export function AnnouncementForm({ announcement }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
-      <div className="text-[11px] text-muted-foreground">form sürüm: v3</div>
-      {successMsg && (
-        <div className="rounded-xl border border-emerald-400/50 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 font-medium">
-          {successMsg}
-        </div>
-      )}
       {errorMsg && (
         <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium">
           {errorMsg}
