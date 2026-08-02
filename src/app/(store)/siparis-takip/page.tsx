@@ -23,10 +23,13 @@ interface TrackResult {
   status: string;
   statusLabel: string;
   paymentStatus: string;
+  paymentMethod?: string | null;
   total: number;
   subtotal: number;
   shippingCost: number;
   discountAmount: number;
+  codFee?: number | null;
+  codConfirmationStatus?: string | null;
   cargoCompany: string | null;
   cargoTrackingNumber: string | null;
   cargoTrackingUrl: string | null;
@@ -258,13 +261,15 @@ function SiparisTakipInner() {
                 <div className="rounded-lg border bg-secondary/20 px-3 py-2">
                   <p className="text-[11px] text-muted-foreground">Ödeme Durumu</p>
                   <p className="text-sm font-semibold text-foreground mt-0.5">
-                    {result.paymentStatus === "paid"
-                      ? "Ödeme Onaylandı"
-                      : result.paymentStatus === "refunded"
-                        ? "İade Edildi"
-                        : result.paymentStatus === "failed"
-                          ? "Ödeme Başarısız"
-                          : "Ödeme Bekleniyor"}
+                    {result.paymentMethod === "cash_on_delivery" && result.paymentStatus !== "paid" && result.paymentStatus !== "refunded"
+                      ? "Kapıda Tahsil Edilecek"
+                      : result.paymentStatus === "paid"
+                        ? "Ödeme Onaylandı"
+                        : result.paymentStatus === "refunded"
+                          ? "İade Edildi"
+                          : result.paymentStatus === "failed"
+                            ? "Ödeme Başarısız"
+                            : "Ödeme Bekleniyor"}
                   </p>
                 </div>
                 <div className="rounded-lg border bg-secondary/20 px-3 py-2">
@@ -389,6 +394,12 @@ function SiparisTakipInner() {
                 <div className="flex justify-between text-sm text-green-600">
                   <span>İndirim</span>
                   <span>-{formatPrice(result.discountAmount)}</span>
+                </div>
+              )}
+              {Number(result.codFee ?? 0) > 0 && (
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Kapıda Ödeme Bedeli</span>
+                  <span>{formatPrice(Number(result.codFee))}</span>
                 </div>
               )}
               <Separator className="my-2" />

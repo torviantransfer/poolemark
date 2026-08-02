@@ -559,6 +559,8 @@ export async function POST(request: NextRequest) {
           shippingCost: shipping,
           discount: discount || 0,
           total,
+          codFee,
+          isCod: true,
         });
       } catch (emailErr) {
         console.warn("[COD] Onay e-postası gönderilemedi:", emailErr);

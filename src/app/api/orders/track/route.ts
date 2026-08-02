@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     let query = supabase
       .from("orders")
       .select(
-        "id, order_number, status, payment_status, subtotal, shipping_cost, discount_amount, total, cargo_company, cargo_tracking_number, cargo_tracking_url, created_at, updated_at, shipping_address_json, guest_email, user_id, items:order_items(id, product_name, quantity, unit_price)"
+        "id, order_number, status, payment_status, payment_method, subtotal, shipping_cost, discount_amount, cod_fee, cod_confirmation_status, total, cargo_company, cargo_tracking_number, cargo_tracking_url, created_at, updated_at, shipping_address_json, guest_email, user_id, items:order_items(id, product_name, quantity, unit_price)"
       )
       .eq("order_number", orderNumber.trim().toUpperCase())
       .maybeSingle();
@@ -79,10 +79,13 @@ export async function POST(request: NextRequest) {
       status: order.status,
       statusLabel: STATUS_LABELS[order.status] ?? order.status,
       paymentStatus: order.payment_status,
+      paymentMethod: order.payment_method,
       total: order.total,
       subtotal: order.subtotal,
       shippingCost: order.shipping_cost,
       discountAmount: order.discount_amount,
+      codFee: order.cod_fee,
+      codConfirmationStatus: order.cod_confirmation_status,
       cargoCompany: order.cargo_company,
       cargoTrackingNumber: order.cargo_tracking_number,
       cargoTrackingUrl: order.cargo_tracking_url,

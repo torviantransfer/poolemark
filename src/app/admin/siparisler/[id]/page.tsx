@@ -310,13 +310,19 @@ export default async function AdminOrderDetailPage({ params }: Props) {
               )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Durum</span>
-                <span
-                  className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                    PAYMENT_STATUS_COLORS[order.payment_status] || ""
-                  }`}
-                >
-                  {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
-                </span>
+                {order.payment_method === "cash_on_delivery" && order.payment_status === "pending" ? (
+                  <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                    Kapıda Tahsil Edilecek
+                  </span>
+                ) : (
+                  <span
+                    className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                      PAYMENT_STATUS_COLORS[order.payment_status] || ""
+                    }`}
+                  >
+                    {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
+                  </span>
+                )}
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">Fatura No</span>

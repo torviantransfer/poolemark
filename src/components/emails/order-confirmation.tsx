@@ -24,6 +24,8 @@ interface OrderConfirmationEmailProps {
   shippingCost: number;
   discount: number;
   total: number;
+  codFee?: number;
+  isCod?: boolean;
 }
 
 function formatPrice(price: number) {
@@ -43,6 +45,8 @@ export function OrderConfirmationEmail({
   shippingCost,
   discount,
   total,
+  codFee = 0,
+  isCod = false,
 }: OrderConfirmationEmailProps) {
   return (
     <EmailLayout preview={`Siparişiniz alındı — ${orderNumber}`}>
@@ -180,6 +184,18 @@ export function OrderConfirmationEmail({
               </Column>
             </Row>
           )}
+          {codFee > 0 && (
+            <Row>
+              <Column style={{ width: "60%" }}>
+                <Text style={{ ...styles.text, margin: "4px 0" }}>Kapıda Ödeme Bedeli</Text>
+              </Column>
+              <Column style={{ width: "40%", textAlign: "right" }}>
+                <Text style={{ ...styles.text, margin: "4px 0" }}>
+                  {formatPrice(codFee)}
+                </Text>
+              </Column>
+            </Row>
+          )}
           <Hr style={{ ...styles.hr, margin: "12px 0" }} />
           <Row>
             <Column style={{ width: "60%" }}>
@@ -211,14 +227,49 @@ export function OrderConfirmationEmail({
 
         <Hr style={styles.hr} />
 
+        {isCod && (
+          <Section
+            style={{
+              backgroundColor: "#F0FDF4",
+              border: "1px solid #BBF7D0",
+              borderRadius: "8px",
+              padding: "16px 20px",
+              margin: "0 0 8px",
+            }}
+          >
+            <Text style={{ ...styles.text, margin: "0 0 6px", fontWeight: "700", color: colors.primaryDark }}>
+              Kapıda Ödeme — WhatsApp Onayı Gerekli
+            </Text>
+            <Text style={{ ...styles.textSmall, margin: "0" }}>
+              Siparişinizin işleme alınması için WhatsApp numaranıza bir onay mesajı gönderdik.
+              Lütfen mesajdaki <strong>“Onaylıyorum”</strong> butonuna dokunun. Onayınızın ardından
+              siparişiniz hazırlanıp kargoya verilecektir.
+            </Text>
+          </Section>
+        )}
+
         {/* Next Steps */}
         <Text style={styles.subheading}>Sonraki Adımlar</Text>
         <Text style={styles.text}>
-          1. Ödemeniz onaylanacak
-          <br />
-          2. Siparişiniz hazırlanacak
-          <br />
-          3. Kargoya verildiğinde takip numaranız e-posta ile gönderilecek
+          {isCod ? (
+            <>
+              1. WhatsApp mesajından siparişinizi onaylayın
+              <br />
+              2. Siparişiniz hazırlanacak
+              <br />
+              3. Kargoya verildiğinde takip numaranız e-posta ile gönderilecek
+              <br />
+              4. Ürünü teslim alırken tutarı kuryeye ödeyin
+            </>
+          ) : (
+            <>
+              1. Ödemeniz onaylanacak
+              <br />
+              2. Siparişiniz hazırlanacak
+              <br />
+              3. Kargoya verildiğinde takip numaranız e-posta ile gönderilecek
+            </>
+          )}
         </Text>
 
         {/* CTA Buttons */}

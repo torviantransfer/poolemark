@@ -16,6 +16,8 @@ import {
   ORDER_STATUS_COLORS,
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_COLORS,
+  COD_CONFIRMATION_LABELS,
+  COD_CONFIRMATION_COLORS,
 } from "@/constants";
 import { ReturnRequestForm } from "@/components/store/return-request-form";
 
@@ -159,9 +161,15 @@ export default async function OrderDetailPage({
             <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${displayOrderColor}`}>
               Sipariş: {displayOrderLabel}
             </span>
-            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${PAYMENT_STATUS_COLORS[order.payment_status] || "bg-gray-100 text-gray-800"}`}>
-              Ödeme: {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
-            </span>
+            {order.payment_method === "cash_on_delivery" && order.payment_status === "pending" ? (
+              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                Ödeme: Kapıda Tahsil Edilecek
+              </span>
+            ) : (
+              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${PAYMENT_STATUS_COLORS[order.payment_status] || "bg-gray-100 text-gray-800"}`}>
+                Ödeme: {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
+              </span>
+            )}
             {returnRequest?.status && (
               <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${RETURN_STATUS_COLORS[returnRequest.status] || "bg-amber-100 text-amber-800"}`}>
                   İade: {RETURN_STATUS_LABELS[returnRequest.status] || returnRequest.status}
@@ -347,6 +355,12 @@ export default async function OrderDetailPage({
                       <span>-{formatPrice(order.discount_amount)}</span>
                     </div>
                   )}
+                  {Number(orderExt.cod_fee ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Kapıda Ödeme Bedeli</span>
+                      <span>{formatPrice(Number(orderExt.cod_fee))}</span>
+                    </div>
+                  )}
                   <div className="border-t pt-2 mt-2 flex justify-between font-semibold">
                     <span>Toplam</span>
                     <span className="text-lg">{formatPrice(order.total)}</span>
@@ -355,12 +369,28 @@ export default async function OrderDetailPage({
                 <div className="mt-3 pt-3 border-t border-border/60 space-y-1.5 text-sm">
                   <div className="flex justify-between gap-3">
                     <span className="text-muted-foreground">Ödeme Durumu</span>
-                    <span className="font-medium">{PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}</span>
+                    <span className="font-medium">
+                      {order.payment_method === "cash_on_delivery" && order.payment_status === "pending"
+                        ? "Kapıda Tahsil Edilecek"
+                        : PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
+                    </span>
                   </div>
                   <div className="flex justify-between gap-3">
                     <span className="text-muted-foreground">Ödeme Yöntemi</span>
                     <span className="font-medium">{mapPaymentMethod(order.payment_method)}</span>
                   </div>
+                  {order.payment_method === "cash_on_delivery" && (
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted-foreground">Kapıda Ödeme Onayı</span>
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                          COD_CONFIRMATION_COLORS[orderExt.cod_confirmation_status || "pending"] || "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {COD_CONFIRMATION_LABELS[orderExt.cod_confirmation_status || "pending"] || "Onay Bekliyor"}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between gap-3">
                     <span className="text-muted-foreground">Fatura No</span>
                     <span className="font-medium break-all text-right">{orderExt.invoice_number || "-"}</span>

@@ -90,6 +90,8 @@ export async function sendOrderConfirmationEmail(
     shippingCost: number;
     discount: number;
     total: number;
+    codFee?: number;
+    isCod?: boolean;
   }
 ) {
   const allowed = await canSendByPreference(email, "order");
