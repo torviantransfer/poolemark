@@ -60,6 +60,24 @@ export const PAYMENT_STATUS_COLORS: Record<string, string> = {
   refunded: "bg-gray-100 text-gray-800",
 };
 
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  credit_card: "Kredi / Banka Kartı",
+  bank_transfer: "Havale / EFT",
+  cash_on_delivery: "Kapıda Ödeme",
+};
+
+export const COD_CONFIRMATION_LABELS: Record<string, string> = {
+  pending: "Onay Bekliyor",
+  confirmed: "Onaylandı",
+  rejected: "Reddedildi",
+};
+
+export const COD_CONFIRMATION_COLORS: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-800",
+  confirmed: "bg-green-100 text-green-800",
+  rejected: "bg-red-100 text-red-800",
+};
+
 export const NAV_LINKS = [
   { label: "Anasayfa", href: "/" },
   { label: "Ürünler", href: "/products" },

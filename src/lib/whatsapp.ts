@@ -92,3 +92,111 @@ export function buildAbandonedCartMessage({
 export function buildWhatsAppUrl(phoneDigits: string, message: string): string {
   return `https://wa.me/${phoneDigits}?text=${encodeURIComponent(message)}`;
 }
+
+/* =========================================================================
+ * WhatsApp Business Cloud API (Meta) — otomatik sipariş onay mesajları.
+ * wa.me akışından bağımsızdır. Env değerleri yoksa sessizce devre dışı kalır.
+ * ========================================================================= */
+
+const WHATSAPP_GRAPH_VERSION = "v21.0";
+
+function readWhatsAppEnv() {
+  return {
+    phoneNumberId: (process.env.WHATSAPP_PHONE_NUMBER_ID || "").trim(),
+    accessToken: (process.env.WHATSAPP_ACCESS_TOKEN || "").trim(),
+    template: (process.env.WHATSAPP_ORDER_CONFIRM_TEMPLATE || "siparis_onay").trim(),
+    templateLang: (process.env.WHATSAPP_ORDER_CONFIRM_TEMPLATE_LANG || "tr").trim(),
+  };
+}
+
+export function isWhatsAppCloudConfigured(): boolean {
+  const { phoneNumberId, accessToken } = readWhatsAppEnv();
+  return !!phoneNumberId && !!accessToken;
+}
+
+interface CodConfirmationTemplateParams {
+  toPhone: string;
+  customerName: string;
+  orderNumber: string;
+  paymentTypeLabel: string; // "Nakit" | "Kredi Kartı"
+  total: number;
+}
+
+/**
+ * Kapıda ödeme siparişi için onaylı WhatsApp template'ini gönderir.
+ * Template'te 4 gövde parametresi ({{1}} ad, {{2}} sipariş no, {{3}} ödeme tipi,
+ * {{4}} tutar) ve iki hızlı yanıt butonu ("Onaylıyorum" / "Onaylamıyorum") bulunmalı.
+ * Başarılıysa gönderilen mesajın WhatsApp message id'sini döndürür (webhook eşlemesi için).
+ */
+export async function sendCodConfirmationTemplate(
+  params: CodConfirmationTemplateParams
+): Promise<{ ok: boolean; messageId: string | null; error?: string }> {
+  const { phoneNumberId, accessToken, template, templateLang } = readWhatsAppEnv();
+
+  if (!phoneNumberId || !accessToken) {
+    return { ok: false, messageId: null, error: "not_configured" };
+  }
+
+  const to = normalizePhoneForWhatsApp(params.toPhone);
+  if (!to) {
+    return { ok: false, messageId: null, error: "invalid_phone" };
+  }
+
+  const totalText = new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency: "TRY",
+    maximumFractionDigits: 2,
+  }).format(params.total);
+
+  const body = {
+    messaging_product: "whatsapp",
+    to,
+    type: "template",
+    template: {
+      name: template,
+      language: { code: templateLang },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: params.customerName || "Müşterimiz" },
+            { type: "text", text: params.orderNumber },
+            { type: "text", text: params.paymentTypeLabel },
+            { type: "text", text: totalText },
+          ],
+        },
+      ],
+    },
+  };
+
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/${WHATSAPP_GRAPH_VERSION}/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    const data = (await res.json()) as {
+      messages?: { id: string }[];
+      error?: { message?: string };
+    };
+
+    if (!res.ok) {
+      return {
+        ok: false,
+        messageId: null,
+        error: data.error?.message || `http_${res.status}`,
+      };
+    }
+
+    return { ok: true, messageId: data.messages?.[0]?.id ?? null };
+  } catch (err) {
+    return { ok: false, messageId: null, error: String(err) };
+  }
+}

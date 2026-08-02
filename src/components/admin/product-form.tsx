@@ -79,6 +79,7 @@ export function ProductForm({ product, categories }: Props) {
     category_id: product?.category_id || "",
     is_active: product?.is_active ?? true,
     is_featured: product?.is_featured ?? false,
+    cod_enabled: product?.cod_enabled ?? true,
     meta_title: product?.meta_title || "",
     meta_description: product?.meta_description || "",
     unit_label: product?.unit_label || "",
@@ -214,6 +215,7 @@ export function ProductForm({ product, categories }: Props) {
         category_id: form.category_id,
         is_active: form.is_active,
         is_featured: form.is_featured,
+        cod_enabled: form.cod_enabled,
         meta_title: form.meta_title || null,
         meta_description: form.meta_description || null,
         unit_label: normalizedUnitLabel || null,
@@ -807,6 +809,18 @@ export function ProductForm({ product, categories }: Props) {
                 checked={form.is_featured}
                 onChange={(v) => updateField("is_featured", v)}
                 color="amber"
+              />
+            </label>
+            <div className="h-px bg-border" />
+            <label className="flex items-center justify-between cursor-pointer group">
+              <div>
+                <p className="text-sm font-medium">Kapıda Ödeme</p>
+                <p className="text-xs text-muted-foreground">Bu ürün kapıda ödemeyle satılabilsin</p>
+              </div>
+              <Toggle
+                checked={form.cod_enabled}
+                onChange={(v) => updateField("cod_enabled", v)}
+                color="green"
               />
             </label>
           </div>

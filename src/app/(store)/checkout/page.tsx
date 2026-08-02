@@ -24,6 +24,8 @@ import {
   Truck,
   User,
   FileText,
+  Banknote,
+  Wallet,
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
 import { CITY_LIST, TURKEY_CITIES } from "@/constants/turkey";
@@ -100,6 +102,16 @@ function CheckoutContent() {
     return newKey;
   });
 
+  const [paymentMethod, setPaymentMethod] = useState<"credit_card" | "cash_on_delivery">("credit_card");
+  const [codPaymentType, setCodPaymentType] = useState<"cash" | "card">("cash");
+  const [codSettings, setCodSettings] = useState({
+    enabled: false,
+    fee: 0,
+    minAmount: 0,
+    maxAmount: 0,
+    onlineDiscountPercent: 0,
+  });
+
   const selectedShipping = shippingCompanies.find((s) => s.id === selectedShippingId) || null;
   const shipping = selectedShipping
     ? selectedShipping.free_shipping_threshold && subtotal >= selectedShipping.free_shipping_threshold
@@ -110,7 +122,23 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const couponCode = searchParams.get("coupon") || "";
   const [couponDiscount, setCouponDiscount] = useState(0);
-  const total = subtotal + shipping - couponDiscount;
+
+  const codEligible =
+    codSettings.enabled &&
+    (codSettings.minAmount <= 0 || subtotal >= codSettings.minAmount) &&
+    (codSettings.maxAmount <= 0 || subtotal <= codSettings.maxAmount);
+
+  const isCodSelected = paymentMethod === "cash_on_delivery" && codEligible;
+  const codFee = isCodSelected ? codSettings.fee : 0;
+  const onlineDiscount =
+    !isCodSelected && codSettings.onlineDiscountPercent > 0
+      ? Math.min(
+          Math.round(subtotal * codSettings.onlineDiscountPercent) / 100,
+          Math.max(0, subtotal - couponDiscount)
+        )
+      : 0;
+
+  const total = subtotal + shipping - couponDiscount - onlineDiscount + codFee;
   const kdv = total * 20 / 120; // Fiyatlar KDV dahil
 
   // Checkout'a kupon koduyla gelinmişse indirim tutarını çek
@@ -147,6 +175,7 @@ function CheckoutContent() {
 
   useEffect(() => {
     loadShippingCompanies();
+    loadCodSettings();
     if (authLoading) return;
     if (user) {
       loadAddresses();
@@ -226,6 +255,34 @@ function CheckoutContent() {
       setShippingCompanies(data);
       setSelectedShippingId((prev) => prev || data[0].id);
     }
+  }
+
+  async function loadCodSettings() {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("site_settings")
+      .select("key, value")
+      .in("key", [
+        "cod_enabled",
+        "cod_fee",
+        "cod_min_amount",
+        "cod_max_amount",
+        "cod_online_discount_percent",
+      ]);
+    if (!data) return;
+    const map = Object.fromEntries(data.map((r: { key: string; value: unknown }) => [r.key, r.value]));
+    const num = (v: unknown) => {
+      const n = typeof v === "number" ? v : parseFloat(String(v ?? ""));
+      return Number.isFinite(n) ? n : 0;
+    };
+    const bool = (v: unknown) => v === true || v === "true" || v === 1 || v === "1";
+    setCodSettings({
+      enabled: bool(map.cod_enabled),
+      fee: num(map.cod_fee),
+      minAmount: num(map.cod_min_amount),
+      maxAmount: num(map.cod_max_amount),
+      onlineDiscountPercent: num(map.cod_online_discount_percent),
+    });
   }
 
   async function loadAddresses() {
@@ -350,13 +407,22 @@ function CheckoutContent() {
         const res = await fetch("/api/payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          body: JSON.stringify({ ...body, paymentMethod, codPaymentType }),
         });
 
         const data = await res.json();
 
         if (!res.ok || !data.success) {
           toast.error(data.error || "Ödeme başlatılamadı. Lütfen tekrar deneyin.");
+          return;
+        }
+
+        // Kapıda ödeme: PayTR yok, sipariş oluştu → sonuç sayfasına yönlendir.
+        if (data.cod) {
+          if (typeof sessionStorage !== "undefined") {
+            sessionStorage.removeItem("checkout_idempotency_key");
+          }
+          window.location.assign(`/odeme-sonucu?status=cod&order=${data.orderId}`);
           return;
         }
 
@@ -761,6 +827,105 @@ function CheckoutContent() {
                 )}
               </div>
 
+              {/* Ödeme Yöntemi */}
+              <div className="bg-white rounded-2xl border p-5 md:p-6">
+                <h2 className="font-semibold flex items-center gap-2 mb-4">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                  Ödeme Yöntemi
+                </h2>
+                <div className="space-y-3">
+                  {/* Online kart ödemesi */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("credit_card")}
+                    className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-3 ${
+                      !isCodSelected
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <CreditCard className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">Kredi / Banka Kartı ile Öde</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        3D Secure ile güvenli online ödeme. Taksit imkânı.
+                      </p>
+                      {codSettings.onlineDiscountPercent > 0 && (
+                        <span className="inline-block mt-2 text-[11px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                          Online ödemeye %{codSettings.onlineDiscountPercent} indirim
+                        </span>
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Kapıda ödeme */}
+                  {codEligible && (
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("cash_on_delivery")}
+                      className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-3 ${
+                        isCodSelected
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      <Wallet className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm">Kapıda Ödeme</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Siparişinizi teslim alırken nakit veya kartla ödeyin.
+                          {codSettings.fee > 0 && (
+                            <> Kapıda ödeme hizmet bedeli <strong>+{formatPrice(codSettings.fee)}</strong>.</>
+                          )}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground mt-1">
+                          Sipariş sonrası WhatsApp&apos;tan onay istenir.
+                        </p>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* Kapıda ödeme alt tip: nakit / kart */}
+                  {isCodSelected && (
+                    <div className="flex gap-2 pl-2">
+                      <button
+                        type="button"
+                        onClick={() => setCodPaymentType("cash")}
+                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition ${
+                          codPaymentType === "cash"
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-input text-muted-foreground hover:bg-secondary"
+                        }`}
+                      >
+                        <Banknote className="h-4 w-4" /> Nakit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCodPaymentType("card")}
+                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition ${
+                          codPaymentType === "card"
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-input text-muted-foreground hover:bg-secondary"
+                        }`}
+                      >
+                        <CreditCard className="h-4 w-4" /> Kredi Kartı
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Uygun değil bilgisi */}
+                  {codSettings.enabled && !codEligible && (
+                    <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg px-3 py-2">
+                      {codSettings.minAmount > 0 && subtotal < codSettings.minAmount
+                        ? `Kapıda ödeme için minimum sepet tutarı ${formatPrice(codSettings.minAmount)}.`
+                        : codSettings.maxAmount > 0 && subtotal > codSettings.maxAmount
+                        ? `Kapıda ödeme için maksimum sepet tutarı ${formatPrice(codSettings.maxAmount)}.`
+                        : "Bu sipariş için kapıda ödeme kullanılamıyor."}
+                    </p>
+                  )}
+                </div>
+              </div>
+
               {/* Order Notes */}
               <div className="bg-white rounded-2xl border p-5 md:p-6">
                 <Label
@@ -855,6 +1020,18 @@ function CheckoutContent() {
                       </span>
                     </div>
                   )}
+                  {onlineDiscount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Online ödeme indirimi</span>
+                      <span className="font-medium text-green-600">-{formatPrice(onlineDiscount)}</span>
+                    </div>
+                  )}
+                  {codFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Kapıda ödeme bedeli</span>
+                      <span className="font-medium">+{formatPrice(codFee)}</span>
+                    </div>
+                  )}
                   <div className="border-t pt-2 mt-2 flex justify-between">
                     <span className="font-semibold">Toplam</span>
                     <span className="text-xl font-bold">{formatPrice(total)}</span>
@@ -877,10 +1054,16 @@ function CheckoutContent() {
                 >
                   {isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isCodSelected ? (
+                    <Wallet className="h-4 w-4" />
                   ) : (
                     <CreditCard className="h-4 w-4" />
                   )}
-                  {isPending ? "İşleniyor..." : "Güvenli Ödemeye Geç"}
+                  {isPending
+                    ? "İşleniyor..."
+                    : isCodSelected
+                    ? "Siparişi Oluştur"
+                    : "Güvenli Ödemeye Geç"}
                 </Button>
 
                 <Link
@@ -933,8 +1116,8 @@ function CheckoutContent() {
             onClick={handlePlaceOrder}
             disabled={isPending || !canCheckout}
           >
-            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-            {isPending ? "İşleniyor..." : "Güvenli Ödemeye Geç"}
+            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : isCodSelected ? <Wallet className="h-4 w-4" /> : <CreditCard className="h-4 w-4" />}
+            {isPending ? "İşleniyor..." : isCodSelected ? "Siparişi Oluştur" : "Güvenli Ödemeye Geç"}
           </Button>
         </div>
       </div>

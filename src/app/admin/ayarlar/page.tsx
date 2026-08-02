@@ -35,6 +35,12 @@ const DEFAULT_SETTINGS = [
   { key: "meta_description", label: "Ana Sayfa Meta Açıklama", type: "textarea", defaultValue: "" },
   { key: "newsletter_welcome_coupon_enabled", label: "Newsletter Hoşgeldin Kuponu Aktif", type: "checkbox", defaultValue: "false" },
   { key: "newsletter_welcome_coupon_code", label: "Newsletter Hoşgeldin Kupon Kodu", type: "text", defaultValue: "HOSGELDIN10" },
+  { key: "cod_enabled", label: "Kapıda Ödeme Aktif", type: "checkbox", defaultValue: "false" },
+  { key: "cod_fee", label: "Kapıda Ödeme Hizmet Bedeli (₺)", type: "number", defaultValue: "0" },
+  { key: "cod_min_amount", label: "Kapıda Ödeme Min. Sepet Tutarı (₺, 0 = sınırsız)", type: "number", defaultValue: "0" },
+  { key: "cod_max_amount", label: "Kapıda Ödeme Maks. Sepet Tutarı (₺, 0 = sınırsız)", type: "number", defaultValue: "0" },
+  { key: "cod_online_discount_percent", label: "Online Ödeme İndirimi (%, kapıda ödemeyi caydırmak için)", type: "number", defaultValue: "0" },
+  { key: "cod_whatsapp_confirmation", label: "Kapıda Ödeme WhatsApp Onayı Aktif", type: "checkbox", defaultValue: "true" },
 ] as const satisfies readonly SettingDefinition[];
 
 export default function AdminSettingsPage() {

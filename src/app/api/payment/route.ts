@@ -3,6 +3,52 @@ import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayTRToken, normalizePayTRUserIp, PayTRError } from "@/lib/paytr";
+import { sendCodConfirmationTemplate } from "@/lib/whatsapp";
+import { sendOrderConfirmationEmail } from "@/lib/email";
+
+interface CodSettings {
+  enabled: boolean;
+  fee: number;
+  minAmount: number;
+  maxAmount: number;
+  onlineDiscountPercent: number;
+  whatsappConfirmation: boolean;
+}
+
+function parseNumber(value: unknown, fallback = 0): number {
+  const n = typeof value === "number" ? value : parseFloat(String(value ?? ""));
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function parseBool(value: unknown): boolean {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
+
+async function loadCodSettings(
+  adminClient: ReturnType<typeof createAdminClient>
+): Promise<CodSettings> {
+  const { data } = await adminClient
+    .from("site_settings")
+    .select("key, value")
+    .in("key", [
+      "cod_enabled",
+      "cod_fee",
+      "cod_min_amount",
+      "cod_max_amount",
+      "cod_online_discount_percent",
+      "cod_whatsapp_confirmation",
+    ]);
+
+  const map = Object.fromEntries((data || []).map((r) => [r.key, r.value]));
+  return {
+    enabled: parseBool(map.cod_enabled),
+    fee: parseNumber(map.cod_fee),
+    minAmount: parseNumber(map.cod_min_amount),
+    maxAmount: parseNumber(map.cod_max_amount),
+    onlineDiscountPercent: parseNumber(map.cod_online_discount_percent),
+    whatsappConfirmation: map.cod_whatsapp_confirmation === undefined ? true : parseBool(map.cod_whatsapp_confirmation),
+  };
+}
 
 function buildOrderNumberFromIdempotencyKey(key: string): string {
   const now = new Date();
@@ -35,6 +81,9 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { addressId, guestAddress, items, shippingCompanyId, couponCode, notes, idempotencyKey, invoice } = body;
+    const paymentMethod = body.paymentMethod === "cash_on_delivery" ? "cash_on_delivery" : "credit_card";
+    const codPaymentType = body.codPaymentType === "card" ? "card" : "cash";
+    const isCod = paymentMethod === "cash_on_delivery";
 
     const normalizedIdempotencyKey = typeof idempotencyKey === "string" ? idempotencyKey.trim() : "";
     if (!normalizedIdempotencyKey) {
@@ -56,7 +105,7 @@ export async function POST(request: NextRequest) {
 
     const { data: products } = await adminClient
       .from("products")
-      .select("id, price, compare_at_price, stock_quantity, name")
+      .select("id, price, compare_at_price, stock_quantity, name, cod_enabled")
       .in("id", productIds);
 
     let variants: { id: string; price: number; stock_quantity: number }[] = [];
@@ -162,12 +211,47 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const calculatedTotal = calculatedSubtotal - calculatedDiscount + calculatedShipping;
+    // === KAPIDA ÖDEME UYGUNLUK & ÜCRET / ONLINE İNDİRİM ===
+    const codSettings = await loadCodSettings(adminClient);
+    let codFee = 0;
+    let onlineDiscount = 0;
+
+    if (isCod) {
+      if (!codSettings.enabled) {
+        return NextResponse.json({ error: "Kapıda ödeme şu anda kullanılamıyor." }, { status: 400 });
+      }
+      if (codSettings.minAmount > 0 && calculatedSubtotal < codSettings.minAmount) {
+        return NextResponse.json(
+          { error: `Kapıda ödeme için minimum sepet tutarı ${codSettings.minAmount.toLocaleString("tr-TR")} ₺.` },
+          { status: 400 }
+        );
+      }
+      if (codSettings.maxAmount > 0 && calculatedSubtotal > codSettings.maxAmount) {
+        return NextResponse.json(
+          { error: `Kapıda ödeme için maksimum sepet tutarı ${codSettings.maxAmount.toLocaleString("tr-TR")} ₺.` },
+          { status: 400 }
+        );
+      }
+      const codDisabled = (products || []).filter((p) => p.cod_enabled === false);
+      if (codDisabled.length > 0) {
+        return NextResponse.json(
+          { error: "Sepetinizdeki bazı ürünler kapıda ödemeye uygun değil. Lütfen online ödeme seçin." },
+          { status: 400 }
+        );
+      }
+      codFee = codSettings.fee > 0 ? codSettings.fee : 0;
+    } else if (codSettings.onlineDiscountPercent > 0) {
+      onlineDiscount = Math.round(calculatedSubtotal * codSettings.onlineDiscountPercent) / 100;
+      onlineDiscount = Math.min(onlineDiscount, calculatedSubtotal - calculatedDiscount);
+    }
+
+    const calculatedTotal =
+      calculatedSubtotal - calculatedDiscount - onlineDiscount + calculatedShipping + codFee;
 
     // Use server-calculated values (ignore client values)
     const subtotal = calculatedSubtotal;
     const shipping = calculatedShipping;
-    const discount = calculatedDiscount;
+    const discount = calculatedDiscount + onlineDiscount;
     const total = calculatedTotal;
 
     let shippingAddressJson: Record<string, string>;
@@ -320,12 +404,15 @@ export async function POST(request: NextRequest) {
         order_number: orderNumber,
         status: "pending",
         payment_status: "pending",
-        payment_method: "credit_card",
+        payment_method: paymentMethod,
         cargo_company: shippingCompany.name,
         subtotal,
         shipping_cost: shipping,
         discount_amount: discount || 0,
         total,
+        cod_fee: isCod ? codFee : 0,
+        cod_payment_type: isCod ? codPaymentType : null,
+        cod_confirmation_status: isCod ? "pending" : null,
         shipping_address_json: shippingAddressJson,
         billing_address_json: billingAddressJson,
         notes: notes || null,
@@ -341,6 +428,16 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (existingOrder) {
+        // Kapıda ödeme siparişinde PayTR token'ı üretilmez; mevcut siparişi döndür.
+        if (isCod) {
+          return NextResponse.json({
+            success: true,
+            cod: true,
+            orderId: existingOrder.id,
+            orderNumber: existingOrder.order_number,
+          });
+        }
+
         // If the previous attempt failed or was cancelled, reopen it so PayTR accepts a new token.
         const isStale =
           existingOrder.payment_status === "failed" ||
@@ -412,6 +509,67 @@ export async function POST(request: NextRequest) {
         { error: orderItemsError.message || "Sipariş ürünleri kaydedilemedi" },
         { status: 500 }
       );
+    }
+
+    // === KAPIDA ÖDEME: PayTR yok, WhatsApp onayı gönder ===
+    if (isCod) {
+      // Stok düş (kapıda ödeme siparişi gerçek sipariştir).
+      for (const item of validatedItems) {
+        await adminClient.rpc("decrement_stock", {
+          p_product_id: item.product_id,
+          p_quantity: item.quantity,
+        });
+      }
+
+      // WhatsApp onay mesajı (env yapılandırıldıysa).
+      if (codSettings.whatsappConfirmation) {
+        const paymentTypeLabel = codPaymentType === "card" ? "Kredi Kartı (kapıda)" : "Nakit (kapıda)";
+        const result = await sendCodConfirmationTemplate({
+          toPhone: userPhone,
+          customerName: userName,
+          orderNumber,
+          paymentTypeLabel,
+          total,
+        });
+        if (result.ok) {
+          await adminClient
+            .from("orders")
+            .update({
+              cod_whatsapp_message_id: result.messageId,
+              cod_whatsapp_sent_at: new Date().toISOString(),
+            })
+            .eq("id", order.id);
+        } else {
+          console.warn("[COD] WhatsApp onay gönderilemedi:", result.error);
+        }
+      }
+
+      // Sipariş onay e-postası.
+      try {
+        await sendOrderConfirmationEmail(userEmail, {
+          firstName: userName,
+          orderNumber,
+          orderId: order.id,
+          items: validatedItems.map((i) => ({
+            name: i.name,
+            quantity: i.quantity,
+            price: i.price,
+          })),
+          subtotal,
+          shippingCost: shipping,
+          discount: discount || 0,
+          total,
+        });
+      } catch (emailErr) {
+        console.warn("[COD] Onay e-postası gönderilemedi:", emailErr);
+      }
+
+      return NextResponse.json({
+        success: true,
+        cod: true,
+        orderId: order.id,
+        orderNumber,
+      });
     }
 
     // Get user IP

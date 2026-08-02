@@ -51,7 +51,8 @@ export default async function PaymentResultPage({
     typeof orderId === "string" &&
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId);
   const status = params.status || "success";
-  const isSuccess = status === "success";
+  const isCod = status === "cod";
+  const isSuccess = status === "success" || isCod;
 
   let order: {
     id: string;
@@ -169,6 +170,17 @@ export default async function PaymentResultPage({
               {isLoggedIn ? "hesabım sayfasından" : "sipariş takip sayfasından"}{" "}
               takip edebilirsiniz.
             </p>
+
+            {isCod && (
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mt-5 max-w-md mx-auto text-left">
+                <p className="text-sm font-semibold text-green-800">Kapıda Ödeme — WhatsApp Onayı</p>
+                <p className="text-sm text-green-700 mt-1">
+                  Siparişinizi onaylamanız için WhatsApp numaranıza bir mesaj gönderdik.
+                  Lütfen mesajdaki <strong>“Onaylıyorum”</strong> butonuna dokunun; siparişiniz
+                  onaylandıktan sonra kargoya verilecektir.
+                </p>
+              </div>
+            )}
 
             {order && (
               <div className="bg-white border rounded-2xl p-5 sm:p-6 mt-7 text-left shadow-sm">

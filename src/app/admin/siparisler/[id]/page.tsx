@@ -7,6 +7,9 @@ import {
   ORDER_STATUS_COLORS,
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_COLORS,
+  PAYMENT_METHOD_LABELS,
+  COD_CONFIRMATION_LABELS,
+  COD_CONFIRMATION_COLORS,
 } from "@/constants";
 import { ArrowLeft, MapPin, Phone, Mail, Package, FileText } from "lucide-react";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
@@ -273,8 +276,38 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             <div className="text-sm space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Yöntem</span>
-                <span className="font-medium">{order.payment_method || "—"}</span>
+                <span className="font-medium">
+                  {PAYMENT_METHOD_LABELS[order.payment_method] || order.payment_method || "—"}
+                </span>
               </div>
+              {order.payment_method === "cash_on_delivery" && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Kapıda Ödeme</span>
+                    <span
+                      className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                        COD_CONFIRMATION_COLORS[order.cod_confirmation_status || "pending"] || "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {COD_CONFIRMATION_LABELS[order.cod_confirmation_status || "pending"] || "Onay Bekliyor"}
+                    </span>
+                  </div>
+                  {order.cod_payment_type && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Ödeme Tipi</span>
+                      <span className="font-medium">
+                        {order.cod_payment_type === "card" ? "Kredi Kartı" : "Nakit"}
+                      </span>
+                    </div>
+                  )}
+                  {Number(order.cod_fee ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Kapıda Ödeme Bedeli</span>
+                      <span className="font-medium">{formatPrice(Number(order.cod_fee))}</span>
+                    </div>
+                  )}
+                </>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Durum</span>
                 <span

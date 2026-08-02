@@ -69,6 +69,7 @@ export interface Product {
   weight: number | null;
   is_active: boolean;
   is_featured: boolean;
+  cod_enabled?: boolean;
   category_id: string;
   meta_title: string | null;
   meta_description: string | null;

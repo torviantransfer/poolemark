@@ -6,6 +6,8 @@ import {
   ORDER_STATUS_COLORS,
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_COLORS,
+  COD_CONFIRMATION_LABELS,
+  COD_CONFIRMATION_COLORS,
 } from "@/constants";
 import { ShoppingCart, Eye } from "lucide-react";
 import { AdminSearchForm } from "@/components/admin/search-form";
@@ -40,11 +42,21 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   if (search) query = query.ilike("order_number", `%${search}%`);
 
   // "abandoned" = ödeme yarıda bırakılmış (PayTR'a gidildi ama kart girilmedi / iframe kapatıldı).
-  // Diğer tüm sekmelerde bu kayıtları gizle, sadece "Yarım Bırakılan" sekmesinde göster.
+  // Kapıda ödeme siparişleri de payment_status='pending' taşır; bunları "yarım bırakılan"
+  // olarak SAYMA — ayrı bir akış. Diğer sekmelerde ise kapıda ödeme siparişleri görünmeli.
   if (status === "abandoned") {
-    query = query.eq("payment_status", "pending");
+    query = query
+      .eq("payment_status", "pending")
+      .neq("payment_method", "cash_on_delivery");
+  } else if (status === "cod_pending") {
+    query = query
+      .eq("payment_method", "cash_on_delivery")
+      .eq("cod_confirmation_status", "pending");
   } else {
-    query = query.neq("payment_status", "pending");
+    // Yarım bırakılmış (pending & kapıda değil) kayıtları gizle; kapıda ödemeleri göster.
+    query = query.or(
+      "payment_status.neq.pending,payment_method.eq.cash_on_delivery"
+    );
     if (status !== "all") query = query.eq("status", status);
   }
 
@@ -55,7 +67,15 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   const { count: abandonedCount } = await supabase
     .from("orders")
     .select("id", { count: "exact", head: true })
-    .eq("payment_status", "pending");
+    .eq("payment_status", "pending")
+    .neq("payment_method", "cash_on_delivery");
+
+  // Kapıda ödeme onayı bekleyen siparişler.
+  const { count: codPendingCount } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("payment_method", "cash_on_delivery")
+    .eq("cod_confirmation_status", "pending");
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
@@ -74,6 +94,17 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               </Link>
             </>
           )}
+          {status !== "cod_pending" && (codPendingCount || 0) > 0 && (
+            <>
+              {" "}·{" "}
+              <Link
+                href="/admin/siparisler?status=cod_pending"
+                className="text-emerald-600 hover:underline underline-offset-4"
+              >
+                {codPendingCount} kapıda ödeme onay bekliyor
+              </Link>
+            </>
+          )}
         </p>
       </div>
 
@@ -88,6 +119,10 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               { value: "shipped", label: "Kargoda" },
               { value: "delivered", label: "Teslim" },
               { value: "cancelled", label: "İptal" },
+              {
+                value: "cod_pending",
+                label: `Kapıda Onay Bekliyor${(codPendingCount || 0) > 0 ? ` (${codPendingCount})` : ""}`,
+              },
               {
                 value: "abandoned",
                 label: `Yarım Bırakılan${(abandonedCount || 0) > 0 ? ` (${abandonedCount})` : ""}`,
@@ -174,6 +209,15 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                       >
                         {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
                       </span>
+                      {order.payment_method === "cash_on_delivery" && (
+                        <span
+                          className={`mt-1 flex w-fit px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                            COD_CONFIRMATION_COLORS[order.cod_confirmation_status || "pending"] || "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          Kapıda · {COD_CONFIRMATION_LABELS[order.cod_confirmation_status || "pending"] || "Onay Bekliyor"}
+                        </span>
+                      )}
                     </td>
                     <td className="px-5 py-3">
                       <span
