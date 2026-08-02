@@ -68,12 +68,37 @@ export async function POST(request: NextRequest) {
       return new NextResponse("OK", { status: 200 });
     }
 
+    // TEŞHİS: gelen mesajların ham özetini logla.
+    Sentry.captureMessage(
+      `[WhatsApp Webhook] ${messages.length} mesaj alındı`,
+      {
+        level: "info",
+        extra: {
+          messages: messages.map((m) => ({
+            from: m.from,
+            type: m.type,
+            contextId: m.context?.id,
+            buttonText: m.button?.text,
+            buttonPayload: m.button?.payload,
+            interactiveTitle: m.interactive?.button_reply?.title,
+            interactiveId: m.interactive?.button_reply?.id,
+          })),
+        },
+      }
+    );
+
     const supabase = createAdminClient();
 
     for (const message of messages) {
       // Onay mesajımıza verilen yanıt: context.id = bizim gönderdiğimiz mesaj id'si.
       const originalMessageId = message.context?.id;
-      if (!originalMessageId) continue;
+      if (!originalMessageId) {
+        Sentry.captureMessage("[WhatsApp Webhook] context.id yok — yanıt eşleştirilemedi", {
+          level: "warning",
+          extra: { from: message.from, type: message.type },
+        });
+        continue;
+      }
 
       const replyText =
         message.button?.text ||
@@ -83,7 +108,13 @@ export async function POST(request: NextRequest) {
         "";
 
       const decision = classifyReply(replyText);
-      if (!decision) continue;
+      if (!decision) {
+        Sentry.captureMessage("[WhatsApp Webhook] yanıt sınıflandırılamadı", {
+          level: "warning",
+          extra: { replyText, originalMessageId },
+        });
+        continue;
+      }
 
       const { data: order } = await supabase
         .from("orders")
@@ -91,7 +122,13 @@ export async function POST(request: NextRequest) {
         .eq("cod_whatsapp_message_id", originalMessageId)
         .maybeSingle();
 
-      if (!order) continue;
+      if (!order) {
+        Sentry.captureMessage("[WhatsApp Webhook] context.id ile eşleşen sipariş yok", {
+          level: "warning",
+          extra: { originalMessageId, decision },
+        });
+        continue;
+      }
       // Zaten işlenmişse tekrar dokunma.
       if (order.cod_confirmation_status && order.cod_confirmation_status !== "pending") continue;
 
