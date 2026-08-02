@@ -30,12 +30,15 @@ import { gaRemoveFromCart } from "@/lib/ga";
 export function MiniCart({ transparent = false }: { transparent?: boolean }) {
   const { items, itemCount, subtotal, updateQuantity, removeItem, mounted } = useCart();
   const [open, setOpen] = useState(false);
+  const [codMode, setCodMode] = useState(false);
   const [codEnabled, setCodEnabled] = useState(false);
   const [codFee, setCodFee] = useState(0);
 
-  // Ürün sayfasındaki "Kapıda Ödeme" butonu bu olayla sepeti açar.
+  // Ürün sayfasındaki butonlar bu olayla sepeti açar. detail.cod = kapıda ödeme modu.
   useEffect(() => {
-    function handleOpen() {
+    function handleOpen(e: Event) {
+      const detail = (e as CustomEvent<{ cod?: boolean }>).detail;
+      setCodMode(!!detail?.cod);
       setOpen(true);
     }
     window.addEventListener("open-mini-cart", handleOpen);
@@ -68,7 +71,13 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) setCodMode(false);
+      }}
+    >
       <SheetTrigger
         aria-label="Sepeti aç"
         className={cn(
@@ -286,38 +295,76 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
 
             {/* Footer */}
             <div className="shrink-0 border-t bg-white px-4 pt-4 pb-5 space-y-3">
-              {/* Toplam */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Ara Toplam</span>
-                <span className="text-xl font-bold text-foreground tabular-nums">
-                  {formatPrice(subtotal)}
-                </span>
+              {/* Tutarlar */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Ara Toplam</span>
+                  <span
+                    className={cn(
+                      "text-foreground tabular-nums",
+                      codMode && codFee > 0 ? "text-sm font-semibold" : "text-xl font-bold"
+                    )}
+                  >
+                    {formatPrice(subtotal)}
+                  </span>
+                </div>
+                {codMode && codFee > 0 && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Kapıda Ödeme Bedeli</span>
+                      <span className="text-sm font-semibold text-foreground tabular-nums">
+                        +{formatPrice(codFee)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between border-t pt-1.5">
+                      <span className="text-sm font-semibold text-foreground">Genel Toplam</span>
+                      <span className="text-xl font-bold text-foreground tabular-nums">
+                        {formatPrice(subtotal + codFee)}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* Ödemeye geç — ana CTA */}
-              <Button
-                render={<Link href="/checkout" onClick={() => setOpen(false)} />}
-                className="w-full h-12 text-base gap-2 rounded-xl"
-              >
-                Ödemeye Geç
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-
-              {/* Kapıda ödeme — ikincil CTA */}
-              {codEnabled && (
+              {codMode ? (
                 <>
+                  {/* Kapıda ödeme — ana CTA */}
                   <Button
-                    variant="outline"
                     render={<Link href="/checkout?pay=cod" onClick={() => setOpen(false)} />}
-                    className="w-full h-11 gap-2 rounded-xl border-green-300 text-green-700 hover:bg-green-50"
+                    className="w-full h-12 text-base gap-2 rounded-xl"
                   >
                     <Wallet className="h-4 w-4" />
                     Kapıda Ödeme ile Devam Et
                   </Button>
                   {codFee > 0 && (
-                    <p className="text-[11px] leading-snug text-center text-muted-foreground bg-secondary/40 rounded-lg px-3 py-2">
-                      💡 Online öderseniz <strong>{formatPrice(codFee)}</strong> kapıda ödeme masrafını ödemezsiniz.
+                    <p className="text-[11px] leading-relaxed text-center text-muted-foreground bg-secondary/40 rounded-lg px-3 py-2">
+                      Kredi/banka kartı ile online ödemeyi tercih ederseniz{" "}
+                      <strong className="text-foreground">{formatPrice(codFee)}</strong> tutarındaki
+                      kapıda ödeme hizmet bedeli tahsil edilmez.
                     </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Ödemeye geç — ana CTA */}
+                  <Button
+                    render={<Link href="/checkout" onClick={() => setOpen(false)} />}
+                    className="w-full h-12 text-base gap-2 rounded-xl"
+                  >
+                    Ödemeye Geç
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+
+                  {/* Kapıda ödeme — ikincil CTA */}
+                  {codEnabled && (
+                    <Button
+                      variant="outline"
+                      render={<Link href="/checkout?pay=cod" onClick={() => setOpen(false)} />}
+                      className="w-full h-11 gap-2 rounded-xl border-green-300 text-green-700 hover:bg-green-50"
+                    >
+                      <Wallet className="h-4 w-4" />
+                      Kapıda Ödeme ile Devam Et
+                    </Button>
                   )}
                 </>
               )}

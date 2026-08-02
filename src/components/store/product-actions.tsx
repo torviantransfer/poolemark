@@ -142,6 +142,7 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
         onClick: () => router.push("/sepet"),
       },
     });
+    window.dispatchEvent(new CustomEvent("open-mini-cart", { detail: { cod: false } }));
   }
 
   function handleBuyNow() {
@@ -199,7 +200,7 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
     trackSiteEvent("add_to_cart", {
       metadata: { product_id: product.id, value: currentPrice * quantity, source: "cod_buy" },
     });
-    window.dispatchEvent(new CustomEvent("open-mini-cart"));
+    window.dispatchEvent(new CustomEvent("open-mini-cart", { detail: { cod: true } }));
   }
 
   function handleWhatsApp() {
