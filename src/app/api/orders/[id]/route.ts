@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendShippedEmail, sendOrderConfirmationEmail } from "@/lib/email";
+import { sendShippedTemplate } from "@/lib/whatsapp";
 
 export async function PATCH(
   request: NextRequest,
@@ -143,6 +144,24 @@ export async function PATCH(
           trackingNumber: newTracking,
           trackingUrl: trackingUrl || undefined,
         });
+      }
+
+      // WhatsApp "kargoya verildi" bilgilendirmesi (onaylı template gerekir).
+      const shippingJson = currentOrder.shipping_address_json as Record<string, string> | null;
+      const recipientPhone = shippingJson?.phone || "";
+      if (recipientPhone) {
+        try {
+          await sendShippedTemplate({
+            toPhone: recipientPhone,
+            customerName: recipientName,
+            orderNumber: currentOrder.order_number,
+            cargoCompany: newCompany,
+            trackingNumber: newTracking,
+            trackingUrl: trackingUrl || "",
+          });
+        } catch (waErr) {
+          console.warn("[Kargo] WhatsApp bilgilendirmesi gönderilemedi:", waErr);
+        }
       }
     }
 

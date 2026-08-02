@@ -106,6 +106,8 @@ function readWhatsAppEnv() {
     accessToken: (process.env.WHATSAPP_ACCESS_TOKEN || "").trim(),
     template: (process.env.WHATSAPP_ORDER_CONFIRM_TEMPLATE || "siparis_onay").trim(),
     templateLang: (process.env.WHATSAPP_ORDER_CONFIRM_TEMPLATE_LANG || "tr").trim(),
+    shippedTemplate: (process.env.WHATSAPP_SHIPPED_TEMPLATE || "kargo_bilgi").trim(),
+    shippedTemplateLang: (process.env.WHATSAPP_SHIPPED_TEMPLATE_LANG || "tr").trim(),
   };
 }
 
@@ -118,8 +120,9 @@ interface CodConfirmationTemplateParams {
   toPhone: string;
   customerName: string;
   orderNumber: string;
-  paymentTypeLabel: string; // "Nakit" | "Kredi Kartı"
+  itemSummary: string; // "2 adet"
   total: number;
+  deliveryLocation: string; // "Muratpaşa / Antalya"
 }
 
 /**
@@ -161,8 +164,9 @@ export async function sendCodConfirmationTemplate(
           parameters: [
             { type: "text", text: params.customerName || "Müşterimiz" },
             { type: "text", text: params.orderNumber },
-            { type: "text", text: params.paymentTypeLabel },
+            { type: "text", text: params.itemSummary },
             { type: "text", text: totalText },
+            { type: "text", text: params.deliveryLocation || "-" },
           ],
         },
       ],
@@ -198,5 +202,128 @@ export async function sendCodConfirmationTemplate(
     return { ok: true, messageId: data.messages?.[0]?.id ?? null };
   } catch (err) {
     return { ok: false, messageId: null, error: String(err) };
+  }
+}
+
+/**
+ * 24 saatlik müşteri hizmetleri penceresi içinde düz metin (session) mesajı gönderir.
+ * Template gerektirmez; müşteri butona yanıt verdikten hemen sonra bilgilendirme için kullanılır.
+ */
+export async function sendWhatsAppText(
+  toPhone: string,
+  text: string
+): Promise<{ ok: boolean; error?: string }> {
+  const { phoneNumberId, accessToken } = readWhatsAppEnv();
+
+  if (!phoneNumberId || !accessToken) {
+    return { ok: false, error: "not_configured" };
+  }
+
+  const to = normalizePhoneForWhatsApp(toPhone);
+  if (!to) {
+    return { ok: false, error: "invalid_phone" };
+  }
+
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/${WHATSAPP_GRAPH_VERSION}/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to,
+          type: "text",
+          text: { body: text },
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+      return { ok: false, error: data.error?.message || `http_${res.status}` };
+    }
+
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: String(err) };
+  }
+}
+
+interface ShippedTemplateParams {
+  toPhone: string;
+  customerName: string;
+  orderNumber: string;
+  cargoCompany: string;
+  trackingNumber: string;
+  trackingUrl: string;
+}
+
+/**
+ * "Kargoya verildi" bilgilendirme template'ini gönderir.
+ * 24 saatlik pencere dışında gönderileceği için onaylı template zorunludur.
+ * Template'te 5 gövde parametresi olmalı:
+ * {{1}} ad, {{2}} sipariş no, {{3}} kargo firması, {{4}} takip no, {{5}} takip linki.
+ */
+export async function sendShippedTemplate(
+  params: ShippedTemplateParams
+): Promise<{ ok: boolean; error?: string }> {
+  const { phoneNumberId, accessToken, shippedTemplate, shippedTemplateLang } = readWhatsAppEnv();
+
+  if (!phoneNumberId || !accessToken) {
+    return { ok: false, error: "not_configured" };
+  }
+
+  const to = normalizePhoneForWhatsApp(params.toPhone);
+  if (!to) {
+    return { ok: false, error: "invalid_phone" };
+  }
+
+  const body = {
+    messaging_product: "whatsapp",
+    to,
+    type: "template",
+    template: {
+      name: shippedTemplate,
+      language: { code: shippedTemplateLang },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: params.customerName || "Müşterimiz" },
+            { type: "text", text: params.orderNumber },
+            { type: "text", text: params.cargoCompany || "-" },
+            { type: "text", text: params.trackingNumber || "-" },
+            { type: "text", text: params.trackingUrl || "-" },
+          ],
+        },
+      ],
+    },
+  };
+
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/${WHATSAPP_GRAPH_VERSION}/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+      return { ok: false, error: data.error?.message || `http_${res.status}` };
+    }
+
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: String(err) };
   }
 }

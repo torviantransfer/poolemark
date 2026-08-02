@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendWhatsAppText } from "@/lib/whatsapp";
 
 // Meta webhook doğrulaması (GET) — panelde Callback URL kaydedilirken çağrılır.
 export async function GET(request: NextRequest) {
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
 
       const { data: order } = await supabase
         .from("orders")
-        .select("id, cod_confirmation_status")
+        .select("id, order_number, cod_confirmation_status")
         .eq("cod_whatsapp_message_id", originalMessageId)
         .maybeSingle();
 
@@ -84,6 +85,19 @@ export async function POST(request: NextRequest) {
           .from("orders")
           .update({ cod_confirmation_status: "rejected", status: "cancelled" })
           .eq("id", order.id);
+      }
+
+      // Müşteriye bilgilendirme yanıtı (24 saatlik pencere içinde, template gerekmez).
+      if (message.from) {
+        const replyMessage =
+          decision === "confirmed"
+            ? `Teşekkür ederiz! ${order.order_number} numaralı kapıda ödemeli siparişiniz onaylandı ve hazırlanmaya başlandı. Kargoya verildiğinde sizi ayrıca bilgilendireceğiz.`
+            : `${order.order_number} numaralı siparişiniz talebiniz üzerine iptal edilmiştir. Fikir değiştirirseniz veya yardıma ihtiyacınız olursa bu mesaja yanıt yazabilirsiniz.`;
+        try {
+          await sendWhatsAppText(message.from, replyMessage);
+        } catch (replyErr) {
+          console.warn("[WhatsApp Webhook] bilgilendirme yanıtı gönderilemedi:", replyErr);
+        }
       }
     }
 

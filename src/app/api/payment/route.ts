@@ -523,13 +523,15 @@ export async function POST(request: NextRequest) {
 
       // WhatsApp onay mesajı (env yapılandırıldıysa).
       if (codSettings.whatsappConfirmation) {
-        const paymentTypeLabel = codPaymentType === "card" ? "Kredi Kartı (kapıda)" : "Nakit (kapıda)";
+        const itemSummary = `${validatedItems.reduce((s, i) => s + i.quantity, 0)} adet`;
+        const deliveryLocation = `${shippingAddressJson.district} / ${shippingAddressJson.city}`;
         const result = await sendCodConfirmationTemplate({
           toPhone: userPhone,
           customerName: userName,
           orderNumber,
-          paymentTypeLabel,
+          itemSummary,
           total,
+          deliveryLocation,
         });
         if (result.ok) {
           await adminClient
