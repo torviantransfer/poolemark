@@ -141,6 +141,12 @@ function CheckoutContent() {
   const total = subtotal + shipping - couponDiscount - onlineDiscount + codFee;
   const kdv = total * 20 / 120; // Fiyatlar KDV dahil
 
+  // Ürün/sepet sayfasından "?pay=cod" ile gelindiyse kapıda ödemeyi ön-seç.
+  const wantsCod = searchParams.get("pay") === "cod";
+  useEffect(() => {
+    if (wantsCod && codEligible) setPaymentMethod("cash_on_delivery");
+  }, [wantsCod, codEligible]);
+
   // Checkout'a kupon koduyla gelinmişse indirim tutarını çek
   useEffect(() => {
     if (!couponCode || subtotal === 0) return;

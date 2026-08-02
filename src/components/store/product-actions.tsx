@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Heart, Minus, Plus, ShoppingBag, Share2, Zap, Shield, CreditCard, Gift } from "lucide-react";
+import { Heart, Minus, Plus, ShoppingBag, Share2, Zap, Shield, CreditCard, Gift, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { useUser } from "@/hooks/use-user";
@@ -35,6 +35,7 @@ function formatVariantName(name: string): string {
 export function ProductActions({ product, disabled, onVariantImageChange }: ProductActionsProps) {
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [codEnabled, setCodEnabled] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(
     product.variants?.[0] ?? null
   );
@@ -56,6 +57,22 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
         setIsFavorite(!!data);
       });
   }, [user, product.id]);
+
+  // Kapıda ödeme global olarak açık mı?
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "cod_enabled")
+      .maybeSingle()
+      .then(({ data }) => {
+        const v = data?.value as unknown;
+        setCodEnabled(v === true || v === "true" || v === 1 || v === "1");
+      });
+  }, []);
+
+  const showCodBadge = codEnabled && product.cod_enabled !== false;
 
   const activeVariant = selectedVariant;
   const currentPrice = activeVariant ? activeVariant.price : product.price;
@@ -162,6 +179,27 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
       }],
     });
     router.push("/checkout");
+  }
+
+  // Kapıda ödeme: ürünü sepete ekle ve sağdan mini sepeti aç.
+  function handleCodBuy() {
+    addItem({
+      product_id: product.id,
+      variant_id: activeVariant?.id ?? null,
+      name: product.name,
+      slug: product.slug,
+      price: currentPrice,
+      compare_at_price: product.compare_at_price ?? null,
+      image: selectedImage,
+      stock_quantity: currentStock,
+      quantity,
+      variant_name: activeVariant?.name ?? null,
+      unit_label: product.unit_label ?? null,
+    });
+    trackSiteEvent("add_to_cart", {
+      metadata: { product_id: product.id, value: currentPrice * quantity, source: "cod_buy" },
+    });
+    window.dispatchEvent(new CustomEvent("open-mini-cart"));
   }
 
   function handleWhatsApp() {
@@ -327,7 +365,17 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
           Hemen Satın Al
         </Button>
       )}
-
+      {/* ── Kapıda ödeme ile al ──────────────────── */}
+      {showCodBadge && !isOutOfStock && (
+        <Button
+          onClick={handleCodBuy}
+          variant="outline"
+          className="w-full h-11 gap-2 rounded-xl border-green-300 text-green-700 font-semibold hover:bg-green-50 text-sm"
+        >
+          <Wallet className="h-4 w-4 shrink-0" />
+          Kapıda Ödeme ile Al
+        </Button>
+      )}
       {/* ── Favori + Paylaş + WhatsApp ───────────────────────── */}
       <div className="flex items-center gap-1">
         <button

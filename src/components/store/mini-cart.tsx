@@ -18,16 +18,46 @@ import {
   X,
   ArrowRight,
   Truck,
+  Wallet,
 } from "lucide-react";
 import { formatPrice } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { gaRemoveFromCart } from "@/lib/ga";
 
 export function MiniCart({ transparent = false }: { transparent?: boolean }) {
   const { items, itemCount, subtotal, updateQuantity, removeItem, mounted } = useCart();
   const [open, setOpen] = useState(false);
+  const [codEnabled, setCodEnabled] = useState(false);
+  const [codFee, setCodFee] = useState(0);
+
+  // Ürün sayfasındaki "Kapıda Ödeme" butonu bu olayla sepeti açar.
+  useEffect(() => {
+    function handleOpen() {
+      setOpen(true);
+    }
+    window.addEventListener("open-mini-cart", handleOpen);
+    return () => window.removeEventListener("open-mini-cart", handleOpen);
+  }, []);
+
+  // Kapıda ödeme ayarları (açık mı + ücret).
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["cod_enabled", "cod_fee"])
+      .then(({ data }) => {
+        if (!data) return;
+        const map = Object.fromEntries(data.map((r) => [r.key, r.value]));
+        const v = map.cod_enabled as unknown;
+        setCodEnabled(v === true || v === "true" || v === 1 || v === "1");
+        const f = typeof map.cod_fee === "number" ? map.cod_fee : parseFloat(String(map.cod_fee ?? ""));
+        setCodFee(Number.isFinite(f) ? f : 0);
+      });
+  }, []);
 
   const FREE_SHIPPING_THRESHOLD = 500;
   const shippingProgress = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
@@ -272,6 +302,25 @@ export function MiniCart({ transparent = false }: { transparent?: boolean }) {
                 Ödemeye Geç
                 <ArrowRight className="h-4 w-4" />
               </Button>
+
+              {/* Kapıda ödeme — ikincil CTA */}
+              {codEnabled && (
+                <>
+                  <Button
+                    variant="outline"
+                    render={<Link href="/checkout?pay=cod" onClick={() => setOpen(false)} />}
+                    className="w-full h-11 gap-2 rounded-xl border-green-300 text-green-700 hover:bg-green-50"
+                  >
+                    <Wallet className="h-4 w-4" />
+                    Kapıda Ödeme ile Devam Et
+                  </Button>
+                  {codFee > 0 && (
+                    <p className="text-[11px] leading-snug text-center text-muted-foreground bg-secondary/40 rounded-lg px-3 py-2">
+                      💡 Online öderseniz <strong>{formatPrice(codFee)}</strong> kapıda ödeme masrafını ödemezsiniz.
+                    </p>
+                  )}
+                </>
+              )}
 
               {/* Sepeti gör — ikincil */}
               <div className="text-center">
