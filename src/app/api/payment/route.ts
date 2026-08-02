@@ -396,6 +396,48 @@ export async function POST(request: NextRequest) {
       billingAddressJson.tax_id = taxId;
     }
 
+    // Ham istemci IP'si (kapıda ödeme sahte sipariş koruması ve kayıt için).
+    const clientIp = (
+      request.headers.get("x-forwarded-for")?.split(",")[0] ||
+      request.headers.get("x-real-ip") ||
+      request.headers.get("cf-connecting-ip") ||
+      ""
+    ).trim();
+
+    // === KAPIDA ÖDEME: sahte sipariş koruması (aynı IP/telefondan 24 saatte en fazla 3) ===
+    if (isCod) {
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      let recentCodCount = 0;
+
+      const { count: byPhone } = await adminClient
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .eq("payment_method", "cash_on_delivery")
+        .gte("created_at", since)
+        .filter("shipping_address_json->>phone", "eq", userPhone);
+      recentCodCount = Math.max(recentCodCount, byPhone || 0);
+
+      if (clientIp) {
+        const { count: byIp } = await adminClient
+          .from("orders")
+          .select("id", { count: "exact", head: true })
+          .eq("payment_method", "cash_on_delivery")
+          .gte("created_at", since)
+          .eq("customer_ip", clientIp);
+        recentCodCount = Math.max(recentCodCount, byIp || 0);
+      }
+
+      if (recentCodCount >= 3) {
+        return NextResponse.json(
+          {
+            error:
+              "Son 24 saatte çok fazla kapıda ödeme siparişi oluşturuldu. Lütfen daha sonra tekrar deneyin veya online ödeme seçin.",
+          },
+          { status: 429 }
+        );
+      }
+    }
+
     // Create order
     const { data: order, error } = await adminClient
       .from("orders")
@@ -414,6 +456,7 @@ export async function POST(request: NextRequest) {
         cod_fee: isCod ? codFee : 0,
         cod_payment_type: isCod ? codPaymentType : null,
         cod_confirmation_status: isCod ? "pending" : null,
+        customer_ip: clientIp || null,
         shipping_address_json: shippingAddressJson,
         billing_address_json: billingAddressJson,
         notes: notes || null,
