@@ -111,8 +111,8 @@ export async function POST(request: NextRequest) {
       if (message.from) {
         const replyMessage =
           decision === "confirmed"
-            ? `Teşekkür ederiz! ${order.order_number} numaralı kapıda ödemeli siparişiniz onaylandı ve hazırlanmaya başlandı. Kargoya verildiğinde sizi ayrıca bilgilendireceğiz.`
-            : `${order.order_number} numaralı siparişiniz talebiniz üzerine iptal edilmiştir. Fikir değiştirirseniz veya yardıma ihtiyacınız olursa bu mesaja yanıt yazabilirsiniz.`;
+            ? `✅ Teşekkür ederiz! 🎉\n\n${order.order_number} numaralı kapıda ödemeli siparişiniz onaylandı ve hazırlanmaya başlandı. 📦\n\n🚚 Siparişiniz kargoya verildiğinde takip numarası ile birlikte sizi buradan tekrar bilgilendireceğiz.\n\n💛 Poolemark'ı tercih ettiğiniz için teşekkür ederiz.`
+            : `❌ ${order.order_number} numaralı siparişiniz talebiniz üzerine iptal edilmiştir.\n\nYanlışlıkla iptal ettiyseniz veya yeniden sipariş vermek isterseniz web sitemizden tekrar sipariş oluşturabilir ya da bu mesaja yazarak bize ulaşabilirsiniz. 🙏\n\n💛 Poolemark`;
         try {
           await sendWhatsAppText(message.from, replyMessage);
         } catch (replyErr) {
