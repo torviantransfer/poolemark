@@ -68,24 +68,21 @@ export async function POST(request: NextRequest) {
       return new NextResponse("OK", { status: 200 });
     }
 
-    // TEŞHİS: gelen mesajların ham özetini logla.
-    Sentry.captureMessage(
-      `[WhatsApp Webhook] ${messages.length} mesaj alındı`,
-      {
-        level: "info",
-        extra: {
-          messages: messages.map((m) => ({
-            from: m.from,
-            type: m.type,
-            contextId: m.context?.id,
-            buttonText: m.button?.text,
-            buttonPayload: m.button?.payload,
-            interactiveTitle: m.interactive?.button_reply?.title,
-            interactiveId: m.interactive?.button_reply?.id,
-          })),
-        },
-      }
-    );
+    // TEŞHİS: gelen mesajların ham özeti. Vercel loglarında görünür.
+    const diagSummary = messages.map((m) => ({
+      from: m.from,
+      type: m.type,
+      contextId: m.context?.id,
+      buttonText: m.button?.text,
+      buttonPayload: m.button?.payload,
+      interactiveTitle: m.interactive?.button_reply?.title,
+      interactiveId: m.interactive?.button_reply?.id,
+    }));
+    console.log("[WhatsApp Webhook] gelen:", JSON.stringify(diagSummary));
+    Sentry.captureMessage(`[WhatsApp Webhook] ${messages.length} mesaj alındı`, {
+      level: "info",
+      extra: { messages: diagSummary },
+    });
 
     const supabase = createAdminClient();
 
