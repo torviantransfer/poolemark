@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWhatsAppText } from "@/lib/whatsapp";
+import * as Sentry from "@sentry/nextjs";
 
 // Meta webhook doğrulaması (GET) — panelde Callback URL kaydedilirken çağrılır.
 export async function GET(request: NextRequest) {
@@ -41,8 +42,27 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
 
-    const messages: IncomingMessage[] =
-      payload?.entry?.[0]?.changes?.[0]?.value?.messages ?? [];
+    const value = payload?.entry?.[0]?.changes?.[0]?.value;
+
+    // Teslim durumu bildirimleri (sent / delivered / read / failed).
+    const statuses: {
+      id?: string;
+      status?: string;
+      recipient_id?: string;
+      errors?: { code?: number; title?: string; message?: string }[];
+    }[] = value?.statuses ?? [];
+
+    for (const st of statuses) {
+      if (st.status === "failed") {
+        const detail = st.errors?.[0];
+        Sentry.captureMessage(
+          `[WhatsApp] Mesaj teslim edilemedi: ${detail?.code ?? "?"} ${detail?.title ?? ""} ${detail?.message ?? ""}`.trim(),
+          { level: "warning", extra: { messageId: st.id, recipient: st.recipient_id } }
+        );
+      }
+    }
+
+    const messages: IncomingMessage[] = value?.messages ?? [];
 
     if (!messages.length) {
       return new NextResponse("OK", { status: 200 });
