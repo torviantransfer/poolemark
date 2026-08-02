@@ -136,12 +136,6 @@ export function ProductActions({ product, disabled, onVariantImageChange }: Prod
         quantity,
       }],
     });
-    toast.success("Ürün sepete eklendi", {
-      action: {
-        label: "Sepete Git",
-        onClick: () => router.push("/sepet"),
-      },
-    });
     window.dispatchEvent(new CustomEvent("open-mini-cart", { detail: { cod: false } }));
   }
 
