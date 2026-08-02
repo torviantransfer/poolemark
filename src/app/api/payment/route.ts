@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import * as Sentry from "@sentry/nextjs";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayTRToken, normalizePayTRUserIp, PayTRError } from "@/lib/paytr";
@@ -543,6 +544,10 @@ export async function POST(request: NextRequest) {
             .eq("id", order.id);
         } else {
           console.warn("[COD] WhatsApp onay gönderilemedi:", result.error);
+          Sentry.captureMessage(`[COD] WhatsApp onay gönderilemedi: ${result.error}`, {
+            level: "warning",
+            extra: { orderNumber, toPhone: userPhone },
+          });
         }
       }
 
