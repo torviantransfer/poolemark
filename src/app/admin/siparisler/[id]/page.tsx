@@ -15,6 +15,7 @@ import { ArrowLeft, MapPin, Phone, Mail, Package, FileText } from "lucide-react"
 import { OrderStatusForm } from "@/components/admin/order-status-form";
 import { WhatsAppReminderButton } from "@/components/admin/whatsapp-reminder-button";
 import { DeleteOrderButton } from "@/components/admin/delete-order-button";
+import { StocadoShipButton } from "@/components/admin/stocado-ship-button";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -85,6 +86,12 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             alreadyRemindedAt={orderExt.reminded_at ?? null}
           />
         )}
+        <StocadoShipButton
+          orderId={order.id}
+          isCod={order.payment_method === "cash_on_delivery"}
+          orderTotal={Number(order.total ?? 0)}
+          existingTracking={order.cargo_tracking_number}
+        />
         <DeleteOrderButton orderId={order.id} />
       </div>
 
