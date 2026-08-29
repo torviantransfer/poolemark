@@ -150,8 +150,10 @@ export async function POST(request: NextRequest) {
 
   // Server-side fallback: read _fbp/_fbc directly from the raw cookie header
   // so we do not accidentally decode/transform values before forwarding to Meta.
-  // The Meta CAPI Parameter Builder SDK sets these cookies with proper appendix
-  // format on the client; they are sent automatically with same-origin requests.
+  // These are the cookies Meta's own fbevents.js pixel sets on the client;
+  // they are sent automatically with same-origin requests. Do NOT trust any
+  // third-party "parameter builder" SDK's cookies here — they rewrite fbc
+  // with a non-standard appendix and trigger Meta's "modified fbclid" diagnostic.
   if (!userData.fbp) {
     const fbpCookie = readRawCookieFromHeader(request, "_fbp");
     if (fbpCookie) userData.fbp = fbpCookie;
