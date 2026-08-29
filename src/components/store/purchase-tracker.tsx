@@ -43,8 +43,11 @@ export function PurchaseTracker({
     if (!orderId) return;
 
     const storageKey = `meta_purchase_${orderId}`;
-    if (typeof window !== "undefined" && sessionStorage.getItem(storageKey)) {
-      return;
+    try {
+      if (sessionStorage.getItem(storageKey)) return;
+    } catch {
+      // sessionStorage erişilemiyor olabilir (bazı mobil WebView'lar) — yine
+      // de devam et, tek riski bu oturumda dedup'ın çalışmaması.
     }
     fired.current = true;
 
@@ -98,8 +101,10 @@ export function PurchaseTracker({
 
     clearCart();
 
-    if (typeof window !== "undefined") {
+    try {
       sessionStorage.setItem(storageKey, "1");
+    } catch {
+      // ignore
     }
   }, [orderId, orderNumber, total, contentIds, contents, userEmail, userPhone, clearCart]);
 

@@ -23,12 +23,17 @@ export function ChunkErrorHandler() {
     return () => window.removeEventListener("error", handleError);
   }, [router]);
 
-  // Sekme tekrar aktif olduğunda router'ı refresh et
+  // Sekme tekrar aktif olduğunda router'ı refresh et.
+  // İstisna: PayTR ödeme iframe'i açıkken refresh etme. Kart ödemesinde
+  // kullanıcı 3D Secure SMS kodunu görmek için uygulamadan kısa süre
+  // ayrılıp geri dönmesi çok yaygın bir akış — o anda refresh tetiklemek
+  // iframe'i/ödeme adımını gereksiz yere kesintiye uğratıyordu (mobilde
+  // "ödeme ekranı donuyor" şikayetlerinin bir kısmı buradan geliyordu).
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        router.refresh();
-      }
+      if (document.visibilityState !== "visible") return;
+      if (document.getElementById("paytriframe")) return;
+      router.refresh();
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);

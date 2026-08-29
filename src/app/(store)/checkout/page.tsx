@@ -88,16 +88,24 @@ function CheckoutContent() {
   const [taxId, setTaxId] = useState("");
   const [idempotencyKey] = useState(() => {
     const SESSION_KEY = "checkout_idempotency_key";
-    if (typeof sessionStorage !== "undefined") {
+    // sessionStorage erişimi bazı mobil uygulama-içi tarayıcılarda (Instagram/
+    // Facebook/TikTok WebView, gizli sekme vb.) SecurityError fırlatabilir.
+    // Bu, ilk render sırasında çalıştığı ve app'te error boundary olmadığı
+    // için sayfayı tamamen boş/donuk bırakabilirdi — bu yüzden try/catch şart.
+    try {
       const existing = sessionStorage.getItem(SESSION_KEY);
       if (existing) return existing;
+    } catch {
+      // ignore — devam edip bellekte üretilmiş anahtarla ilerle
     }
     const newKey =
       typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
         ? crypto.randomUUID()
         : `fallback-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    if (typeof sessionStorage !== "undefined") {
+    try {
       sessionStorage.setItem(SESSION_KEY, newKey);
+    } catch {
+      // ignore — anahtar sadece bu render için bellekte kalır
     }
     return newKey;
   });
@@ -425,8 +433,12 @@ function CheckoutContent() {
 
         // Kapıda ödeme: PayTR yok, sipariş oluştu → sonuç sayfasına yönlendir.
         if (data.cod) {
-          if (typeof sessionStorage !== "undefined") {
+          // Sipariş zaten oluştu — storage temizliği başarısız olsa bile
+          // yönlendirmeyi engellememeli, o yüzden ayrı try/catch içinde.
+          try {
             sessionStorage.removeItem("checkout_idempotency_key");
+          } catch {
+            // ignore
           }
           window.location.assign(`/odeme-sonucu?status=cod&order=${data.orderId}`);
           return;
@@ -437,8 +449,10 @@ function CheckoutContent() {
         // Clear idempotency key so next purchase gets a fresh order number.
         // NOTE: cart is cleared in PurchaseTracker (success page) so that a
         // failed or cancelled payment doesn't wipe the user's cart.
-        if (typeof sessionStorage !== "undefined") {
+        try {
           sessionStorage.removeItem("checkout_idempotency_key");
+        } catch {
+          // ignore
         }
         // Notify presence tracker so admin live-visitors page reflects payment step.
         const w = window as unknown as { pmPresenceUpdate?: (label: string) => void };

@@ -19,23 +19,37 @@ function deriveFunnelStage(path: string | null | undefined): "browsing" | "produ
 
 function getSessionId() {
   const key = "poolemark_presence_session_id";
-  const current = sessionStorage.getItem(key);
-  if (current) return current;
-  const generated = crypto.randomUUID();
-  sessionStorage.setItem(key, generated);
-  return generated;
+  try {
+    const current = sessionStorage.getItem(key);
+    if (current) return current;
+    const generated = crypto.randomUUID();
+    sessionStorage.setItem(key, generated);
+    return generated;
+  } catch {
+    // sessionStorage erişilemiyor (bazı mobil WebView'lar) — bu tab ömrü
+    // boyunca sabit kalan bellek-içi bir id ile devam et.
+    return crypto.randomUUID();
+  }
 }
 
 async function getGeoInfo(): Promise<{ city: string; country: string; region: string }> {
   const cacheKey = "poolemark_geo";
-  const cached = sessionStorage.getItem(cacheKey);
-  if (cached) {
-    try { return JSON.parse(cached); } catch { /* ignore */ }
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      try { return JSON.parse(cached); } catch { /* ignore broken cache */ }
+    }
+  } catch {
+    // ignore storage access errors
   }
   try {
     const res = await fetch("/api/geo");
     const data = await res.json();
-    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    try {
+      sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    } catch {
+      // ignore
+    }
     return data;
   } catch {
     return { city: "", country: "", region: "" };
@@ -51,7 +65,12 @@ type Attribution = {
 
 function detectAttribution(): Attribution {
   const cacheKey = "poolemark_attribution";
-  const cached = sessionStorage.getItem(cacheKey);
+  let cached: string | null = null;
+  try {
+    cached = sessionStorage.getItem(cacheKey);
+  } catch {
+    // ignore storage access errors
+  }
   if (cached) {
     try {
       return JSON.parse(cached) as Attribution;
@@ -111,7 +130,11 @@ function detectAttribution(): Attribution {
     referrerHost,
   };
 
-  sessionStorage.setItem(cacheKey, JSON.stringify(attribution));
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify(attribution));
+  } catch {
+    // ignore
+  }
   return attribution;
 }
 
